@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  app:
+    build: .
+    image: api-your-accounts
+    container_name: api-your-accounts
+    working_dir: /code
+    volumes:
+      - .:/code
+      - ./:/workspace:cached
+    ports:
+      - 8080:8080
+    tty: true
