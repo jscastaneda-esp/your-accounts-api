@@ -6,17 +6,16 @@ package graph
 
 import (
 	"context"
-	"os"
 )
 
 // Ping is the resolver for the ping field.
 func (r *mutationResolver) Ping(ctx context.Context) (string, error) {
-	return "pong" + os.Getenv("TEST"), nil
+	return "mutation", nil
 }
 
 // Ping is the resolver for the ping field.
 func (r *queryResolver) Ping(ctx context.Context) (string, error) {
-	return "pong" + os.Getenv("TEST2"), nil
+	return "query", nil
 }
 
 // Mutation returns MutationResolver implementation.
