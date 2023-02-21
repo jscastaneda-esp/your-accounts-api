@@ -1,8 +1,6 @@
 {
   "name": "API Your Account",
-  "dockerComposeFile": [
-    "./docker-compose.yml"
-  ],
+  "dockerComposeFile": ["./docker-compose.yml"],
   "service": "app",
   "shutdownAction": "stopCompose",
   "workspaceFolder": "/workspace",
@@ -28,7 +26,8 @@
         "GraphQL.vscode-graphql-syntax",
         "mongodb.mongodb-vscode",
         "RapidAPI.vscode-rapidapi-client",
-        "ms-azuretools.vscode-docker"
+        "ms-azuretools.vscode-docker",
+        "bungcip.better-toml"
       ]
     }
   }
