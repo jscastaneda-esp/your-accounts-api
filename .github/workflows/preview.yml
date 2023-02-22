@@ -1,0 +1,49 @@
+name: Deploy Preview
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Preview
+    if: "${{ (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.ref_name, 'main') }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Use Node 16
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - name: Install Railway
+        run: npm i -g @railway/cli
+      - name: Deploy to Railway
+        run: echo "deploy=railway up -e preview -v" >> $GITHUB_OUTPUT
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - env:
+          OUTPUT1: ${{needs.deploy.outputs.deploy}}
+        run: echo "$OUTPUT1"
+
+      # - name: Comment PR
+      #   uses: thollander/actions-comment-pull-request@v2
+      #   if: ${{ steps.vercel-deploy.outputs.DEPLOYMENT_CREATED }}
+      #   with:
+      #     message: |
+      #       This pull request has been deployed to Vercel.
+
+      #       <table>
+      #         <tr>
+      #           <td><strong>✅ Preview:</strong></td>
+      #           <td><a href='${{ steps.vercel-deploy.outputs.PREVIEW_URL }}'>${{ steps.vercel-deploy.outputs.PREVIEW_URL }}</a></td>
+      #         </tr>
+      #         <tr>
+      #           <td><strong>🔍 Inspect:</strong></td>
+      #           <td><a href='${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}'>${{ steps.vercel-deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}</a></td>
+      #         </tr>
+      #       </table>
+      #     GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      #     comment_tag: "vercel-deploy"
