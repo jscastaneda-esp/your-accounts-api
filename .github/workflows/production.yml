@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: ${{ steps.deploy.outputs.PREVIEW_URL }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Use Node 16
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - name: Install Railway
+        run: npm i -g @railway/cli
+      - id: deploy
+        name: Deploy to Railway
+        run: |
+          response=$(railway up -e preview -v)
+          echo "$response"
+          previewUrl=$(echo "$response" | grep "Deployment live at" | sed 's/Deployment live at//' | awk '{print $2}')
+          echo "PREVIEW_URL=$previewUrl" >> $GITHUB_OUTPUT
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

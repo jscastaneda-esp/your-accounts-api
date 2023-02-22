@@ -1,7 +1,6 @@
 name: Deploy Preview
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
       - main
@@ -12,7 +11,7 @@ jobs:
     environment:
       name: Preview
       url: ${{ steps.deploy.outputs.PREVIEW_URL }}
-    if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
+    if: "${{ (!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.ref_name, 'main')) }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -33,6 +32,21 @@ jobs:
           echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      - run: |
-          echo ${{ steps.deploy.outputs.PREVIEW_URL }}
-          echo ${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}
+      - name: Comment PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            This pull request has been deployed to Railway.
+
+            <table>
+              <tr>
+                <td><strong>✅ Preview:</strong></td>
+                <td><a href='${{ steps.deploy.outputs.PREVIEW_URL }}'>${{ steps.deploy.outputs.PREVIEW_URL }}</a></td>
+              </tr>
+              <tr>
+                <td><strong>🔍 Inspect:</strong></td>
+                <td><a href='${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}'>${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}</a></td>
+              </tr>
+            </table>
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          comment_tag: "railway-deploy"

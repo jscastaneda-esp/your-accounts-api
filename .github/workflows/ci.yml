@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# cancel in-progress runs on new commits to same PR (gitub.event.number)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - run: go vet ./...
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: "go.mod"
+          cache: true
+      - run: go get .
+      - run: go test -v -coverprofile=coverage.out ./... > test-results.out
+      - name: Archive test coverage
+        shell: bash
+        run: tar -czf coverage.tar.gz coverage.out
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 3
+          name: coverage-${{ github.run_id }}
+          path: coverage.tar.gz
+      - name: Archive test files
+        if: failure()
+        shell: bash
+        run: tar -czf test-results.tar.gz test-results.out
+      - name: Upload test failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          retention-days: 3
+          name: test-failure-${{ github.run_id }}
+          path: test-results.tar.gz
