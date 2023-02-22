@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: Preview
     if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
+    outputs:
+      deploy: ${{ steps.deploy.outputs.DEPLOY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,7 +23,7 @@ jobs:
       - name: Install Railway
         run: npm i -g @railway/cli
       - name: Deploy to Railway
-        run: echo "deploy=railway up -e preview -v" >> $GITHUB_OUTPUT
+        run: echo '::set-output name=DEPLOY::$(deploy=railway up -e preview -v)'
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       - env:
