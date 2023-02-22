@@ -25,11 +25,12 @@ jobs:
         run: |
           response=$(railway up -e preview -v)
           echo "$response"
+          previewUrl=$(echo "$response" | grep "Deployment live at" | sed 's/Deployment live at//' | awk '{print $2}
           inspectorUrl=$(echo "$response" | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
-          echo $(echo "$response" | grep "Deployment logs available at")
-          echo $(echo "$response" | grep "Deployment logs available at" | sed 's/Deployment logs available at//')
-          echo "$inspectorUrl"
+          echo "PREVIEW_URL=$previewUrl" >> $GITHUB_OUTPUT
           echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      - run: echo ${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}
+      - run: |
+          echo ${{ steps.deploy.outputs.PREVIEW_URL }}
+          echo ${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}
