@@ -23,7 +23,7 @@ jobs:
       - id: deploy
         name: Deploy to Railway
         run: |
-          response=$(deploy=railway up -e preview -v)
+          response=$(railway up -e preview -v)
           echo "$response"
           inspectorUrl=$(echo $response | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
           echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
