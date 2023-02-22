@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: Preview
     if: "${{ !contains(github.event.head_commit.message, '[skip ci]') }}"
-    outputs:
-      deploy: ${{ steps.deploy.outputs.DEPLOY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,13 +20,13 @@ jobs:
           node-version: 16.x
       - name: Install Railway
         run: npm i -g @railway/cli
-      - name: Deploy to Railway
+      - id: deploy
+        name: Deploy to Railway
         run: |
-          respuesta=$(railway up -e preview -v)
-          echo "$respuesta"
-          echo "DEPLOY=$respuesta" >> $GITHUB_OUTPUT
+          response=$(deploy=railway up -e preview -v)
+          echo "$response"
+          inspectorUrl=$(echo $response | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
+          echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      - env:
-          OUTPUT1: ${{needs.deploy.outputs.deploy}}
-        run: echo "$OUTPUT1"
+      - run: echo ${{ steps.deploy.outputs.inspectorUrl }}
