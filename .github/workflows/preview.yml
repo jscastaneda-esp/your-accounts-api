@@ -23,7 +23,9 @@ jobs:
       - name: Install Railway
         run: npm i -g @railway/cli
       - name: Deploy to Railway
-        run: echo '::set-output name=DEPLOY::$(deploy=railway up -e preview -v)'
+        run: |
+          RES=$(deploy=railway up -e preview -v)
+          echo "DEPLOY=$RES" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       - env:
