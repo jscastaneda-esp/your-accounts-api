@@ -29,4 +29,4 @@ jobs:
           echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      - run: echo ${{ steps.deploy.outputs.inspectorUrl }}
+      - run: echo ${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}
