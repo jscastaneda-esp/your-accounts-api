@@ -25,9 +25,9 @@ jobs:
         run: |
           response=$(railway up -e preview -v)
           echo "$response"
-          inspectorUrl=$(echo $response | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
-          echo $(echo $response | grep "Deployment logs available at")
-          echo $(echo $response | grep "Deployment logs available at" | sed 's/Deployment logs available at//')
+          inspectorUrl=$(echo "$response" | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
+          echo $(echo "$response" | grep "Deployment logs available at")
+          echo $(echo "$response" | grep "Deployment logs available at" | sed 's/Deployment logs available at//')
           echo "$inspectorUrl"
           echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
