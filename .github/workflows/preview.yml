@@ -23,11 +23,18 @@ jobs:
         run: npm i -g @railway/cli
       - name: Verify last deploy
         run: railway logs
-      - name: Stop last deploy
-        run: railway down -e preview -v --yes
+      - id: stop-deploy
+        name: Stop last deploy
+        run: |
+          railway down -e preview -v --yes
+          echo "DEPLOYMENT=true" >> $GITHUB_OUTPUT
+      - id: set-deployment
+        name: Set deployed
+        if: failure()
+        run: echo "DEPLOYMENT=true" >> $GITHUB_OUTPUT
       - id: deploy
         name: Deploy to Railway
-        if: success() || failure()
+        if: ${{ steps.set-deployment.outputs.DEPLOYMENT || steps.stop-deploy.outputs.DEPLOYMENT }}
         run: |
           response=$(railway up -e preview -v)
           echo "$response"
@@ -38,6 +45,7 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       - name: Check the deployed service URL
+        if: ${{ steps.set-deployment.outputs.DEPLOYMENT || steps.stop-deploy.outputs.DEPLOYMENT }}
         uses: jtalk/url-health-check-action@v3
         with:
           url: ${{ steps.deploy.outputs.PREVIEW_URL }}
@@ -45,6 +53,7 @@ jobs:
           retry-delay: 300s
           retry-all: true
       - name: Comment PR
+        if: ${{ steps.set-deployment.outputs.DEPLOYMENT || steps.stop-deploy.outputs.DEPLOYMENT }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
