@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -87,7 +88,7 @@ func NewServer() {
 	// Middleware
 	app.Use(logger.New(logger.Config{
 		Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path} | ${error}]\n",
-		TimeFormat: "2006-01-02 15:04:05",
+		TimeFormat: time.DateTime,
 		TimeZone:   "UTC",
 	}))
 	app.Use(cors.New(cors.Config{

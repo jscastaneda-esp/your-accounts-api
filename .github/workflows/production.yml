@@ -30,3 +30,10 @@ jobs:
           echo "PREVIEW_URL=$previewUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      - name: Check the deployed service URL
+        uses: jtalk/url-health-check-action@v3
+        with:
+          url: ${{ steps.deploy.outputs.PREVIEW_URL }}
+          max-attempts: 10
+          retry-delay: 300s
+          retry-all: true
