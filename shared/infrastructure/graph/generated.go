@@ -3,6 +3,7 @@
 package graph
 
 import (
+	"api-your-accounts/shared/infrastructure/graph/model"
 	"bytes"
 	"context"
 	"embed"
@@ -10,6 +11,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -35,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Hello() HelloResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 }
@@ -43,8 +46,18 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Hello struct {
+		ID    func(childComplexity int) int
+		Other func(childComplexity int) int
+	}
+
 	Mutation struct {
 		Ping func(childComplexity int) int
+	}
+
+	Other struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
 	}
 
 	Query struct {
@@ -52,11 +65,14 @@ type ComplexityRoot struct {
 	}
 }
 
+type HelloResolver interface {
+	Other(ctx context.Context, obj *model.Hello) (*model.Other, error)
+}
 type MutationResolver interface {
-	Ping(ctx context.Context) (string, error)
+	Ping(ctx context.Context) (*model.Hello, error)
 }
 type QueryResolver interface {
-	Ping(ctx context.Context) (string, error)
+	Ping(ctx context.Context) (*model.Hello, error)
 }
 
 type executableSchema struct {
@@ -74,12 +90,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Hello.id":
+		if e.complexity.Hello.ID == nil {
+			break
+		}
+
+		return e.complexity.Hello.ID(childComplexity), true
+
+	case "Hello.other":
+		if e.complexity.Hello.Other == nil {
+			break
+		}
+
+		return e.complexity.Hello.Other(childComplexity), true
+
 	case "Mutation.ping":
 		if e.complexity.Mutation.Ping == nil {
 			break
 		}
 
 		return e.complexity.Mutation.Ping(childComplexity), true
+
+	case "Other.id":
+		if e.complexity.Other.ID == nil {
+			break
+		}
+
+		return e.complexity.Other.ID(childComplexity), true
+
+	case "Other.name":
+		if e.complexity.Other.Name == nil {
+			break
+		}
+
+		return e.complexity.Other.Name(childComplexity), true
 
 	case "Query.ping":
 		if e.complexity.Query.Ping == nil {
@@ -154,7 +198,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(parsedSchema, parsedSchema.Types[name]), nil
 }
 
-//go:embed "schema.graphqls"
+//go:embed "schema/hello.graphqls" "schema/other.graphqls" "schema/root.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -166,7 +210,9 @@ func sourceData(filename string) string {
 }
 
 var sources = []*ast.Source{
-	{Name: "schema.graphqls", Input: sourceData("schema.graphqls"), BuiltIn: false},
+	{Name: "schema/hello.graphqls", Input: sourceData("schema/hello.graphqls"), BuiltIn: false},
+	{Name: "schema/other.graphqls", Input: sourceData("schema/other.graphqls"), BuiltIn: false},
+	{Name: "schema/root.graphqls", Input: sourceData("schema/root.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -227,6 +273,100 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _Hello_id(ctx context.Context, field graphql.CollectedField, obj *model.Hello) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hello_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Hello_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Hello",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Hello_other(ctx context.Context, field graphql.CollectedField, obj *model.Hello) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Hello_other(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Hello().Other(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Other)
+	fc.Result = res
+	return ec.marshalNOther2ᚖapiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐOther(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Hello_other(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Hello",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Other_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Other_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Other", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_ping(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_ping(ctx, field)
 	if err != nil {
@@ -252,9 +392,9 @@ func (ec *executionContext) _Mutation_ping(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Hello)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNHello2ᚖapiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐHello(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_ping(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -263,6 +403,100 @@ func (ec *executionContext) fieldContext_Mutation_ping(ctx context.Context, fiel
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hello_id(ctx, field)
+			case "other":
+				return ec.fieldContext_Hello_other(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hello", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Other_id(ctx context.Context, field graphql.CollectedField, obj *model.Other) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Other_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Other_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Other",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Other_name(ctx context.Context, field graphql.CollectedField, obj *model.Other) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Other_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Other_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Other",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -295,9 +529,9 @@ func (ec *executionContext) _Query_ping(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Hello)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNHello2ᚖapiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐHello(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_ping(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -307,7 +541,13 @@ func (ec *executionContext) fieldContext_Query_ping(ctx context.Context, field g
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Hello_id(ctx, field)
+			case "other":
+				return ec.fieldContext_Hello_other(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Hello", field.Name)
 		},
 	}
 	return fc, nil
@@ -2221,6 +2461,54 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 // region    **************************** object.gotpl ****************************
 
+var helloImplementors = []string{"Hello"}
+
+func (ec *executionContext) _Hello(ctx context.Context, sel ast.SelectionSet, obj *model.Hello) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, helloImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Hello")
+		case "id":
+
+			out.Values[i] = ec._Hello_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "other":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Hello_other(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -2250,6 +2538,41 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		}
 	}
 	out.Dispatch()
+	return out
+}
+
+var otherImplementors = []string{"Other"}
+
+func (ec *executionContext) _Other(ctx context.Context, sel ast.SelectionSet, obj *model.Other) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, otherImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Other")
+		case "id":
+
+			out.Values[i] = ec._Other_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._Other_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
 	return out
 }
 
@@ -2642,6 +2965,49 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNHello2apiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐHello(ctx context.Context, sel ast.SelectionSet, v model.Hello) graphql.Marshaler {
+	return ec._Hello(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNHello2ᚖapiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐHello(ctx context.Context, sel ast.SelectionSet, v *model.Hello) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Hello(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
+	res, err := graphql.UnmarshalID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNOther2apiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐOther(ctx context.Context, sel ast.SelectionSet, v model.Other) graphql.Marshaler {
+	return ec._Other(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNOther2ᚖapiᚑyourᚑaccountsᚋsharedᚋinfrastructureᚋgraphᚋmodelᚐOther(ctx context.Context, sel ast.SelectionSet, v *model.Other) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Other(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
