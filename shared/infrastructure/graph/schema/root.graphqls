@@ -1,9 +1,9 @@
 # GraphQL schema
 
 type Query {
-  ping: String!
+  ping: Hello!
 }
 
 type Mutation {
-  ping: String!
+  ping: Hello!
 }

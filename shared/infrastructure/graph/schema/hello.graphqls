@@ -1,0 +1,6 @@
+# GraphQL schema
+
+type Hello {
+  id: ID!
+  other: Other!
+}

@@ -1,0 +1,6 @@
+# GraphQL schema
+
+type Other {
+  id: ID!
+  name: String!
+}

@@ -1,16 +1,23 @@
 package infrastructure
 
 import (
-	"api-your-accounts/infrastructure/graph"
+	"api-your-accounts/shared/infrastructure/graph"
+	"api-your-accounts/shared/infrastructure/graph/resolver"
 	"bytes"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
 
 const defaultPort = "8080"
@@ -32,7 +39,7 @@ func (w FiberResponseWriter) WriteHeader(statusCode int) {
 }
 
 // Defining the Playground handler
-func playgroundHandler() fiber.Handler {
+func getPlaygroundHandler() fiber.Handler {
 	handler := playground.Handler("GraphQL", "/query")
 
 	return func(c *fiber.Ctx) error {
@@ -45,8 +52,9 @@ func playgroundHandler() fiber.Handler {
 	}
 }
 
-func graphqlHandler() fiber.Handler {
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+// Defining the GraphQL handler
+func postGraphqlHandler() fiber.Handler {
+	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{}}))
 
 	return func(c *fiber.Ctx) error {
 		headers := make(http.Header)
@@ -69,6 +77,7 @@ func graphqlHandler() fiber.Handler {
 }
 
 func NewServer() {
+	// Environment Variables
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -76,8 +85,26 @@ func NewServer() {
 
 	app := fiber.New()
 
-	app.Get("/", playgroundHandler())
-	app.Post("/query", graphqlHandler())
+	// Middleware
+	app.Use(logger.New(logger.Config{
+		Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path} | ${error}]\n",
+		TimeFormat: time.DateTime,
+		TimeZone:   "UTC",
+	}))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowMethods: strings.Join([]string{
+			fiber.MethodGet,
+			fiber.MethodPost,
+		}, ","),
+	}))
+	app.Use(recover.New())
+	app.Use(requestid.New())
 
+	// Routes
+	app.Get("/", getPlaygroundHandler())
+	app.Post("/query", postGraphqlHandler())
+
+	// Listening server
 	log.Fatal(app.Listen(":" + port))
 }

@@ -1,34 +1,37 @@
 {
-  "name": "API Your Account",
-  "dockerComposeFile": ["./docker-compose.yml"],
-  "service": "app",
-  "shutdownAction": "stopCompose",
-  "workspaceFolder": "/workspace",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "streetsidesoftware.code-spell-checker",
-        "dotenv.dotenv-vscode",
-        "GitHub.vscode-pull-request-github",
-        "eamodio.gitlens",
-        "Tyriar.lorem-ipsum",
-        "yzhang.markdown-all-in-one",
-        "quicktype.quicktype",
-        "christian-kohler.path-intellisense",
-        "streetsidesoftware.code-spell-checker-spanish",
-        "TabNine.tabnine-vscode",
-        "Gruntfuggly.todo-tree",
-        "usernamehw.errorlens",
-        "adamhartford.vscode-base64",
-        "golang.go",
-        "r3inbowari.gomodexplorer",
-        "golang.go-nightly",
-        "GraphQL.vscode-graphql-syntax",
-        "mongodb.mongodb-vscode",
-        "RapidAPI.vscode-rapidapi-client",
-        "ms-azuretools.vscode-docker",
-        "bungcip.better-toml"
-      ]
-    }
-  }
+	"name": "API Your Account",
+	"dockerComposeFile": [
+		"./docker-compose.yml"
+	],
+	"service": "app",
+	"shutdownAction": "stopCompose",
+	"workspaceFolder": "/workspace",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"streetsidesoftware.code-spell-checker",
+				"dotenv.dotenv-vscode",
+				"GitHub.vscode-pull-request-github",
+				"eamodio.gitlens",
+				"Tyriar.lorem-ipsum",
+				"yzhang.markdown-all-in-one",
+				"quicktype.quicktype",
+				"christian-kohler.path-intellisense",
+				"streetsidesoftware.code-spell-checker-spanish",
+				"TabNine.tabnine-vscode",
+				"Gruntfuggly.todo-tree",
+				"usernamehw.errorlens",
+				"adamhartford.vscode-base64",
+				"golang.go",
+				"r3inbowari.gomodexplorer",
+				"golang.go-nightly",
+				"GraphQL.vscode-graphql-syntax",
+				"mongodb.mongodb-vscode",
+				"RapidAPI.vscode-rapidapi-client",
+				"ms-azuretools.vscode-docker",
+				"bungcip.better-toml",
+				"ckolkman.vscode-postgres"
+			]
+		}
+	}
 }
