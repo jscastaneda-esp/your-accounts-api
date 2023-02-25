@@ -7,14 +7,74 @@ package resolver
 import (
 	"api-your-accounts/shared/infrastructure/graph"
 	"api-your-accounts/shared/infrastructure/graph/model"
+	userA "api-your-accounts/user/application"
+	userD "api-your-accounts/user/domain"
+	userI "api-your-accounts/user/infrastructure"
 	"context"
+	"errors"
+	"fmt"
+	"log"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
+	"gorm.io/gorm"
 )
 
-// Ping is the resolver for the ping field.
-func (r *mutationResolver) Ping(ctx context.Context) (*model.Hello, error) {
-	return &model.Hello{
-		ID: "mutation",
+// CreateUser is the resolver for the createUser field.
+func (r *mutationResolver) CreateUser(ctx context.Context, input model.InputUser) (*model.User, error) {
+	repo := userI.NewRepository(r.DB)
+	user := &userD.User{
+		UUID:  input.UUID,
+		Email: input.Email,
+	}
+
+	exists, err := userA.Exists(repo, ctx, user.UUID, user.Email)
+	if exists {
+		return nil, &gqlerror.Error{
+			Message: "User already exists",
+		}
+	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println("Error sign up user:", err)
+		return nil, &gqlerror.Error{
+			Message: "Error sign up user",
+		}
+	}
+
+	result, err := userA.SignUp(repo, ctx, user)
+	if err != nil {
+		log.Println("Error sign up user:", err)
+		return nil, &gqlerror.Error{
+			Message: "Error sign up user",
+		}
+	}
+
+	updatedAt := result.UpdatedAt.String()
+	return &model.User{
+		ID:        fmt.Sprint(result.Id),
+		UUID:      result.UUID,
+		Email:     result.Email,
+		CreatedAt: result.CreatedAt.String(),
+		UpdatedAt: &updatedAt,
 	}, nil
+}
+
+// Login is the resolver for the login field.
+func (r *mutationResolver) Login(ctx context.Context, input model.InputUser) (string, error) {
+	repo := userI.NewRepository(r.DB)
+	token, err := userA.Login(repo, ctx, input.UUID, input.Email)
+	if err != nil {
+		log.Println("Error login user:", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", &gqlerror.Error{
+				Message: "Invalid credentials",
+			}
+		}
+
+		return "", &gqlerror.Error{
+			Message: "Error login user",
+		}
+	}
+
+	return token, nil
 }
 
 // Ping is the resolver for the ping field.

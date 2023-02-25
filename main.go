@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Llongfile + log.LUTC + log.LstdFlags)
+	log.SetFlags(log.Lshortfile + log.LUTC + log.LstdFlags)
 	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Load .env file")
 		err = godotenv.Load()
@@ -18,15 +18,6 @@ func main() {
 		}
 	}
 
-	// dsn := "host=192.168.1.14 user=postgres password=test dbname=gorm port=5432 sslmode=disable TimeZone=America/Bogota"
-	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-	// 	Logger: logger.Default.LogMode(logger.Silent),
-	// })
-	// if err != nil {
-	// 	panic("failed to connect database")
-	// }
-
-	// db.AutoMigrate(&project.Project{}, &budget.Budget{}, &budget.BudgetAvailableBalance{}, &budget.CategoryBill{}, &budget.BudgetBill{}, &budget.BudgetBillTransaction{}, &budget.BudgetBillShared{})
-
-	infrastructure.NewServer()
+	db := infrastructure.NewDB()
+	infrastructure.NewServer(db)
 }

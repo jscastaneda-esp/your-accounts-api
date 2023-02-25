@@ -1,0 +1,17 @@
+# GraphQL user schema
+
+type User {
+  id: ID!
+  uuid: String!
+  email: String!
+  createdAt: String!
+  updatedAt: String
+}
+
+input InputUser {
+  """
+  Longitud 32
+  """
+  uuid: String! @binding(constraint: "len=32")
+  email: String! @binding(constraint: "email")
+}

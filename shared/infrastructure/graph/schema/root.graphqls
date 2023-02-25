@@ -1,9 +1,21 @@
-# GraphQL schema
+# GraphQL root schema
+
+directive @goField(
+  forceResolver: Boolean
+  name: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @binding(
+  constraint: String!
+) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+directive @auth on FIELD_DEFINITION
 
 type Query {
-  ping: Hello!
+  ping: Hello! @auth
 }
 
 type Mutation {
-  ping: Hello!
+  createUser(input: InputUser!): User!
+  login(input: InputUser!): String!
 }

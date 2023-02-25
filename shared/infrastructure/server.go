@@ -2,7 +2,9 @@ package infrastructure
 
 import (
 	"api-your-accounts/shared/infrastructure/graph"
+	"api-your-accounts/shared/infrastructure/graph/directive"
 	"api-your-accounts/shared/infrastructure/graph/resolver"
+	"api-your-accounts/shared/infrastructure/middleware/auth"
 	"bytes"
 	"io"
 	"log"
@@ -17,9 +19,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"gorm.io/gorm"
 )
 
-const defaultPort = "8080"
+const (
+	defaultPort      = "8080"
+	defaultJwtSecret = "aSecret"
+)
 
 type FiberResponseWriter struct {
 	ctx *fiber.Ctx
@@ -52,8 +58,8 @@ func getPlaygroundHandler() fiber.Handler {
 }
 
 // Defining the GraphQL handler
-func postGraphqlHandler() fiber.Handler {
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{}}))
+func postGraphqlHandler(db *gorm.DB) fiber.Handler {
+	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{DB: db}, Directives: directive.GetDirectives()}))
 
 	return func(c *fiber.Ctx) error {
 		headers := make(http.Header)
@@ -67,6 +73,7 @@ func postGraphqlHandler() fiber.Handler {
 			Header: headers,
 			Body:   io.NopCloser(bytes.NewReader(c.Body())),
 		}
+
 		r = r.WithContext(c.UserContext())
 
 		c.Set("Content-Type", fiber.MIMEApplicationJSON)
@@ -75,18 +82,21 @@ func postGraphqlHandler() fiber.Handler {
 	}
 }
 
-func NewServer() {
+func NewServer(db *gorm.DB) {
+	log.Println("Listening server")
+
 	// Environment Variables
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
+	jwtSecret := os.Getenv("JWT_SECRET")
 
 	app := fiber.New()
 
 	// Middleware
 	app.Use(logger.New(logger.Config{
-		Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path} | ${error}]\n",
+		Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path}: ${error}\n",
 		TimeFormat: "2006-01-02 15:04:05",
 		TimeZone:   "UTC",
 	}))
@@ -99,10 +109,13 @@ func NewServer() {
 	}))
 	app.Use(recover.New())
 	app.Use(requestid.New())
+	app.Use(auth.New(auth.Config{
+		JWTSecret: jwtSecret,
+	}))
 
 	// Routes
 	app.Get("/", getPlaygroundHandler())
-	app.Post("/query", postGraphqlHandler())
+	app.Post("/query", postGraphqlHandler(db))
 
 	// Listening server
 	log.Fatal(app.Listen(":" + port))
