@@ -1,9 +1,6 @@
-// TODO: Pendientes tests
-
 package infrastructure
 
 import (
-	"api-your-accounts/shared/infrastructure/model"
 	"api-your-accounts/user/domain"
 	"context"
 
@@ -12,25 +9,6 @@ import (
 
 type GORMUserRepository struct {
 	db *gorm.DB
-}
-
-func (r *GORMUserRepository) FindById(ctx context.Context, id uint) (*domain.User, error) {
-	user := &User{
-		BaseModel: model.BaseModel{
-			ID: id,
-		},
-	}
-	if err := r.db.WithContext(ctx).First(user).Error; err != nil {
-		return nil, err
-	}
-
-	return &domain.User{
-		Id:        user.ID,
-		UUID:      user.UUID,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	}, nil
 }
 
 func (r *GORMUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {
