@@ -8,16 +8,24 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var (
+	osStat     = os.Stat
+	dotenvLoad = godotenv.Load
+	logFatal   = log.Fatal
+	newDB      = infrastructure.NewDB
+	newServer  = infrastructure.NewServer
+)
+
 func main() {
 	log.SetFlags(log.Lshortfile + log.LUTC + log.LstdFlags)
-	if _, err := os.Stat(".env"); err == nil {
+	if _, err := osStat(".env"); err == nil {
 		log.Println("Load .env file")
-		err = godotenv.Load()
+		err = dotenvLoad()
 		if err != nil {
-			log.Fatal("Error loading .env file: ", err)
+			logFatal("Error loading .env file: ", err)
 		}
 	}
 
-	db := infrastructure.NewDB()
-	infrastructure.NewServer(db)
+	db := newDB()
+	newServer(db)
 }
