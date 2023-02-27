@@ -10,11 +10,25 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
-func TestNewHandlerSuccess(t *testing.T) {
-	require := require.New(t)
+type TestSuite struct {
+	suite.Suite
+	originalJwtValidate func(ctx context.Context, token string) (*domain.JwtCustomClaim, error)
+}
+
+func (suite *TestSuite) SetupSuite() {
+	suite.originalJwtValidate = jwtValidate
+}
+
+func (suite *TestSuite) SetupTest() {
+	jwtValidate = suite.originalJwtValidate
+}
+
+func (suite *TestSuite) TestNewHandlerSuccess() {
+	require := require.New(suite.T())
 
 	body := "Hello, World!"
 
@@ -34,8 +48,8 @@ func TestNewHandlerSuccess(t *testing.T) {
 	require.Equal(body, string(bytes))
 }
 
-func TestNewHandlerSuccessConfigNext(t *testing.T) {
-	require := require.New(t)
+func (suite *TestSuite) TestNewHandlerSuccessConfigNext() {
+	require := require.New(suite.T())
 
 	body := "Hello, World!"
 
@@ -59,8 +73,8 @@ func TestNewHandlerSuccessConfigNext(t *testing.T) {
 	require.Equal(body, string(bytes))
 }
 
-func TestNewHandlerSuccessValidToken(t *testing.T) {
-	require := require.New(t)
+func (suite *TestSuite) TestNewHandlerSuccessValidToken() {
+	require := require.New(suite.T())
 
 	body := "Hello, World!"
 
@@ -73,7 +87,6 @@ func TestNewHandlerSuccessValidToken(t *testing.T) {
 
 		return c.SendString(body)
 	})
-	originalJwtValidate := jwtValidate
 	jwtValidate = func(ctx context.Context, token string) (*domain.JwtCustomClaim, error) {
 		return &domain.JwtCustomClaim{
 			ID: "test",
@@ -89,19 +102,16 @@ func TestNewHandlerSuccessValidToken(t *testing.T) {
 	bytes, err := io.ReadAll(res.Body)
 	require.NoError(err)
 	require.Equal(body, string(bytes))
-
-	jwtValidate = originalJwtValidate
 }
 
-func TestNewHandlerErrorInvalidToken(t *testing.T) {
-	require := require.New(t)
+func (suite *TestSuite) TestNewHandlerErrorInvalidToken() {
+	require := require.New(suite.T())
 
 	app := fiber.New()
 	app.Use(New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
-	originalJwtValidate := jwtValidate
 	jwtValidate = func(ctx context.Context, token string) (*domain.JwtCustomClaim, error) {
 		return nil, domain.ErrInvalidToken
 	}
@@ -118,6 +128,8 @@ func TestNewHandlerErrorInvalidToken(t *testing.T) {
 
 	require.NoError(err)
 	require.Equal(domain.ErrInvalidToken.Error(), gqlError.Message)
+}
 
-	jwtValidate = originalJwtValidate
+func TestTestSuite(t *testing.T) {
+	suite.Run(t, new(TestSuite))
 }

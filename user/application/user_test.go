@@ -2,13 +2,9 @@
 
 package application
 
-import (
-	sharedD "api-your-accounts/shared/domain"
-	"api-your-accounts/user/domain"
-	"context"
-	"fmt"
-)
+import "testing"
 
+/*
 func Exists(repo domain.UserRepository, ctx context.Context, uuid string, email string) (bool, error) {
 	_, err := repo.FindByUUIDAndEmail(ctx, uuid, email)
 	if err != nil {
@@ -17,7 +13,13 @@ func Exists(repo domain.UserRepository, ctx context.Context, uuid string, email 
 
 	return true, nil
 }
+*/
 
+func TestExistsSuccess(t *testing.T) {
+
+}
+
+/*
 func SignUp(repo domain.UserRepository, ctx context.Context, user *domain.User) (*domain.User, error) {
 	return repo.Create(ctx, user)
 }
@@ -35,3 +37,4 @@ func Login(repo domain.UserRepository, ctx context.Context, uuid string, email s
 
 	return token, nil
 }
+*/

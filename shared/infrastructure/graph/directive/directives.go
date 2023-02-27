@@ -1,6 +1,9 @@
+// TODO: Pendientes tests
+
 package directive
 
 import (
+	"api-your-accounts/shared/domain"
 	"api-your-accounts/shared/infrastructure/graph"
 	middleware "api-your-accounts/shared/infrastructure/middleware/auth"
 	"context"
@@ -15,14 +18,13 @@ var (
 )
 
 func auth(ctx context.Context, _ interface{}, next graphql.Resolver) (interface{}, error) {
-	tokenData := middleware.CtxValue(ctx)
-	if tokenData == nil {
-		return nil, &gqlerror.Error{
-			Message: "Access Denied",
-		}
+	if tokenData, ok := ctx.Value(middleware.CtxAuth).(*domain.JwtCustomClaim); tokenData != nil && ok {
+		return next(ctx)
 	}
 
-	return next(ctx)
+	return nil, &gqlerror.Error{
+		Message: "Access Denied",
+	}
 }
 
 func binding(ctx context.Context, _ interface{}, next graphql.Resolver, constraint string) (interface{}, error) {
