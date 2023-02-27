@@ -9,9 +9,9 @@ package resolver
 import (
 	"api-your-accounts/shared/infrastructure/graph"
 	"api-your-accounts/shared/infrastructure/graph/model"
-	userA "api-your-accounts/user/application"
-	userD "api-your-accounts/user/domain"
-	userI "api-your-accounts/user/infrastructure"
+	userApp "api-your-accounts/user/application"
+	userDom "api-your-accounts/user/domain"
+	userInf "api-your-accounts/user/infrastructure"
 	"context"
 	"errors"
 	"fmt"
@@ -23,13 +23,13 @@ import (
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.InputUser) (*model.User, error) {
-	repo := userI.NewRepository(r.DB)
-	user := &userD.User{
+	repo := userInf.NewRepository(r.DB)
+	user := &userDom.User{
 		UUID:  input.UUID,
 		Email: input.Email,
 	}
 
-	exists, err := userA.Exists(repo, ctx, user.UUID, user.Email)
+	exists, err := userApp.Exists(repo, ctx, user.UUID, user.Email)
 	if exists {
 		return nil, &gqlerror.Error{
 			Message: "User already exists",
@@ -41,7 +41,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.InputUser
 		}
 	}
 
-	result, err := userA.SignUp(repo, ctx, user)
+	result, err := userApp.SignUp(repo, ctx, user)
 	if err != nil {
 		log.Println("Error sign up user:", err)
 		return nil, &gqlerror.Error{
@@ -61,8 +61,8 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.InputUser
 
 // Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context, input model.InputUser) (string, error) {
-	repo := userI.NewRepository(r.DB)
-	token, err := userA.Login(repo, ctx, input.UUID, input.Email)
+	repo := userInf.NewRepository(r.DB)
+	token, err := userApp.Login(repo, ctx, input.UUID, input.Email)
 	if err != nil {
 		log.Println("Error login user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {

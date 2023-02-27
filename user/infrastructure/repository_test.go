@@ -21,7 +21,6 @@ type TestSuite struct {
 	suite.Suite
 	uuid       string
 	email      string
-	db         *gorm.DB
 	mock       sqlmock.Sqlmock
 	repository domain.UserRepository
 }
@@ -40,14 +39,14 @@ func (suite *TestSuite) SetupSuite() {
 	db, suite.mock, err = sqlmock.New()
 	require.NoError(err)
 
-	suite.db, err = gorm.Open(postgres.New(postgres.Config{
+	DB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: db,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(suite.db)
+	suite.repository = NewRepository(DB)
 }
 
 func (suite *TestSuite) TearDownTest() {
