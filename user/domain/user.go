@@ -14,7 +14,6 @@ type User struct {
 }
 
 type UserRepository interface {
-	FindById(ctx context.Context, id uint) (*User, error)
 	FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
 	Update(ctx context.Context, user *User) (*User, error)

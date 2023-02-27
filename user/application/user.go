@@ -1,12 +1,14 @@
-// TODO: Pendientes tests
-
 package application
 
 import (
-	sharedD "api-your-accounts/shared/domain"
+	sharedDom "api-your-accounts/shared/domain"
 	"api-your-accounts/user/domain"
 	"context"
 	"fmt"
+)
+
+var (
+	jwtGenerate = sharedDom.JwtGenerate
 )
 
 func Exists(repo domain.UserRepository, ctx context.Context, uuid string, email string) (bool, error) {
@@ -28,7 +30,7 @@ func Login(repo domain.UserRepository, ctx context.Context, uuid string, email s
 		return "", err
 	}
 
-	token, err := sharedD.JwtGenerate(ctx, fmt.Sprint(user.Id))
+	token, err := jwtGenerate(ctx, fmt.Sprint(user.Id))
 	if err != nil {
 		return "", err
 	}
