@@ -3,13 +3,21 @@ package domain
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
 const CtxJWTSecret = jwtKey("jwtSecret")
+
+var (
+	ErrInvalidToken       = errors.New("invalid token")
+	ErrInvalidTokenClaims = errors.New("invalid token claims")
+
+	jwtParseWithClaims = jwt.ParseWithClaims
+	jwtSecret          = getJwtSecret
+)
 
 type jwtKey string
 
@@ -26,7 +34,7 @@ func JwtGenerate(ctx context.Context, userId string) (string, error) {
 		},
 	})
 
-	token, err := t.SignedString(getJwtSecret(ctx))
+	token, err := t.SignedString(jwtSecret(ctx))
 	if err != nil {
 		return "", err
 	}
@@ -35,26 +43,29 @@ func JwtGenerate(ctx context.Context, userId string) (string, error) {
 }
 
 func JwtValidate(ctx context.Context, token string) (*JwtCustomClaim, error) {
-	tokenParse, err := jwt.ParseWithClaims(token, &JwtCustomClaim{}, func(t *jwt.Token) (interface{}, error) {
+	tokenParse, err := jwtParseWithClaims(token, &JwtCustomClaim{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("there's a problem with the signing method")
+			return nil, errors.New("there's a problem with the signing method")
 		}
-
-		return getJwtSecret(ctx), nil
+		return jwtSecret(ctx), nil
 	})
 	if err != nil || !tokenParse.Valid {
-		return nil, errors.New("invalid token")
+		if err != nil {
+			log.Println("Error parse token:", err)
+		}
+
+		return nil, ErrInvalidToken
 	}
 
 	claims, ok := tokenParse.Claims.(*JwtCustomClaim)
 	if !ok {
-		return nil, errors.New("invalid token claims")
+		return nil, ErrInvalidTokenClaims
 	}
 
 	return claims, nil
 }
 
-func getJwtSecret(ctx context.Context) []byte {
+func getJwtSecret(ctx context.Context) interface{} {
 	jwtSecret, _ := ctx.Value(CtxJWTSecret).(string)
 	return []byte(jwtSecret)
 }
