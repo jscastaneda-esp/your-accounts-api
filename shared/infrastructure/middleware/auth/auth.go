@@ -9,8 +9,12 @@ import (
 )
 
 const (
-	ctxAuth = authKey("auth")
+	CtxAuth = authKey("auth")
 	bearer  = "Bearer "
+)
+
+var (
+	jwtValidate = domain.JwtValidate
 )
 
 type authKey string
@@ -34,22 +38,17 @@ func New(config ...Config) fiber.Handler {
 		}
 
 		token := auth[len(bearer):]
-		claims, err := domain.JwtValidate(ctx, token)
+		claims, err := jwtValidate(ctx, token)
 		if err != nil {
 			return c.Status(fiber.StatusForbidden).JSON(&gqlerror.Error{
 				Message: err.Error(),
 			})
 		}
 
-		ctx = context.WithValue(ctx, ctxAuth, claims)
+		ctx = context.WithValue(ctx, CtxAuth, claims)
 		c.SetUserContext(ctx)
 
 		// Continue stack
 		return c.Next()
 	}
-}
-
-func CtxValue(ctx context.Context) *domain.JwtCustomClaim {
-	claims, _ := ctx.Value(ctxAuth).(*domain.JwtCustomClaim)
-	return claims
 }
