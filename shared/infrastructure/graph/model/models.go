@@ -7,7 +7,21 @@ type Hello struct {
 	Other *Other `json:"other"`
 }
 
+type InputUser struct {
+	// Longitud 32
+	UUID  string `json:"uuid"`
+	Email string `json:"email"`
+}
+
 type Other struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type User struct {
+	ID        string  `json:"id"`
+	UUID      string  `json:"uuid"`
+	Email     string  `json:"email"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
 }

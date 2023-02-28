@@ -2,5 +2,10 @@
 
 type Hello {
   id: ID!
-  other: Other!
+  other: Other! @goField(forceResolver: true)
+}
+
+type Other {
+  id: ID!
+  name: String!
 }
