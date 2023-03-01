@@ -4,8 +4,8 @@ type User {
   id: ID!
   uuid: String!
   email: String!
-  createdAt: String!
-  updatedAt: String
+  createdAt: Time!
+  updatedAt: Time
 }
 
 input InputUser {

@@ -11,8 +11,12 @@ directive @binding(
 
 directive @auth on FIELD_DEFINITION
 
+scalar Time
+scalar Map
+
 type Query {
-  ping: Hello! @auth
+  ping: Hello!
+  findLogsByProject(projectId: Int!): [ProjectLog!]! @auth
 }
 
 type Mutation {

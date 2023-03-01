@@ -3,7 +3,6 @@ package auth
 import (
 	"api-your-accounts/shared/domain"
 	"context"
-	"encoding/json"
 	"io"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 type TestSuite struct {
@@ -123,11 +121,9 @@ func (suite *TestSuite) TestNewHandlerErrorInvalidToken() {
 
 	require.Equal(fiber.StatusForbidden, res.StatusCode)
 	bytes, err := io.ReadAll(res.Body)
-	gqlError := new(gqlerror.Error)
-	json.Unmarshal(bytes, gqlError)
 
 	require.NoError(err)
-	require.Equal(domain.ErrInvalidToken.Error(), gqlError.Message)
+	require.Equal(domain.ErrInvalidToken.Error(), string(bytes))
 }
 
 func TestTestSuite(t *testing.T) {

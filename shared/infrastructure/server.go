@@ -7,6 +7,7 @@ import (
 	"api-your-accounts/shared/infrastructure/graph/directive"
 	"api-your-accounts/shared/infrastructure/graph/resolver"
 	"api-your-accounts/shared/infrastructure/middleware/auth"
+	"api-your-accounts/shared/infrastructure/mongodb"
 	"bytes"
 	"io"
 	"log"
@@ -60,8 +61,8 @@ func getPlaygroundHandler() fiber.Handler {
 }
 
 // Defining the GraphQL handler
-func postGraphqlHandler(db *gorm.DB) fiber.Handler {
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{DB: db}, Directives: directive.GetDirectives()}))
+func postGraphqlHandler(db *gorm.DB, mongoClient *mongodb.Client) fiber.Handler {
+	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{DB: db, MongoClient: mongoClient}, Directives: directive.GetDirectives()}))
 
 	return func(c *fiber.Ctx) error {
 		headers := make(http.Header)
@@ -84,7 +85,7 @@ func postGraphqlHandler(db *gorm.DB) fiber.Handler {
 	}
 }
 
-func NewServer(db *gorm.DB) {
+func NewServer(db *gorm.DB, mongoClient *mongodb.Client) {
 	log.Println("Listening server")
 
 	// Environment Variables
@@ -117,7 +118,7 @@ func NewServer(db *gorm.DB) {
 
 	// Routes
 	app.Get("/", getPlaygroundHandler())
-	app.Post("/query", postGraphqlHandler(db))
+	app.Post("/query", postGraphqlHandler(db, mongoClient))
 
 	// Listening server
 	log.Fatal(app.Listen(":" + port))

@@ -5,7 +5,6 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 const (
@@ -40,9 +39,7 @@ func New(config ...Config) fiber.Handler {
 		token := auth[len(bearer):]
 		claims, err := jwtValidate(ctx, token)
 		if err != nil {
-			return c.Status(fiber.StatusForbidden).JSON(&gqlerror.Error{
-				Message: err.Error(),
-			})
+			return c.Status(fiber.StatusForbidden).SendString(err.Error())
 		}
 
 		ctx = context.WithValue(ctx, CtxAuth, claims)

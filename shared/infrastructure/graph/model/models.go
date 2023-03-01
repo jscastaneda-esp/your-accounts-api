@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"time"
+)
+
 type Hello struct {
 	ID    string `json:"id"`
 	Other *Other `json:"other"`
@@ -18,10 +22,18 @@ type Other struct {
 	Name string `json:"name"`
 }
 
+type ProjectLog struct {
+	ID          string                 `json:"id"`
+	Description string                 `json:"description"`
+	Detail      map[string]interface{} `json:"detail"`
+	ProjectID   int                    `json:"projectId"`
+	CreatedAt   time.Time              `json:"createdAt"`
+}
+
 type User struct {
-	ID        string  `json:"id"`
-	UUID      string  `json:"uuid"`
-	Email     string  `json:"email"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
+	ID        string     `json:"id"`
+	UUID      string     `json:"uuid"`
+	Email     string     `json:"email"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
