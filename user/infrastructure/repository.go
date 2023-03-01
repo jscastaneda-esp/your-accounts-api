@@ -22,7 +22,7 @@ func (r *GORMUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string
 	}
 
 	return &domain.User{
-		Id:        model.ID,
+		ID:        model.ID,
 		UUID:      model.UUID,
 		Email:     model.Email,
 		CreatedAt: model.CreatedAt,
@@ -41,7 +41,7 @@ func (r *GORMUserRepository) Create(ctx context.Context, user *domain.User) (*do
 	}
 
 	return &domain.User{
-		Id:        model.ID,
+		ID:        model.ID,
 		UUID:      model.UUID,
 		Email:     model.Email,
 		CreatedAt: model.CreatedAt,

@@ -49,13 +49,12 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.InputUser
 		}
 	}
 
-	updatedAt := result.UpdatedAt.String()
 	return &model.User{
-		ID:        fmt.Sprint(result.Id),
+		ID:        fmt.Sprint(result.ID),
 		UUID:      result.UUID,
 		Email:     result.Email,
-		CreatedAt: result.CreatedAt.String(),
-		UpdatedAt: &updatedAt,
+		CreatedAt: result.CreatedAt,
+		UpdatedAt: &result.UpdatedAt,
 	}, nil
 }
 
@@ -84,6 +83,11 @@ func (r *queryResolver) Ping(ctx context.Context) (*model.Hello, error) {
 	return &model.Hello{
 		ID: "query",
 	}, nil
+}
+
+// FindLogsByProject is the resolver for the findLogsByProject field.
+func (r *queryResolver) FindLogsByProject(ctx context.Context, projectID int) ([]*model.ProjectLog, error) {
+	panic("Not implemented")
 }
 
 // Mutation returns graph.MutationResolver implementation.

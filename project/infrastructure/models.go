@@ -13,3 +13,10 @@ type Project struct {
 	Type   string                `gorm:"not null;size:10;uniqueIndex:unq_project"`
 	Budget infrastructure.Budget `gorm:"foreignKey:ProjectId"`
 }
+
+type ProjectLog struct {
+	model.MongoBaseModel
+	Description string
+	Detail      map[string]interface{} `bson:"inline"`
+	ProjectId   uint                   `bson:"project_id"`
+}

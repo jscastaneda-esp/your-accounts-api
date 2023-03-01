@@ -2,12 +2,17 @@
 
 package resolver
 
-import "gorm.io/gorm"
+import (
+	"api-your-accounts/shared/infrastructure/mongodb"
+
+	"gorm.io/gorm"
+)
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *gorm.DB
+	DB          *gorm.DB
+	MongoClient *mongodb.Client
 }

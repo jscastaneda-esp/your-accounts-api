@@ -18,12 +18,12 @@ type MockUserRepository struct {
 
 func (mock *MockUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {
 	return &domain.User{
-		Id: 999,
+		ID: 999,
 	}, mock.errFindByUUIDAndEmail
 }
 
 func (mock *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	user.Id = 999
+	user.ID = 999
 	return user, mock.errCreate
 }
 
@@ -80,7 +80,7 @@ func (suite *TestSuite) TestSignUpSuccess() {
 
 	res, err := SignUp(&MockUserRepository{}, context.Background(), user)
 	require.NoError(err)
-	require.NotEmpty(res.Id)
+	require.NotEmpty(res.ID)
 	require.Equal(user.UUID, res.UUID)
 	require.Equal(user.Email, res.Email)
 }

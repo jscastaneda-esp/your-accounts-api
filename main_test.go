@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-your-accounts/shared/infrastructure/mongodb"
 	"errors"
 	"log"
 	"os"
@@ -25,8 +26,11 @@ func (suite *TestSuite) SetupSuite() {
 	newDB = func() *gorm.DB {
 		return &gorm.DB{}
 	}
-	newServer = func(db *gorm.DB) {
-		log.Printf("Starting server with database %v", db)
+	newMongoClient = func() *mongodb.Client {
+		return &mongodb.Client{}
+	}
+	newServer = func(db *gorm.DB, mongoClient *mongodb.Client) {
+		log.Printf("Starting server with database %v, in mongo %v", db, mongoClient)
 	}
 }
 

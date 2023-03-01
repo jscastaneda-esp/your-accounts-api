@@ -9,11 +9,12 @@ import (
 )
 
 var (
-	osStat     = os.Stat
-	dotenvLoad = godotenv.Load
-	logFatal   = log.Fatal
-	newDB      = infrastructure.NewDB
-	newServer  = infrastructure.NewServer
+	osStat         = os.Stat
+	dotenvLoad     = godotenv.Load
+	logFatal       = log.Fatal
+	newDB          = infrastructure.NewDB
+	newMongoClient = infrastructure.NewMongoClient
+	newServer      = infrastructure.NewServer
 )
 
 func main() {
@@ -27,5 +28,6 @@ func main() {
 	}
 
 	db := newDB()
-	newServer(db)
+	mongoClient := newMongoClient()
+	newServer(db, mongoClient)
 }

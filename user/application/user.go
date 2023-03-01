@@ -30,7 +30,7 @@ func Login(repo domain.UserRepository, ctx context.Context, uuid string, email s
 		return "", err
 	}
 
-	token, err := jwtGenerate(ctx, fmt.Sprint(user.Id))
+	token, err := jwtGenerate(ctx, fmt.Sprint(user.ID))
 	if err != nil {
 		return "", err
 	}
