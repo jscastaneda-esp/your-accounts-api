@@ -62,21 +62,21 @@ const (
 func NewMongoClient() *mongodb.Client {
 	log.Println("Init client to mongo database")
 
-	uri := os.Getenv("MONGODB_URI")
+	uri := os.Getenv("MONGO_URL")
 	if uri == "" {
 		log.Fatal("Environment variable MONGODB_URI is mandatory")
 	}
 
-	dbName := os.Getenv("MONGODB_DB")
+	dbName := os.Getenv("MONGODB")
 	if dbName == "" {
-		log.Fatal("Environment variable MONGODB_DB is mandatory")
+		log.Fatal("Environment variable MONGODB is mandatory")
 	}
 
 	timeout := defaultTimeout
-	if timeoutEnv := os.Getenv("MONGODB_TIMEOUT"); timeoutEnv != "" {
+	if timeoutEnv := os.Getenv("MONGOTIMEOUT"); timeoutEnv != "" {
 		val, err := strconv.Atoi(timeoutEnv)
 		if err != nil {
-			log.Fatal("Environment variable MONGODB_TIMEOUT invalid value")
+			log.Fatal("Environment variable MONGOTIMEOUT invalid value")
 		}
 
 		timeout = time.Duration(val) * time.Second
