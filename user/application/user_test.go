@@ -1,7 +1,7 @@
 package application
 
 import (
-	jwt "api-your-accounts/shared/domain"
+	"api-your-accounts/shared/domain/jwt"
 	"api-your-accounts/user/domain"
 	"context"
 	"errors"
@@ -22,6 +22,14 @@ func (mock *MockUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid str
 	}, mock.errFindByUUIDAndEmail
 }
 
+func (mock *MockUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
+	return false, nil
+}
+
+func (mock *MockUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	return false, nil
+}
+
 func (mock *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	user.ID = 999
 	return user, mock.errCreate
@@ -36,7 +44,7 @@ type TestSuite struct {
 	uuid                string
 	email               string
 	token               string
-	originalJwtGenerate func(ctx context.Context, userId string) (string, error)
+	originalJwtGenerate func(ctx context.Context, id string, uuid string, email string) (string, error)
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -100,26 +108,10 @@ func (suite *TestSuite) TestSignUpError() {
 	require.EqualError(repo.errCreate, err.Error())
 }
 
-/*
-func Login(repo domain.UserRepository, ctx context.Context, uuid string, email string) (string, error) {
-	user, err := repo.FindByUUIDAndEmail(ctx, uuid, email)
-	if err != nil {
-		return "", err
-	}
-
-	token, err := sharedD.JwtGenerate(ctx, fmt.Sprint(user.Id))
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
-*/
-
 func (suite *TestSuite) TestLoginSuccess() {
 	require := require.New(suite.T())
 
-	jwtGenerate = func(ctx context.Context, userId string) (string, error) {
+	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, error) {
 		return suite.token, nil
 	}
 
@@ -143,7 +135,7 @@ func (suite *TestSuite) TestLoginErrorFind() {
 func (suite *TestSuite) TestLoginErrorJWTGenerate() {
 	require := require.New(suite.T())
 
-	jwtGenerate = func(ctx context.Context, userId string) (string, error) {
+	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, error) {
 		return "", jwt.ErrInvalidToken
 	}
 

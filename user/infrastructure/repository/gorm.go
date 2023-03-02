@@ -1,7 +1,8 @@
-package infrastructure
+package repository
 
 import (
 	"api-your-accounts/user/domain"
+	"api-your-accounts/user/infrastructure/entity"
 	"context"
 
 	"gorm.io/gorm"
@@ -12,11 +13,11 @@ type GORMUserRepository struct {
 }
 
 func (r *GORMUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {
-	where := &User{
+	where := &entity.User{
 		UUID:  uuid,
 		Email: email,
 	}
-	model := new(User)
+	model := new(entity.User)
 	if err := r.db.WithContext(ctx).Where(where).First(model).Error; err != nil {
 		return nil, err
 	}
@@ -30,8 +31,28 @@ func (r *GORMUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string
 	}, nil
 }
 
+func (r *GORMUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
+	var count int
+	r.db.Raw("SELECT COUNT(1) FROM users WHERE uuid = ?", uuid).Scan(&count)
+	if r.db.Error != nil {
+		return false, r.db.Error
+	}
+
+	return count > 0, nil
+}
+
+func (r *GORMUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	var count int
+	r.db.Raw("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count)
+	if r.db.Error != nil {
+		return false, r.db.Error
+	}
+
+	return count > 0, nil
+}
+
 func (r *GORMUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	model := &User{
+	model := &entity.User{
 		UUID:  user.UUID,
 		Email: user.Email,
 	}
@@ -53,9 +74,9 @@ func (r *GORMUserRepository) Update(ctx context.Context, user *domain.User) (*do
 	return nil, nil
 }
 
-var instance *GORMUserRepository
+var instance domain.UserRepository
 
-func NewRepository(db *gorm.DB) *GORMUserRepository {
+func NewGORMRepository(db *gorm.DB) domain.UserRepository {
 	if instance == nil {
 		instance = &GORMUserRepository{db}
 	}

@@ -1,9 +1,0 @@
-# GraphQL user schema
-
-type ProjectLog {
-  id: ID!
-  description: String!
-  detail: Map!
-  projectId: Int!
-  createdAt: Time!
-}

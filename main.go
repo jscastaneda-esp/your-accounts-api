@@ -2,6 +2,7 @@ package main
 
 import (
 	"api-your-accounts/shared/infrastructure"
+	"api-your-accounts/shared/infrastructure/db"
 	"log"
 	"os"
 
@@ -12,8 +13,8 @@ var (
 	osStat         = os.Stat
 	dotenvLoad     = godotenv.Load
 	logFatal       = log.Fatal
-	newDB          = infrastructure.NewDB
-	newMongoClient = infrastructure.NewMongoClient
+	newDB          = db.NewDB
+	newMongoClient = db.NewMongoClient
 	newServer      = infrastructure.NewServer
 )
 
@@ -27,7 +28,7 @@ func main() {
 		}
 	}
 
-	db := newDB()
-	mongoClient := newMongoClient()
-	newServer(db, mongoClient)
+	newDB()
+	newMongoClient()
+	newServer()
 }

@@ -1,23 +1,31 @@
 package application
 
 import (
-	sharedDom "api-your-accounts/shared/domain"
+	"api-your-accounts/shared/domain/jwt"
 	"api-your-accounts/user/domain"
 	"context"
 	"fmt"
 )
 
 var (
-	jwtGenerate = sharedDom.JwtGenerate
+	jwtGenerate = jwt.JwtGenerate
 )
 
 func Exists(repo domain.UserRepository, ctx context.Context, uuid string, email string) (bool, error) {
-	_, err := repo.FindByUUIDAndEmail(ctx, uuid, email)
+	exists, err := repo.ExistsByUUID(ctx, uuid)
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		return exists, nil
+	}
+
+	exists, err = repo.ExistsByEmail(ctx, email)
 	if err != nil {
 		return false, err
 	}
 
-	return true, nil
+	return exists, nil
 }
 
 func SignUp(repo domain.UserRepository, ctx context.Context, user *domain.User) (*domain.User, error) {
@@ -30,7 +38,7 @@ func Login(repo domain.UserRepository, ctx context.Context, uuid string, email s
 		return "", err
 	}
 
-	token, err := jwtGenerate(ctx, fmt.Sprint(user.ID))
+	token, err := jwtGenerate(ctx, fmt.Sprint(user.ID), user.UUID, user.Email)
 	if err != nil {
 		return "", err
 	}

@@ -1,10 +1,10 @@
 package infrastructure
 
-import "api-your-accounts/shared/infrastructure/model"
+import "api-your-accounts/shared/infrastructure/db/entity"
 
 type Budget struct {
-	model.BaseModel
-	model.BaseUpdateModel
+	entity.BaseModel
+	entity.BaseUpdateModel
 	Name                    string                   `gorm:"not null;size:40;uniqueIndex:unq_budget"`
 	Year                    uint16                   `gorm:"not null"`
 	Month                   uint8                    `gorm:"not null"`
@@ -23,23 +23,23 @@ type Budget struct {
 }
 
 type BudgetAvailableBalance struct {
-	model.BaseModel
-	model.BaseUpdateModel
+	entity.BaseModel
+	entity.BaseUpdateModel
 	Name     string  `gorm:"not null;size:40;uniqueIndex:unq_available"`
 	Amount   float64 `gorm:"not null;default:0"`
 	BudgetId uint    `gorm:"not null;uniqueIndex:unq_available"`
 }
 
 type CategoryBill struct {
-	model.BaseModel
-	model.BaseUpdateModel
+	entity.BaseModel
+	entity.BaseUpdateModel
 	Type        string       `gorm:"not null;size:50;unique"`
 	BudgetBills []BudgetBill `gorm:"foreignKey:CategoryId"`
 }
 
 type BudgetBill struct {
-	model.BaseModel
-	model.BaseUpdateModel
+	entity.BaseModel
+	entity.BaseUpdateModel
 	Description            string                  `gorm:"not null;size:200;uniqueIndex:unq_bill"`
 	Amount                 float64                 `gorm:"not null;default:0"`
 	Payment                float64                 `gorm:"not null;default:0"`
@@ -53,15 +53,15 @@ type BudgetBill struct {
 }
 
 type BudgetBillTransaction struct {
-	model.BaseModel
+	entity.BaseModel
 	Description  string  `gorm:"not null;size:100"`
 	Amount       float64 `gorm:"not null"`
 	BudgetBillId uint    `gorm:"not null"`
 }
 
 type BudgetBillShared struct {
-	model.BaseModel
-	model.BaseUpdateModel
+	entity.BaseModel
+	entity.BaseUpdateModel
 	Description  string  `gorm:"not null;size:100;uniqueIndex:unq_bill_shared"`
 	Amount       float64 `gorm:"not null;default:0"`
 	BudgetBillId uint    `gorm:"not null;uniqueIndex:unq_bill_shared"`

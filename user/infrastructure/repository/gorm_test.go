@@ -1,4 +1,4 @@
-package infrastructure
+package repository
 
 import (
 	sharedDom "api-your-accounts/shared/domain"
@@ -46,7 +46,7 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = NewGORMRepository(DB)
 }
 
 func (suite *TestSuite) TearDownTest() {

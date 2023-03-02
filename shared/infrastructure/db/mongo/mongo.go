@@ -1,6 +1,6 @@
 // TODO: Pendientes tests
 
-package mongodb
+package mongo
 
 import (
 	"context"
