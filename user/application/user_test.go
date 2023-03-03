@@ -13,6 +13,10 @@ import (
 
 type MockUserRepository struct {
 	errFindByUUIDAndEmail error
+	respExistsByUUID      bool
+	errExistsByUUID       error
+	respExistsByEmail     bool
+	errExistsByEmail      error
 	errCreate             error
 }
 
@@ -23,11 +27,11 @@ func (mock *MockUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid str
 }
 
 func (mock *MockUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
-	return false, nil
+	return mock.respExistsByUUID, mock.errExistsByUUID
 }
 
 func (mock *MockUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	return false, nil
+	return mock.respExistsByEmail, mock.errExistsByEmail
 }
 
 func (mock *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
@@ -61,20 +65,56 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestExistsSuccess() {
 	require := require.New(suite.T())
 
-	exists, err := Exists(&MockUserRepository{}, context.Background(), suite.uuid, suite.email)
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: true, respExistsByEmail: true}, context.Background(), suite.uuid, suite.email)
 	require.NoError(err)
 	require.True(exists)
 }
 
-func (suite *TestSuite) TestExistsError() {
+func (suite *TestSuite) TestExistsSuccessNot() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: false, respExistsByEmail: false}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsSuccessUUID() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: true}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsSuccessEmail() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: false, respExistsByEmail: true}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsErrorUUID() {
 	require := require.New(suite.T())
 
 	repo := &MockUserRepository{
-		errFindByUUIDAndEmail: errors.New("Not exists"),
+		errExistsByUUID: errors.New("Not exists"),
 	}
 
 	exists, err := Exists(repo, context.Background(), suite.uuid, suite.email)
-	require.EqualError(repo.errFindByUUIDAndEmail, err.Error())
+	require.EqualError(repo.errExistsByUUID, err.Error())
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsErrorEmail() {
+	require := require.New(suite.T())
+
+	repo := &MockUserRepository{
+		errExistsByEmail: errors.New("Not exists"),
+	}
+
+	exists, err := Exists(repo, context.Background(), suite.uuid, suite.email)
+	require.EqualError(repo.errExistsByEmail, err.Error())
 	require.False(exists)
 }
 
