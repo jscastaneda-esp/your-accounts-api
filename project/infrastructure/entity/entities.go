@@ -1,7 +1,7 @@
-package infrastructure
+package entity
 
 import (
-	budget "api-your-accounts/budget/infrastructure"
+	budget "api-your-accounts/budget/infrastructure/entity"
 	"api-your-accounts/shared/infrastructure/db/entity"
 )
 

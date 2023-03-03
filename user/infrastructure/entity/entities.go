@@ -1,7 +1,7 @@
 package entity
 
 import (
-	project "api-your-accounts/project/infrastructure"
+	project "api-your-accounts/project/infrastructure/entity"
 	"api-your-accounts/shared/infrastructure/db/entity"
 	"time"
 )

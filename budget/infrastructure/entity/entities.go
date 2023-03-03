@@ -1,4 +1,4 @@
-package infrastructure
+package entity
 
 import "api-your-accounts/shared/infrastructure/db/entity"
 

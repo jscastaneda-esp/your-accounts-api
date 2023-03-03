@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	budget "api-your-accounts/budget/infrastructure"
-	project "api-your-accounts/project/infrastructure"
+	budget "api-your-accounts/budget/infrastructure/entity"
+	project "api-your-accounts/project/infrastructure/entity"
 	selfMongo "api-your-accounts/shared/infrastructure/db/mongo"
 	user "api-your-accounts/user/infrastructure/entity"
 
