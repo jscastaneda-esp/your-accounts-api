@@ -3,26 +3,21 @@
 package infrastructure
 
 import (
-	"api-your-accounts/shared/infrastructure/graph"
-	"api-your-accounts/shared/infrastructure/graph/directive"
-	"api-your-accounts/shared/infrastructure/graph/resolver"
-	"api-your-accounts/shared/infrastructure/middleware/auth"
-	"api-your-accounts/shared/infrastructure/mongodb"
-	"bytes"
-	"io"
+	"context"
 	"log"
-	"net/http"
 	"os"
 	"strings"
 
-	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
+	"api-your-accounts/shared/domain/jwt"
+	user "api-your-accounts/user/infrastructure/controller"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"gorm.io/gorm"
+	jwtware "github.com/gofiber/jwt/v3"
+	"github.com/gofiber/swagger"
 )
 
 const (
@@ -30,62 +25,20 @@ const (
 	defaultJwtSecret = "aSecret"
 )
 
-type FiberResponseWriter struct {
-	ctx *fiber.Ctx
+// HealckCheck godoc
+//
+//	@Summary		Show the status of server
+//	@Description	get the status of server
+//	@Tags			main
+//	@Produce		plain
+//	@Success		200	{string}	string	"Status available"
+//	@Failure		500
+//	@Router			/ [get]
+func healthCheck(c *fiber.Ctx) error {
+	return c.SendString("Server is up and running")
 }
 
-func (FiberResponseWriter) Header() http.Header {
-	return make(http.Header)
-}
-
-func (w FiberResponseWriter) Write(bytes []byte) (int, error) {
-	return w.ctx.Write(bytes)
-}
-
-func (w FiberResponseWriter) WriteHeader(statusCode int) {
-	w.ctx.Status(statusCode)
-}
-
-// Defining the Playground handler
-func getPlaygroundHandler() fiber.Handler {
-	handler := playground.Handler("GraphQL", "/query")
-
-	return func(c *fiber.Ctx) error {
-		w := FiberResponseWriter{c}
-		r := new(http.Request)
-
-		c.Set("Content-Type", fiber.MIMETextHTMLCharsetUTF8)
-		handler(w, r)
-		return nil
-	}
-}
-
-// Defining the GraphQL handler
-func postGraphqlHandler(db *gorm.DB, mongoClient *mongodb.Client) fiber.Handler {
-	server := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver.Resolver{DB: db, MongoClient: mongoClient}, Directives: directive.GetDirectives()}))
-
-	return func(c *fiber.Ctx) error {
-		headers := make(http.Header)
-		for key, value := range c.GetReqHeaders() {
-			headers[key] = []string{value}
-		}
-
-		w := FiberResponseWriter{c}
-		r := &http.Request{
-			Method: c.Method(),
-			Header: headers,
-			Body:   io.NopCloser(bytes.NewReader(c.Body())),
-		}
-
-		r = r.WithContext(c.UserContext())
-
-		c.Set("Content-Type", fiber.MIMEApplicationJSON)
-		server.ServeHTTP(w, r)
-		return nil
-	}
-}
-
-func NewServer(db *gorm.DB, mongoClient *mongodb.Client) {
+func NewServer() {
 	log.Println("Listening server")
 
 	// Environment Variables
@@ -98,27 +51,51 @@ func NewServer(db *gorm.DB, mongoClient *mongodb.Client) {
 	app := fiber.New()
 
 	// Middleware
-	app.Use(logger.New(logger.Config{
-		Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path}: ${error}\n",
-		TimeFormat: "2006-01-02 15:04:05",
-		TimeZone:   "UTC",
-	}))
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: strings.Join([]string{
-			fiber.MethodGet,
-			fiber.MethodPost,
-		}, ","),
-	}))
-	app.Use(recover.New())
-	app.Use(requestid.New())
-	app.Use(auth.New(auth.Config{
-		JWTSecret: jwtSecret,
-	}))
+	{
+		app.Use(logger.New(logger.Config{
+			Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path}: ${error}\n",
+			TimeFormat: "2006-01-02 15:04:05",
+			TimeZone:   "UTC",
+		}))
+		app.Use(cors.New(cors.Config{
+			AllowOrigins: "*",
+			AllowMethods: strings.Join([]string{
+				fiber.MethodGet,
+				fiber.MethodPost,
+			}, ","),
+		}))
+		app.Use(recover.New())
+		app.Use(requestid.New())
+		app.Use(func(c *fiber.Ctx) error {
+			ctx := context.WithValue(c.UserContext(), jwt.CtxJWTSecret, jwtSecret)
+			c.SetUserContext(ctx)
+			return c.Next()
+		})
+	}
 
 	// Routes
-	app.Get("/", getPlaygroundHandler())
-	app.Post("/query", postGraphqlHandler(db, mongoClient))
+	{
+		// # Root
+		app.Get("/", healthCheck)
+		app.Get("/swagger/*", swagger.New(swagger.Config{
+			Title: "Doc API",
+		}))
+
+		// # Authentication
+		auth := app.Group("/auth")
+		{
+			auth.Post("/user", user.CreateUserHandler)
+			auth.Post("/token", user.LoginHandler)
+		}
+
+		// # API V1
+		apiV1 := app.Group("/api/v1")
+		{
+			apiV1.Use(jwtware.New(jwtware.Config{
+				SigningKey: []byte(jwtSecret),
+			}))
+		}
+	}
 
 	// Listening server
 	log.Fatal(app.Listen(":" + port))

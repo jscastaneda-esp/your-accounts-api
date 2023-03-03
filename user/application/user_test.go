@@ -1,7 +1,7 @@
 package application
 
 import (
-	jwt "api-your-accounts/shared/domain"
+	"api-your-accounts/shared/domain/jwt"
 	"api-your-accounts/user/domain"
 	"context"
 	"errors"
@@ -13,6 +13,10 @@ import (
 
 type MockUserRepository struct {
 	errFindByUUIDAndEmail error
+	respExistsByUUID      bool
+	errExistsByUUID       error
+	respExistsByEmail     bool
+	errExistsByEmail      error
 	errCreate             error
 }
 
@@ -20,6 +24,14 @@ func (mock *MockUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid str
 	return &domain.User{
 		ID: 999,
 	}, mock.errFindByUUIDAndEmail
+}
+
+func (mock *MockUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
+	return mock.respExistsByUUID, mock.errExistsByUUID
+}
+
+func (mock *MockUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	return mock.respExistsByEmail, mock.errExistsByEmail
 }
 
 func (mock *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
@@ -36,7 +48,7 @@ type TestSuite struct {
 	uuid                string
 	email               string
 	token               string
-	originalJwtGenerate func(ctx context.Context, userId string) (string, error)
+	originalJwtGenerate func(ctx context.Context, id string, uuid string, email string) (string, error)
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -53,20 +65,56 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestExistsSuccess() {
 	require := require.New(suite.T())
 
-	exists, err := Exists(&MockUserRepository{}, context.Background(), suite.uuid, suite.email)
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: true, respExistsByEmail: true}, context.Background(), suite.uuid, suite.email)
 	require.NoError(err)
 	require.True(exists)
 }
 
-func (suite *TestSuite) TestExistsError() {
+func (suite *TestSuite) TestExistsSuccessNot() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: false, respExistsByEmail: false}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsSuccessUUID() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: true}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsSuccessEmail() {
+	require := require.New(suite.T())
+
+	exists, err := Exists(&MockUserRepository{respExistsByUUID: false, respExistsByEmail: true}, context.Background(), suite.uuid, suite.email)
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsErrorUUID() {
 	require := require.New(suite.T())
 
 	repo := &MockUserRepository{
-		errFindByUUIDAndEmail: errors.New("Not exists"),
+		errExistsByUUID: errors.New("Not exists"),
 	}
 
 	exists, err := Exists(repo, context.Background(), suite.uuid, suite.email)
-	require.EqualError(repo.errFindByUUIDAndEmail, err.Error())
+	require.EqualError(repo.errExistsByUUID, err.Error())
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsErrorEmail() {
+	require := require.New(suite.T())
+
+	repo := &MockUserRepository{
+		errExistsByEmail: errors.New("Not exists"),
+	}
+
+	exists, err := Exists(repo, context.Background(), suite.uuid, suite.email)
+	require.EqualError(repo.errExistsByEmail, err.Error())
 	require.False(exists)
 }
 
@@ -100,26 +148,10 @@ func (suite *TestSuite) TestSignUpError() {
 	require.EqualError(repo.errCreate, err.Error())
 }
 
-/*
-func Login(repo domain.UserRepository, ctx context.Context, uuid string, email string) (string, error) {
-	user, err := repo.FindByUUIDAndEmail(ctx, uuid, email)
-	if err != nil {
-		return "", err
-	}
-
-	token, err := sharedD.JwtGenerate(ctx, fmt.Sprint(user.Id))
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-}
-*/
-
 func (suite *TestSuite) TestLoginSuccess() {
 	require := require.New(suite.T())
 
-	jwtGenerate = func(ctx context.Context, userId string) (string, error) {
+	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, error) {
 		return suite.token, nil
 	}
 
@@ -143,7 +175,7 @@ func (suite *TestSuite) TestLoginErrorFind() {
 func (suite *TestSuite) TestLoginErrorJWTGenerate() {
 	require := require.New(suite.T())
 
-	jwtGenerate = func(ctx context.Context, userId string) (string, error) {
+	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, error) {
 		return "", jwt.ErrInvalidToken
 	}
 

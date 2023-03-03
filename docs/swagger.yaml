@@ -1,0 +1,133 @@
+basePath: /
+definitions:
+  model.CreateRequest:
+    properties:
+      email:
+        type: string
+      uuid:
+        type: string
+    required:
+    - email
+    - uuid
+    type: object
+  model.CreateResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+      uuid:
+        type: string
+    type: object
+  model.LoginRequest:
+    properties:
+      email:
+        type: string
+      uuid:
+        type: string
+    required:
+    - email
+    - uuid
+    type: object
+info:
+  contact:
+    email: jonathancastaneda@jsc-developer.me
+    name: Your Accounts Support
+  description: This is the API from project Your Accounts
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Your Accounts API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: get the status of server
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Status available
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Show the status of server
+      tags:
+      - main
+  /auth/token:
+    post:
+      consumes:
+      - application/json
+      description: create token for access
+      parameters:
+      - description: Login data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Error
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Error
+          schema:
+            type: string
+      summary: Login user
+      tags:
+      - user
+  /auth/user:
+    post:
+      consumes:
+      - application/json
+      description: Create user in the system
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CreateResponse'
+        "400":
+          description: Error
+          schema:
+            type: string
+        "409":
+          description: User already exists
+          schema:
+            type: string
+        "500":
+          description: Error
+          schema:
+            type: string
+      summary: Create user
+      tags:
+      - user
+swagger: "2.0"

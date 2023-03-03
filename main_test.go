@@ -1,7 +1,6 @@
 package main
 
 import (
-	"api-your-accounts/shared/infrastructure/mongodb"
 	"errors"
 	"log"
 	"os"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/gorm"
 )
 
 type TestSuite struct {
@@ -23,14 +21,14 @@ func (suite *TestSuite) SetupSuite() {
 	osStat = func(name string) (os.FileInfo, error) {
 		return nil, nil
 	}
-	newDB = func() *gorm.DB {
-		return &gorm.DB{}
+	newDB = func() {
+		log.Println("Connect database")
 	}
-	newMongoClient = func() *mongodb.Client {
-		return &mongodb.Client{}
+	newMongoClient = func() {
+		log.Println("Connect mongo database")
 	}
-	newServer = func(db *gorm.DB, mongoClient *mongodb.Client) {
-		log.Printf("Starting server with database %v, in mongo %v", db, mongoClient)
+	newServer = func() {
+		log.Println("Starting server")
 	}
 }
 
