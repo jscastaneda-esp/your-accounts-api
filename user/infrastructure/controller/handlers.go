@@ -18,6 +18,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// CreateUserHandler godoc
+//
+//	@Summary		Create user
+//	@Description	Create user in the system
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request		body		model.CreateRequest	true	"User data"
+//	@Success		200			{object}	model.CreateResponse
+//	@Failure		400			{string}	string	"Error"
+//	@Failure		409			{string}	string	"User already exists"
+//	@Failure		500			{string}	string	"Error"
+//	@Router			/auth/user	[post]
 func CreateUserHandler(c *fiber.Ctx) error {
 	request := new(model.CreateRequest)
 	if err := c.BodyParser(request); err != nil {
@@ -58,6 +71,19 @@ func CreateUserHandler(c *fiber.Ctx) error {
 	})
 }
 
+// LoginHandler godoc
+//
+//	@Summary		Login user
+//	@Description	create token for access
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json,plain
+//	@Param			request		body		model.LoginRequest	true	"Login data"
+//	@Success		200			{object}	map[string]interface{}
+//	@Failure		400			{string}	string	"Error"
+//	@Failure		401			{string}	string	"Invalid credentials"
+//	@Failure		500			{string}	string	"Error"
+//	@Router			/auth/token	[post]
 func LoginHandler(c *fiber.Ctx) error {
 	request := new(model.LoginRequest)
 	if err := c.BodyParser(request); err != nil {
