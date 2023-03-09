@@ -75,25 +75,29 @@ func NewServer() {
 
 	// Routes
 	{
-		// # Root
+		//# Root
 		app.Get("/", healthCheck)
 		app.Get("/swagger/*", swagger.New(swagger.Config{
 			Title: "Doc API",
 		}))
 
-		// # Authentication
-		auth := app.Group("/auth")
-		{
-			auth.Post("/user", user.CreateUserHandler)
-			auth.Post("/token", user.LoginHandler)
-		}
+		//# /user
+		user.NewGroup(app)
 
-		// # API V1
-		apiV1 := app.Group("/api/v1")
+		//# /api
 		{
-			apiV1.Use(jwtware.New(jwtware.Config{
+			api := app.Group("/api")
+			api.Use(jwtware.New(jwtware.Config{
 				SigningKey: []byte(jwtSecret),
 			}))
+
+			//## /v1
+			{
+				v1 := api.Group("/v1")
+				v1.Get("/", func(c *fiber.Ctx) error {
+					return c.SendString("Funciona")
+				})
+			}
 		}
 	}
 
