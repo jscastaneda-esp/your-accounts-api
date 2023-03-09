@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"api-your-accounts/shared/domain/jwt"
-	user "api-your-accounts/user/infrastructure/controller"
+	user "api-your-accounts/user/infrastructure/handler"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
