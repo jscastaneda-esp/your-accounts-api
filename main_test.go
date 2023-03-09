@@ -58,6 +58,7 @@ func (suite *TestSuite) TestMainErrorLoadFileEnv() {
 	}
 
 	main()
+
 	require.True(fatal)
 }
 
