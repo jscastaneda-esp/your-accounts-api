@@ -1,5 +1,3 @@
-// TODO: Pendientes tests
-
 package repository
 
 import (
@@ -35,9 +33,9 @@ func (r *GORMUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string
 
 func (r *GORMUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
 	var count int
-	r.db.Raw("SELECT COUNT(1) FROM users WHERE uuid = ?", uuid).Scan(&count)
-	if r.db.Error != nil {
-		return false, r.db.Error
+	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE uuid = ?", uuid).Scan(&count).Error
+	if err != nil {
+		return false, err
 	}
 
 	return count > 0, nil
@@ -45,9 +43,9 @@ func (r *GORMUserRepository) ExistsByUUID(ctx context.Context, uuid string) (boo
 
 func (r *GORMUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var count int
-	r.db.Raw("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count)
-	if r.db.Error != nil {
-		return false, r.db.Error
+	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count).Error
+	if err != nil {
+		return false, err
 	}
 
 	return count > 0, nil
@@ -73,15 +71,10 @@ func (r *GORMUserRepository) Create(ctx context.Context, user *domain.User) (*do
 }
 
 func (r *GORMUserRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
+	// FIXME Implementar
 	return nil, nil
 }
 
-var instance domain.UserRepository
-
 func NewGORMRepository(db *gorm.DB) domain.UserRepository {
-	if instance == nil {
-		instance = &GORMUserRepository{db}
-	}
-
-	return instance
+	return &GORMUserRepository{db}
 }

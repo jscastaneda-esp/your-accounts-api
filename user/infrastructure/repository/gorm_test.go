@@ -1,7 +1,7 @@
 package repository
 
 import (
-	sharedDom "api-your-accounts/shared/domain"
+	"api-your-accounts/shared/domain/testutils"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
@@ -71,6 +71,7 @@ func (suite *TestSuite) TestFindByUUIDAndEmailSuccess() {
 		)
 
 	user, err := suite.repository.FindByUUIDAndEmail(context.Background(), suite.uuid, suite.email)
+
 	require.NoError(err)
 	require.NotNil(user)
 	require.Equal(suite.uuid, user.UUID)
@@ -92,8 +93,117 @@ func (suite *TestSuite) TestFindByUUIDAndEmailError() {
 		WillReturnError(gorm.ErrRecordNotFound)
 
 	user, err := suite.repository.FindByUUIDAndEmail(context.Background(), suite.uuid, suite.email)
+
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Nil(user)
+}
+
+func (suite *TestSuite) TestExistsByUUIDSuccessTrue() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE uuid = $1
+		`)).
+		WithArgs(suite.uuid).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	exists, err := suite.repository.ExistsByUUID(context.Background(), suite.uuid)
+
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsByUUIDSuccessFalse() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE uuid = $1
+		`)).
+		WithArgs(suite.uuid).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+
+	exists, err := suite.repository.ExistsByUUID(context.Background(), suite.uuid)
+
+	require.NoError(err)
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsByUUIDError() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE uuid = $1
+		`)).
+		WithArgs(suite.uuid).
+		WillReturnError(gorm.ErrInvalidField)
+
+	exists, err := suite.repository.ExistsByUUID(context.Background(), suite.uuid)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsByEmailSuccessTrue() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE email = $1
+		`)).
+		WithArgs(suite.email).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
+
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsByEmailSuccessFalse() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE email = $1
+		`)).
+		WithArgs(suite.email).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+
+	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
+
+	require.NoError(err)
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsByEmailError() {
+	require := require.New(suite.T())
+
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT COUNT(1) 
+		FROM users 
+		WHERE email = $1
+		`)).
+		WithArgs(suite.email).
+		WillReturnError(gorm.ErrInvalidField)
+
+	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.False(exists)
 }
 
 func (suite *TestSuite) TestCreateSuccess() {
@@ -106,7 +216,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(sharedDom.AnyTime{}, suite.uuid, suite.email).
+		WithArgs(testutils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
 	user := &domain.User{
@@ -115,6 +225,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 	}
 
 	res, err := suite.repository.Create(context.Background(), user)
+
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(user.UUID, res.UUID)
@@ -131,7 +242,7 @@ func (suite *TestSuite) TestCreateError() {
 		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(sharedDom.AnyTime{}, suite.uuid, suite.email).
+		WithArgs(testutils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	user := &domain.User{
@@ -140,6 +251,7 @@ func (suite *TestSuite) TestCreateError() {
 	}
 
 	res, err := suite.repository.Create(context.Background(), user)
+
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Nil(res)
 }
