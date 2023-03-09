@@ -1,11 +1,8 @@
-// TODO: Pendientes tests
-
-package controller
+package handler
 
 import (
 	"errors"
 	"log"
-	"strings"
 
 	"api-your-accounts/shared/infrastructure/db"
 	"api-your-accounts/shared/infrastructure/validation"
@@ -18,6 +15,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type userController struct {
+	app application.IUserApp
+}
+
 // CreateUserHandler godoc
 //
 //	@Summary		Create user
@@ -25,30 +26,29 @@ import (
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request		body		model.CreateRequest	true	"User data"
-//	@Success		200			{object}	model.CreateResponse
-//	@Failure		400			{string}	string	"Error"
-//	@Failure		409			{string}	string	"User already exists"
-//	@Failure		500			{string}	string	"Error"
-//	@Router			/auth/user	[post]
-func CreateUserHandler(c *fiber.Ctx) error {
+//	@Param			request	body		model.CreateRequest	true	"User data"
+//	@Success		200		{object}	model.CreateResponse
+//	@Failure		409		{string}	string	"Conflict"
+//	@Failure		422		{string}	string	"Unprocessable Entity"
+//	@Failure		500		{string}	string	"Internal Server Error"
+//	@Router			/user	[post]
+func (controller *userController) createUser(c *fiber.Ctx) error {
 	request := new(model.CreateRequest)
 	if err := c.BodyParser(request); err != nil {
 		log.Println("Error request body parser:", err)
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
 	}
 
 	if errors := validation.ValidateStruct(request); errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
 	}
 
-	repo := repository.NewGORMRepository(db.DB)
 	user := &domain.User{
 		UUID:  request.UUID,
 		Email: request.Email,
 	}
 
-	exists, err := application.Exists(repo, c.UserContext(), user.UUID, user.Email)
+	exists, err := controller.app.Exists(c.UserContext(), user.UUID, user.Email)
 	if exists {
 		return fiber.NewError(fiber.StatusConflict, "User already exists")
 	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -56,7 +56,7 @@ func CreateUserHandler(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
 	}
 
-	result, err := application.SignUp(repo, c.UserContext(), user)
+	result, err := controller.app.SignUp(c.UserContext(), user)
 	if err != nil {
 		log.Println("Error sign up user:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
@@ -80,23 +80,22 @@ func CreateUserHandler(c *fiber.Ctx) error {
 //	@Produce		json,plain
 //	@Param			request		body		model.LoginRequest	true	"Login data"
 //	@Success		200			{object}	map[string]interface{}
-//	@Failure		400			{string}	string	"Error"
-//	@Failure		401			{string}	string	"Invalid credentials"
-//	@Failure		500			{string}	string	"Error"
-//	@Router			/auth/token	[post]
-func LoginHandler(c *fiber.Ctx) error {
+//	@Failure		401			{string}	string	"Unauthorized"
+//	@Failure		422			{string}	string	"Unprocessable Entity"
+//	@Failure		500			{string}	string	"Internal Server Error"
+//	@Router			/user/login	[post]
+func (controller *userController) login(c *fiber.Ctx) error {
 	request := new(model.LoginRequest)
 	if err := c.BodyParser(request); err != nil {
 		log.Println("Error request body parser:", err)
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
 	}
 
 	if errors := validation.ValidateStruct(request); errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(errors)
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
 	}
 
-	repo := repository.NewGORMRepository(db.DB)
-	token, err := application.Login(repo, c.UserContext(), request.UUID, strings.ToLower(request.Email))
+	token, err := controller.app.Login(c.UserContext(), request.UUID, request.Email)
 	if err != nil {
 		log.Println("Error login user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -109,4 +108,15 @@ func LoginHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"token": token,
 	})
+}
+
+func NewGroup(app *fiber.App) {
+	repo := repository.NewGORMRepository(db.DB)
+	controller := &userController{
+		app: application.NewUserApp(repo),
+	}
+
+	group := app.Group("/user")
+	group.Post("/", controller.createUser)
+	group.Post("/login", controller.login)
 }
