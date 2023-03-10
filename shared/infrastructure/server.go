@@ -47,6 +47,10 @@ func (s *Server) Listen() *fiber.App {
 		port = defaultPort
 	}
 	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = defaultJwtSecret
+		os.Setenv("JWT_SECRET", jwtSecret)
+	}
 
 	app := fiber.New()
 
