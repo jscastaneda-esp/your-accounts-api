@@ -53,14 +53,9 @@ func (suite *TestSuite) TestMainErrorLoadFileEnv() {
 		return
 	}
 
-	var fatal = false
-	logFatal = func(_ ...any) {
-		fatal = true
-	}
-
-	main()
-
-	require.True(fatal)
+	require.Panics(func() {
+		main()
+	})
 }
 
 func TestTestSuite(t *testing.T) {

@@ -18,7 +18,6 @@ import (
 var (
 	osStat         = os.Stat
 	dotenvLoad     = godotenv.Load
-	logFatal       = log.Fatal
 	newDB          = db.NewDB
 	newMongoClient = db.NewMongoClient
 	newServer      = infrastructure.NewServer
@@ -45,7 +44,7 @@ func main() {
 		log.Println("Load .env file")
 		err = dotenvLoad()
 		if err != nil {
-			logFatal("Error loading .env file: ", err)
+			log.Panic("Error loading .env file: ", err)
 		}
 	}
 
