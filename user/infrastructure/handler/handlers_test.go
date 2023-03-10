@@ -405,11 +405,11 @@ func (suite *TestSuite) TestLoginErrorLogin() {
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestNewGroup() {
+func (suite *TestSuite) TestNewRoute() {
 	require := require.New(suite.T())
 	app := fiber.New()
 
-	NewGroup(app)
+	NewRoute(app)
 
 	require.Len(app.GetRoutes(), 2)
 

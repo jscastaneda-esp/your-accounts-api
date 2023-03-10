@@ -110,7 +110,7 @@ func (controller *userController) login(c *fiber.Ctx) error {
 	})
 }
 
-func NewGroup(app *fiber.App) {
+func NewRoute(app *fiber.App) {
 	repo := repository.NewGORMRepository(db.DB)
 	controller := &userController{
 		app: application.NewUserApp(repo),
