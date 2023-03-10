@@ -411,14 +411,15 @@ func (suite *TestSuite) TestNewRoute() {
 
 	NewRoute(app)
 
-	require.Len(app.GetRoutes(), 2)
+	routes := app.GetRoutes()
+	require.Len(routes, 2)
 
-	route1 := app.GetRoutes()[0]
+	route1 := routes[0]
 	require.Equal(fiber.MethodPost, route1.Method)
 	require.Equal("/user/", route1.Path)
 	require.Len(route1.Handlers, 1)
 
-	route2 := app.GetRoutes()[1]
+	route2 := routes[1]
 	require.Equal(fiber.MethodPost, route2.Method)
 	require.Equal("/user/login", route2.Path)
 	require.Len(route2.Handlers, 1)
