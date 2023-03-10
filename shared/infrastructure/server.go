@@ -1,10 +1,7 @@
-// TODO: Pendientes tests
-
 package infrastructure
 
 import (
 	"api-your-accounts/shared/domain/jwt"
-	user "api-your-accounts/user/infrastructure/handler"
 	"context"
 	"fmt"
 	"log"
@@ -22,10 +19,6 @@ import (
 const (
 	defaultPort      = "8080"
 	defaultJwtSecret = "aSecret"
-)
-
-var (
-	newUserRoute = user.NewRoute
 )
 
 type Route struct {
@@ -97,17 +90,18 @@ func (s *Server) Listen() *fiber.App {
 			case Router:
 				r(app)
 			default:
-				panic(fmt.Sprintf("use: invalid route %v\n", reflect.TypeOf(r)))
+				log.Panic(fmt.Sprintf("use: invalid route %v\n", reflect.TypeOf(r)))
 			}
 		}
 	}
 
 	if s.testing {
+		log.Printf("Listen server on port %s\n", port)
 		return app
 	}
 
 	// Listening server
-	log.Fatal(app.Listen(":" + port))
+	log.Panic(app.Listen(":" + port))
 	return nil
 }
 
@@ -127,5 +121,6 @@ func healthCheck(c *fiber.Ctx) error {
 func NewServer(testing bool) *Server {
 	return &Server{
 		testing: testing,
+		routes:  []interface{}{},
 	}
 }
