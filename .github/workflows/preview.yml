@@ -39,11 +39,9 @@ jobs:
             <table>
               <tr>
                 <td><strong>✅ Preview:</strong></td>
-                <td><a href='https://api-your-accounts-preview.up.railway.app/'>Verify</a></td>
-              </tr>
-              <tr>
+                <td><a href='https://api-your-accounts-preview.up.railway.app/' target='_blank'>Verify</a></td>
                 <td><strong>🔍 Inspect:</strong></td>
-                <td><a href='${{ steps.deploy.outputs.INSPECTOR_URL }}'>Inspect</a></td>
+                <td><a href='${{ steps.deploy.outputs.INSPECTOR_URL }}' target='_blank'>To Inspect</a></td>
               </tr>
             </table>
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
