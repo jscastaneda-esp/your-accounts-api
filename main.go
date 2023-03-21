@@ -3,9 +3,13 @@ package main
 import (
 	"api-your-accounts/shared/infrastructure"
 	"api-your-accounts/shared/infrastructure/db"
+	"api-your-accounts/shared/infrastructure/handler"
+	user "api-your-accounts/user/infrastructure/handler"
 	"log"
 	"os"
 
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
 	_ "api-your-accounts/docs"
@@ -14,10 +18,13 @@ import (
 var (
 	osStat         = os.Stat
 	dotenvLoad     = godotenv.Load
-	logFatal       = log.Fatal
 	newDB          = db.NewDB
 	newMongoClient = db.NewMongoClient
 	newServer      = infrastructure.NewServer
+	routers        = []infrastructure.Router{
+		user.NewRoute,
+		handler.NewRoute,
+	}
 )
 
 // Main godoc
@@ -37,11 +44,27 @@ func main() {
 		log.Println("Load .env file")
 		err = dotenvLoad()
 		if err != nil {
-			logFatal("Error loading .env file: ", err)
+			log.Panic("Error loading .env file: ", err)
 		}
 	}
 
 	newDB()
 	newMongoClient()
-	newServer()
+
+	// Init server
+	server := newServer(false)
+	server.
+		AddRoute(infrastructure.Route{
+			Method: fiber.MethodGet,
+			Path:   "/swagger/*",
+			Handler: swagger.New(swagger.Config{
+				Title: "Doc API",
+			}),
+		})
+
+	for _, router := range routers {
+		server.AddRoute(router)
+	}
+
+	server.Listen()
 }

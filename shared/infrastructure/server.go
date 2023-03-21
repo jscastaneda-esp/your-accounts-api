@@ -1,23 +1,19 @@
-// TODO: Pendientes tests
-
 package infrastructure
 
 import (
+	"api-your-accounts/shared/domain/jwt"
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
-
-	"api-your-accounts/shared/domain/jwt"
-	user "api-your-accounts/user/infrastructure/controller"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	jwtware "github.com/gofiber/jwt/v3"
-	"github.com/gofiber/swagger"
 )
 
 const (
@@ -25,20 +21,24 @@ const (
 	defaultJwtSecret = "aSecret"
 )
 
-// HealckCheck godoc
-//
-//	@Summary		Show the status of server
-//	@Description	get the status of server
-//	@Tags			main
-//	@Produce		plain
-//	@Success		200	{string}	string	"Status available"
-//	@Failure		500
-//	@Router			/ [get]
-func healthCheck(c *fiber.Ctx) error {
-	return c.SendString("Server is up and running")
+type Route struct {
+	Method  string
+	Path    string
+	Handler fiber.Handler
 }
 
-func NewServer() {
+type Router func(app *fiber.App)
+
+type Server struct {
+	testing bool
+	routes  []interface{}
+}
+
+func (s *Server) AddRoute(routes ...interface{}) {
+	s.routes = append(s.routes, routes...)
+}
+
+func (s *Server) Listen() *fiber.App {
 	log.Println("Listening server")
 
 	// Environment Variables
@@ -47,6 +47,10 @@ func NewServer() {
 		port = defaultPort
 	}
 	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = defaultJwtSecret
+		os.Setenv("JWT_SECRET", jwtSecret)
+	}
 
 	app := fiber.New()
 
@@ -75,28 +79,52 @@ func NewServer() {
 
 	// Routes
 	{
-		// # Root
+		//# Root
 		app.Get("/", healthCheck)
-		app.Get("/swagger/*", swagger.New(swagger.Config{
-			Title: "Doc API",
-		}))
 
-		// # Authentication
-		auth := app.Group("/auth")
-		{
-			auth.Post("/user", user.CreateUserHandler)
-			auth.Post("/token", user.LoginHandler)
-		}
-
-		// # API V1
-		apiV1 := app.Group("/api/v1")
-		{
-			apiV1.Use(jwtware.New(jwtware.Config{
-				SigningKey: []byte(jwtSecret),
-			}))
+		// # Additional
+		for _, route := range s.routes {
+			switch r := route.(type) {
+			case Route:
+				if fiber.MethodGet == r.Method {
+					app.Get(r.Path, r.Handler)
+				} else {
+					app.Add(r.Method, r.Path, r.Handler)
+				}
+			case Router:
+				r(app)
+			default:
+				log.Panic(fmt.Sprintf("use: invalid route %v\n", reflect.TypeOf(r)))
+			}
 		}
 	}
 
+	if s.testing {
+		log.Printf("Listen server on port %s\n", port)
+		return app
+	}
+
 	// Listening server
-	log.Fatal(app.Listen(":" + port))
+	log.Panic(app.Listen(":" + port))
+	return nil
+}
+
+// HealckCheck godoc
+//
+//	@Summary		Show the status of server
+//	@Description	get the status of server
+//	@Tags			main
+//	@Produce		plain
+//	@Success		200	{string}	string	"Status available"
+//	@Failure		500
+//	@Router			/ [get]
+func healthCheck(c *fiber.Ctx) error {
+	return c.SendString("Server is up and running")
+}
+
+func NewServer(testing bool) *Server {
+	return &Server{
+		testing: testing,
+		routes:  []interface{}{},
+	}
 }

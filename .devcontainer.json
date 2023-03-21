@@ -18,18 +18,15 @@
 				"quicktype.quicktype",
 				"christian-kohler.path-intellisense",
 				"streetsidesoftware.code-spell-checker-spanish",
-				"TabNine.tabnine-vscode",
 				"Gruntfuggly.todo-tree",
 				"usernamehw.errorlens",
 				"adamhartford.vscode-base64",
 				"golang.go",
 				"r3inbowari.gomodexplorer",
 				"golang.go-nightly",
-				"GraphQL.vscode-graphql-syntax",
 				"mongodb.mongodb-vscode",
 				"RapidAPI.vscode-rapidapi-client",
 				"ms-azuretools.vscode-docker",
-				"bungcip.better-toml",
 				"ckolkman.vscode-postgres"
 			]
 		}

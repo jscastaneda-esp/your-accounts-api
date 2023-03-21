@@ -60,7 +60,41 @@ paths:
       summary: Show the status of server
       tags:
       - main
-  /auth/token:
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Create user in the system
+      parameters:
+      - description: User data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CreateResponse'
+        "409":
+          description: Conflict
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create user
+      tags:
+      - user
+  /user/login:
     post:
       consumes:
       - application/json
@@ -81,53 +115,19 @@ paths:
           schema:
             additionalProperties: true
             type: object
-        "400":
-          description: Error
+        "401":
+          description: Unauthorized
           schema:
             type: string
-        "401":
-          description: Invalid credentials
+        "422":
+          description: Unprocessable Entity
           schema:
             type: string
         "500":
-          description: Error
+          description: Internal Server Error
           schema:
             type: string
       summary: Login user
-      tags:
-      - user
-  /auth/user:
-    post:
-      consumes:
-      - application/json
-      description: Create user in the system
-      parameters:
-      - description: User data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.CreateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.CreateResponse'
-        "400":
-          description: Error
-          schema:
-            type: string
-        "409":
-          description: User already exists
-          schema:
-            type: string
-        "500":
-          description: Error
-          schema:
-            type: string
-      summary: Create user
       tags:
       - user
 swagger: "2.0"

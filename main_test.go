@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-your-accounts/shared/infrastructure"
 	"errors"
 	"log"
 	"os"
@@ -27,8 +28,8 @@ func (suite *TestSuite) SetupSuite() {
 	newMongoClient = func() {
 		log.Println("Connect mongo database")
 	}
-	newServer = func() {
-		log.Println("Starting server")
+	newServer = func(_ bool) *infrastructure.Server {
+		return infrastructure.NewServer(true)
 	}
 }
 
@@ -52,13 +53,9 @@ func (suite *TestSuite) TestMainErrorLoadFileEnv() {
 		return
 	}
 
-	var fatal = false
-	logFatal = func(_ ...any) {
-		fatal = true
-	}
-
-	main()
-	require.True(fatal)
+	require.Panics(func() {
+		main()
+	})
 }
 
 func TestTestSuite(t *testing.T) {

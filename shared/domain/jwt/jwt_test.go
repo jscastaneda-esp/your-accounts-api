@@ -29,6 +29,7 @@ func (suite *TestSuite) TestJwtGenerateSuccess() {
 	require := require.New(suite.T())
 
 	token, err := JwtGenerate(context.Background(), "test", "test", "test")
+
 	require.NoError(err)
 	require.NotEmpty(token)
 }
@@ -41,6 +42,7 @@ func (suite *TestSuite) TestJwtGenerateErrorKeyInvalid() {
 	}
 
 	token, err := JwtGenerate(context.Background(), "test", "test", "test")
+
 	require.EqualError(jwt.ErrInvalidKeyType, err.Error())
 	require.Empty(token)
 }

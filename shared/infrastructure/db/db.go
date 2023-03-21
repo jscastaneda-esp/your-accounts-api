@@ -1,5 +1,3 @@
-// TODO: Pendientes tests
-
 package db
 
 import (
