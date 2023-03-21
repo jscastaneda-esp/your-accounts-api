@@ -26,10 +26,8 @@ jobs:
         run: |
           response=$(railway up)
           echo "$response"
-          previewUrl=$(echo "$response" | grep "Deployment live at" | sed 's/Deployment live at//' | awk '{print $2}')
-          inspectorUrl=$(echo "$response" | grep "Deployment logs available at" | sed 's/Deployment logs available at//' | awk '{print $2}')
-          echo "PREVIEW_URL=$previewUrl" >> $GITHUB_OUTPUT
-          echo "DEPLOYMENT_INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
+          inspectorUrl=$(echo "$response" | grep "Build Logs:" | sed 's/Build Logs://' | awk '{print $1}')
+          echo "INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       - name: Comment PR
@@ -41,11 +39,11 @@ jobs:
             <table>
               <tr>
                 <td><strong>✅ Preview:</strong></td>
-                <td><a href='${{ steps.deploy.outputs.PREVIEW_URL }}'>${{ steps.deploy.outputs.PREVIEW_URL }}</a></td>
+                <td><a href='https://api-your-accounts-preview.up.railway.app/'>Verify</a></td>
               </tr>
               <tr>
                 <td><strong>🔍 Inspect:</strong></td>
-                <td><a href='${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}'>${{ steps.deploy.outputs.DEPLOYMENT_INSPECTOR_URL }}</a></td>
+                <td><a href='${{ steps.deploy.outputs.INSPECTOR_URL }}'>Inspect</a></td>
               </tr>
             </table>
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
