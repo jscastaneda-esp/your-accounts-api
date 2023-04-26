@@ -7,11 +7,9 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -69,13 +67,6 @@ func (s *Server) Listen() *fiber.App {
 			},
 			Max: 10,
 			Expiration: 1 * time.Minute,
-		}))
-		app.Use(cors.New(cors.Config{
-			AllowOrigins: "*",
-			AllowMethods: strings.Join([]string{
-				fiber.MethodGet,
-				fiber.MethodPost,
-			}, ","),
 		}))
 		app.Use(recover.New())
 		app.Use(requestid.New())
