@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"api-your-accounts/shared/domain/testutils"
+	testutils "api-your-accounts/shared/domain/test_utils"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
