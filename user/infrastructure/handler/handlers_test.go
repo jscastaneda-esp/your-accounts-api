@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"api-your-accounts/shared/infrastructure/validation"
+	"api-your-accounts/shared/domain/validation"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
 	"context"
