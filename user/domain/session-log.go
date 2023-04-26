@@ -14,6 +14,7 @@ type SessionLog struct {
 	EndedAt     time.Time
 }
 
+//go:generate mockery --name SessionLogRepository
 type SessionLogRepository interface {
 	Create(ctx context.Context, session *SessionLog) (*SessionLog, error)
 	Update(ctx context.Context, session *SessionLog) (*SessionLog, error)

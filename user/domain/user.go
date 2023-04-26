@@ -13,6 +13,7 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+//go:generate mockery --name UserRepository
 type UserRepository interface {
 	FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*User, error)
 	ExistsByUUID(ctx context.Context, uuid string) (bool, error)

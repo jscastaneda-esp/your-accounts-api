@@ -3,68 +3,21 @@ package application
 import (
 	"api-your-accounts/shared/domain/jwt"
 	"api-your-accounts/user/domain"
+	"api-your-accounts/user/domain/mocks"
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
-
-type MockUserRepository struct {
-	mock.Mock
-}
-
-func (mock *MockUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {
-	args := mock.Called(ctx, uuid, email)
-	err := args.Error(1)
-	obj := args.Get(0)
-	if obj == nil {
-		return nil, err
-	}
-	user, ok := obj.(*domain.User)
-	if !ok {
-		panic(fmt.Sprintf("assert: arguments: *domain.User(0) failed because object wasn't correct type: %v", obj))
-	}
-	return user, err
-}
-
-func (mock *MockUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
-	args := mock.Called(ctx, uuid)
-	return args.Bool(0), args.Error(1)
-}
-
-func (mock *MockUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	args := mock.Called(ctx, email)
-	return args.Bool(0), args.Error(1)
-}
-
-func (mock *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	args := mock.Called(ctx, user)
-	err := args.Error(1)
-	obj := args.Get(0)
-	if obj == nil {
-		return nil, err
-	}
-	user, ok := obj.(*domain.User)
-	if !ok {
-		panic(fmt.Sprintf("assert: arguments: *domain.User(0) failed because object wasn't correct type: %v", args.Get(0)))
-	}
-	return user, err
-}
-
-func (mock *MockUserRepository) Update(ctx context.Context, user *domain.User) (*domain.User, error) {
-	return nil, nil
-}
 
 type TestSuite struct {
 	suite.Suite
 	uuid                string
 	email               string
 	token               string
-	mock                *MockUserRepository
+	mock                *mocks.UserRepository
 	app                 IUserApp
 	originalJwtGenerate func(ctx context.Context, id string, uuid string, email string) (string, error)
 }
@@ -78,7 +31,7 @@ func (suite *TestSuite) SetupSuite() {
 
 func (suite *TestSuite) SetupTest() {
 	jwtGenerate = suite.originalJwtGenerate
-	suite.mock = new(MockUserRepository)
+	suite.mock = new(mocks.UserRepository)
 	suite.app = NewUserApp(suite.mock)
 }
 
