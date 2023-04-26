@@ -17,7 +17,7 @@ type User struct {
 type SessionLog struct {
 	entity.MongoBaseModel
 	Description string
-	Detail      map[string]interface{} `bson:"inline"`
-	UserId      string                 `bson:"user_id"`
-	EndedAt     time.Time              `bson:"ended_at"`
+	Detail      map[string]any `bson:"inline"`
+	UserId      string         `bson:"user_id"`
+	EndedAt     time.Time      `bson:"ended_at"`
 }

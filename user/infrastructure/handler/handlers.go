@@ -79,7 +79,7 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 //	@Accept			json
 //	@Produce		json,plain
 //	@Param			request		body		model.LoginRequest	true	"Login data"
-//	@Success		200			{object}	map[string]interface{}
+//	@Success		200			{object}	map[string]any
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		422			{string}	string	"Unprocessable Entity"
 //	@Failure		500			{string}	string	"Internal Server Error"

@@ -11,7 +11,7 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	originalJwtSecret          func(ctx context.Context) interface{}
+	originalJwtSecret          func(ctx context.Context) any
 	originalJwtParseWithClaims func(tokenString string, claims jwt.Claims, keyFunc jwt.Keyfunc, options ...jwt.ParserOption) (*jwt.Token, error)
 }
 
@@ -37,7 +37,7 @@ func (suite *TestSuite) TestJwtGenerateSuccess() {
 func (suite *TestSuite) TestJwtGenerateErrorKeyInvalid() {
 	require := require.New(suite.T())
 
-	jwtSecret = func(ctx context.Context) interface{} {
+	jwtSecret = func(ctx context.Context) any {
 		return ""
 	}
 

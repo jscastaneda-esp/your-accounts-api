@@ -31,11 +31,11 @@ type Router func(app *fiber.App)
 
 type Server struct {
 	testing bool
-	routes  []interface{}
+	routes  []any
 }
 
-func (s *Server) AddRoute(routes ...interface{}) {
-	s.routes = append(s.routes, routes...)
+func (s *Server) AddRoute(route any) {
+	s.routes = append(s.routes, route)
 }
 
 func (s *Server) Listen() *fiber.App {
@@ -65,7 +65,7 @@ func (s *Server) Listen() *fiber.App {
 			Next: func(c *fiber.Ctx) bool {
 				return c.IP() == "127.0.0.1"
 			},
-			Max: 10,
+			Max:        10,
 			Expiration: 1 * time.Minute,
 		}))
 		app.Use(recover.New())
@@ -125,6 +125,6 @@ func healthCheck(c *fiber.Ctx) error {
 func NewServer(testing bool) *Server {
 	return &Server{
 		testing: testing,
-		routes:  []interface{}{},
+		routes:  []any{},
 	}
 }

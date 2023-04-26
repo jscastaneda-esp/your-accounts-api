@@ -27,12 +27,12 @@ func init() {
 	})
 }
 
-func ValidateStruct(s interface{}) []*ErrorResponse {
+func ValidateStruct(s any) []*ErrorResponse {
 	err := validate.Struct(s)
 	return getErrors(err)
 }
 
-func ValidateVariable(field interface{}, constraint string) []*ErrorResponse {
+func ValidateVariable(field any, constraint string) []*ErrorResponse {
 	err := validate.Var(field, constraint)
 	return getErrors(err)
 }

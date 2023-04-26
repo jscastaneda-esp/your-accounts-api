@@ -8,7 +8,7 @@ import (
 type SessionLog struct {
 	ID          string
 	Description string
-	Detail      map[string]interface{}
+	Detail      map[string]any
 	UserId      string
 	CreatedAt   time.Time
 	EndedAt     time.Time
