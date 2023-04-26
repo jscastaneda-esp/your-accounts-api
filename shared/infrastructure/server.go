@@ -8,9 +8,11 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -60,6 +62,13 @@ func (s *Server) Listen() *fiber.App {
 			Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path}: ${error}\n",
 			TimeFormat: "2006-01-02 15:04:05",
 			TimeZone:   "UTC",
+		}))
+		app.Use(limiter.New(limiter.Config{
+			Next: func(c *fiber.Ctx) bool {
+				return c.IP() == "127.0.0.1"
+			},
+			Max: 10,
+			Expiration: 1 * time.Minute,
 		}))
 		app.Use(cors.New(cors.Config{
 			AllowOrigins: "*",

@@ -19,15 +19,15 @@
 				"christian-kohler.path-intellisense",
 				"streetsidesoftware.code-spell-checker-spanish",
 				"Gruntfuggly.todo-tree",
-				"usernamehw.errorlens",
 				"adamhartford.vscode-base64",
 				"golang.go",
 				"r3inbowari.gomodexplorer",
 				"golang.go-nightly",
-				"mongodb.mongodb-vscode",
-				"RapidAPI.vscode-rapidapi-client",
 				"ms-azuretools.vscode-docker",
-				"ckolkman.vscode-postgres"
+				"ckolkman.vscode-postgres",
+				"SirTori.indenticator",
+				"rafamel.subtle-brackets",
+				"humao.rest-client"
 			]
 		}
 	}
