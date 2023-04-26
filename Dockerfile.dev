@@ -1,6 +1,7 @@
 FROM golang:1.20
 
 RUN go install -v golang.org/x/tools/gopls@latest
+RUN go install github.com/swaggo/swag/cmd/swag@latest
 
 WORKDIR /code
 

@@ -17,6 +17,6 @@ type Project struct {
 type ProjectLog struct {
 	entity.MongoBaseModel
 	Description string
-	Detail      map[string]interface{} `bson:"inline"`
-	ProjectId   uint                   `bson:"project_id"`
+	Detail      map[string]any `bson:"inline"`
+	ProjectId   uint           `bson:"project_id"`
 }

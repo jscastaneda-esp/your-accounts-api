@@ -46,7 +46,7 @@ func JwtGenerate(ctx context.Context, id string, uuid string, email string) (str
 	return token, nil
 }
 
-func getJwtSecret(ctx context.Context) interface{} {
+func getJwtSecret(ctx context.Context) any {
 	jwtSecret, _ := ctx.Value(CtxJWTSecret).(string)
 	return []byte(jwtSecret)
 }
