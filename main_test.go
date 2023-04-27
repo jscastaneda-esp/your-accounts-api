@@ -25,9 +25,6 @@ func (suite *TestSuite) SetupSuite() {
 	newDB = func() {
 		log.Println("Connect database")
 	}
-	newMongoClient = func() {
-		log.Println("Connect mongo database")
-	}
 	newServer = func(_ bool) *infrastructure.Server {
 		return infrastructure.NewServer(true)
 	}

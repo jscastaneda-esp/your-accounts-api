@@ -14,9 +14,9 @@ type Project struct {
 	Budget budget.Budget `gorm:"foreignKey:ProjectId"`
 }
 
-type ProjectLog struct {
-	entity.MongoBaseModel
-	Description string
-	Detail      map[string]any `bson:"inline"`
-	ProjectId   uint           `bson:"project_id"`
-}
+// type ProjectLog struct {
+// 	entity.MongoBaseModel
+// 	Description string
+// 	Detail      map[string]any `bson:"inline"`
+// 	ProjectId   uint           `bson:"project_id"`
+// }
