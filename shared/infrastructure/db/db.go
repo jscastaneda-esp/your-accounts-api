@@ -41,6 +41,7 @@ func NewDB() {
 
 		err = DB.AutoMigrate(
 			&user.User{},
+			&user.UserToken{},
 			&project.Project{},
 			&budget.Budget{},
 			&budget.BudgetAvailableBalance{},
