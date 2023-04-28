@@ -9,7 +9,8 @@ import (
 	"api-your-accounts/user/application"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
-	"api-your-accounts/user/infrastructure/repository"
+	"api-your-accounts/user/infrastructure/repository/user"
+	"api-your-accounts/user/infrastructure/repository/user_token"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -111,9 +112,10 @@ func (controller *userController) login(c *fiber.Ctx) error {
 }
 
 func NewRoute(app *fiber.App) {
-	repo := repository.NewGORMRepository(db.DB)
+	userRepo := user.NewRepository(db.DB)
+	userTokenRepo := user_token.NewRepository(db.DB)
 	controller := &userController{
-		app: application.NewUserApp(repo),
+		app: application.NewUserApp(userRepo, userTokenRepo),
 	}
 
 	group := app.Group("/user")

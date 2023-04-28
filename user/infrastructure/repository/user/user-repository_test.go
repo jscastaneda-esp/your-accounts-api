@@ -1,7 +1,7 @@
-package repository
+package user
 
 import (
-	testutils "api-your-accounts/shared/domain/test_utils"
+	"api-your-accounts/shared/domain/test_utils"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
@@ -46,7 +46,7 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewGORMRepository(DB)
+	suite.repository = NewRepository(DB)
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -216,7 +216,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(testutils.AnyTime{}, suite.uuid, suite.email).
+		WithArgs(test_utils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
 	user := &domain.User{
@@ -228,6 +228,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
+	require.Equal(uint(999), res.ID)
 	require.Equal(user.UUID, res.UUID)
 	require.Equal(user.Email, res.Email)
 }
@@ -242,7 +243,7 @@ func (suite *TestSuite) TestCreateError() {
 		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(testutils.AnyTime{}, suite.uuid, suite.email).
+		WithArgs(test_utils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	user := &domain.User{

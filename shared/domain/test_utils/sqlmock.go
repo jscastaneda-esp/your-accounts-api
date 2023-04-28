@@ -1,4 +1,4 @@
-package testutils
+package test_utils
 
 import (
 	"database/sql/driver"

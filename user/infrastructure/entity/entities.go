@@ -19,8 +19,8 @@ type UserToken struct {
 	entity.BaseModel
 	Token          string `gorm:"not null;size:2000;unique"`
 	UserId         uint   `gorm:"not null"`
-	RefreshedId    uint
+	RefreshedId    *uint
 	ExpiresAt      time.Time `gorm:"not null"`
-	RefreshedAt    time.Time
+	RefreshedAt    *time.Time
 	RefreshedToken *UserToken `gorm:"foreignKey:RefreshedId"`
 }
