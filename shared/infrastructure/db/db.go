@@ -37,6 +37,7 @@ func NewDB() {
 			&user.User{},
 			&user.UserToken{},
 			&project.Project{},
+			&project.ProjectLog{},
 			&budget.Budget{},
 			&budget.BudgetAvailableBalance{},
 			&budget.CategoryBill{},
