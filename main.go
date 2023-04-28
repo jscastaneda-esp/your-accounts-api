@@ -16,12 +16,11 @@ import (
 )
 
 var (
-	osStat         = os.Stat
-	dotenvLoad     = godotenv.Load
-	newDB          = db.NewDB
-	newMongoClient = db.NewMongoClient
-	newServer      = infrastructure.NewServer
-	routers        = []infrastructure.Router{
+	osStat     = os.Stat
+	dotenvLoad = godotenv.Load
+	newDB      = db.NewDB
+	newServer  = infrastructure.NewServer
+	routers    = []infrastructure.Router{
 		user.NewRoute,
 		handler.NewRoute,
 	}
@@ -49,7 +48,6 @@ func main() {
 	}
 
 	newDB()
-	newMongoClient()
 
 	// Init server
 	server := newServer(false)

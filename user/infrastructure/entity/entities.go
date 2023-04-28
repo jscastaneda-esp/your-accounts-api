@@ -11,8 +11,8 @@ type User struct {
 	entity.BaseUpdateModel
 	UUID       string            `gorm:"not null;size:32;unique"`
 	Email      string            `gorm:"not null;unique"`
-	Projects   []project.Project `gorm:"foreignKey:UserId;references:ID"`
-	UserTokens []UserToken       `gorm:"foreignKey:UserId;references:ID"`
+	Projects   []project.Project `gorm:"foreignKey:UserId"`
+	UserTokens []UserToken       `gorm:"foreignKey:UserId"`
 }
 
 type UserToken struct {
