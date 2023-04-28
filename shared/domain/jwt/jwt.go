@@ -26,24 +26,25 @@ type JwtCustomClaim struct {
 	jwt.RegisteredClaims
 }
 
-func JwtGenerate(ctx context.Context, id string, uuid string, email string) (string, error) {
+func JwtGenerate(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
+	expiresAt := time.Now().Add(24 * time.Hour)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtCustomClaim{
 		UUID:  uuid,
 		Email: email,
 
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   id,
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	})
 
 	token, err := t.SignedString(jwtSecret(ctx))
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 
-	return token, nil
+	return token, expiresAt, nil
 }
 
 func getJwtSecret(ctx context.Context) any {

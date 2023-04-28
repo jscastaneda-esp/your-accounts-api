@@ -2,11 +2,10 @@ package handler
 
 import (
 	"api-your-accounts/shared/domain/validation"
+	"api-your-accounts/user/application/mocks"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
-	"context"
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -18,34 +17,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type MockUserApp struct {
-	mock.Mock
-}
-
-func (mock *MockUserApp) Exists(ctx context.Context, uuid string, email string) (bool, error) {
-	args := mock.Called(ctx, uuid, email)
-	return args.Bool(0), args.Error(1)
-}
-
-func (mock *MockUserApp) SignUp(ctx context.Context, user *domain.User) (*domain.User, error) {
-	args := mock.Called(ctx, user)
-	err := args.Error(1)
-	obj := args.Get(0)
-	if obj == nil {
-		return nil, err
-	}
-	user, ok := obj.(*domain.User)
-	if !ok {
-		panic(fmt.Sprintf("assert: arguments: *domain.User(0) failed because object wasn't correct type: %v", obj))
-	}
-	return user, err
-}
-
-func (mock *MockUserApp) Login(ctx context.Context, uuid string, email string) (string, error) {
-	args := mock.Called(ctx, uuid, email)
-	return args.String(0), args.Error(1)
-}
-
 type TestSuite struct {
 	suite.Suite
 	uuid       string
@@ -53,7 +24,7 @@ type TestSuite struct {
 	token      string
 	fastCtx    *fasthttp.RequestCtx
 	ctx        *fiber.Ctx
-	mock       *MockUserApp
+	mock       *mocks.IUserApp
 	controller *userController
 }
 
@@ -70,14 +41,10 @@ func (suite *TestSuite) SetupSuite() {
 func (suite *TestSuite) SetupTest() {
 	suite.fastCtx.Request.Reset()
 	suite.fastCtx.Response.Reset()
-	suite.mock = new(MockUserApp)
+	suite.mock = mocks.NewIUserApp(suite.T())
 	suite.controller = &userController{
 		app: suite.mock,
 	}
-}
-
-func (suite *TestSuite) TearDownTest() {
-	require.True(suite.T(), suite.mock.AssertExpectations(suite.T()))
 }
 
 func (suite *TestSuite) TestCreateUserSuccess() {

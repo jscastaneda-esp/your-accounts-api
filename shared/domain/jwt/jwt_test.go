@@ -28,7 +28,7 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestJwtGenerateSuccess() {
 	require := require.New(suite.T())
 
-	token, err := JwtGenerate(context.Background(), "test", "test", "test")
+	token, _, err := JwtGenerate(context.Background(), "test", "test", "test")
 
 	require.NoError(err)
 	require.NotEmpty(token)
@@ -41,7 +41,7 @@ func (suite *TestSuite) TestJwtGenerateErrorKeyInvalid() {
 		return ""
 	}
 
-	token, err := JwtGenerate(context.Background(), "test", "test", "test")
+	token, _, err := JwtGenerate(context.Background(), "test", "test", "test")
 
 	require.EqualError(jwt.ErrInvalidKeyType, err.Error())
 	require.Empty(token)
