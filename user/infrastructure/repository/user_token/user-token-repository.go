@@ -18,7 +18,7 @@ func (r *gormUserTokenRepository) Create(ctx context.Context, userToken *domain.
 		UserId:      userToken.UserId,
 		ExpiresAt:   userToken.ExpiresAt,
 		RefreshedAt: userToken.RefreshedAt,
-		RefreshedId: userToken.RefreshedId,
+		RefreshedBy: userToken.RefreshedBy,
 	}
 
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
@@ -29,7 +29,7 @@ func (r *gormUserTokenRepository) Create(ctx context.Context, userToken *domain.
 		ID:          model.ID,
 		Token:       model.Token,
 		UserId:      model.UserId,
-		RefreshedId: model.RefreshedId,
+		RefreshedBy: model.RefreshedBy,
 		CreatedAt:   model.CreatedAt,
 		ExpiresAt:   model.ExpiresAt,
 		RefreshedAt: model.RefreshedAt,
