@@ -2,6 +2,7 @@ package user
 
 import (
 	"api-your-accounts/shared/domain/test_utils"
+	mocksShared "api-your-accounts/shared/domain/transaction/mocks"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
@@ -22,6 +23,7 @@ type TestSuite struct {
 	uuid       string
 	email      string
 	mock       sqlmock.Sqlmock
+	mockTX     *mocksShared.Transaction
 	repository domain.UserRepository
 }
 
@@ -46,11 +48,35 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
+	suite.mockTX = mocksShared.NewTransaction(suite.T())
 	suite.repository = NewRepository(DB)
 }
 
 func (suite *TestSuite) TearDownTest() {
 	require.NoError(suite.T(), suite.mock.ExpectationsWereMet())
+}
+
+func (suite *TestSuite) TestWithTransactionSuccessNew() {
+	require := require.New(suite.T())
+
+	suite.mockTX.On("Get").Return(&gorm.DB{})
+
+	repo := suite.repository.WithTransaction(suite.mockTX)
+
+	require.NotNil(repo)
+	require.NotEqual(suite.repository, repo)
+}
+
+func (suite *TestSuite) TestWithTransactionSuccessExists() {
+	require := require.New(suite.T())
+
+	getMock := suite.mockTX.On("Get").Return(&sql.DB{})
+
+	repo := suite.repository.WithTransaction(suite.mockTX)
+
+	require.NotNil(repo)
+	require.Equal(suite.repository, repo)
+	getMock.Unset()
 }
 
 func (suite *TestSuite) TestFindByUUIDAndEmailSuccess() {

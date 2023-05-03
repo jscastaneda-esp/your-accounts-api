@@ -2,6 +2,7 @@ package handler
 
 import (
 	"api-your-accounts/shared/domain/validation"
+	"api-your-accounts/user/application"
 	"api-your-accounts/user/application/mocks"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
@@ -345,7 +346,7 @@ func (suite *TestSuite) TestLoginErrorUnauthorized() {
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestLoginErrorLogin() {
+func (suite *TestSuite) TestLoginError() {
 	require := require.New(suite.T())
 
 	requestBody := &model.LoginRequest{
@@ -372,6 +373,165 @@ func (suite *TestSuite) TestLoginErrorLogin() {
 	require.EqualError(expectedErr, err.Error())
 }
 
+func (suite *TestSuite) TestRefreshTokenSuccess() {
+	require := require.New(suite.T())
+
+	requestBody := &model.RefreshTokenRequest{
+		Token: suite.token,
+		CreateRequest: model.CreateRequest{
+			UUID:  suite.uuid,
+			Email: suite.email,
+		},
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+
+	suite.mock.On("RefreshToken", suite.ctx.UserContext(), suite.token, suite.uuid, suite.email).Return(suite.token+"New", nil)
+
+	expectedBody, err := json.Marshal(fiber.Map{
+		"token": suite.token + "New",
+	})
+	require.NoError(err)
+
+	err = suite.controller.refreshToken(suite.ctx)
+
+	require.NoError(err)
+	require.Equal([]byte(fiber.MIMEApplicationJSON), suite.fastCtx.Response.Header.ContentType())
+	require.Equal(expectedBody, suite.fastCtx.Response.Body())
+}
+
+func (suite *TestSuite) TestRefreshTokenErrorBodyParser() {
+	require := require.New(suite.T())
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	expectedErr := &fiber.Error{
+		Code:    fiber.StatusUnprocessableEntity,
+		Message: "unexpected end of JSON input",
+	}
+
+	err := suite.controller.refreshToken(suite.ctx)
+
+	require.EqualError(expectedErr, err.Error())
+}
+
+func (suite *TestSuite) TestRefreshTokenErrorInvalidStruct() {
+	require := require.New(suite.T())
+
+	requestBody := &model.RefreshTokenRequest{
+		Token: "",
+		CreateRequest: model.CreateRequest{
+			UUID:  suite.uuid,
+			Email: suite.email,
+		},
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+
+	validationErrors := []*validation.ErrorResponse{}
+	validationErrors = append(validationErrors, &validation.ErrorResponse{
+		Field:      "token",
+		Constraint: "required",
+	})
+	expectedBody, err := json.Marshal(validationErrors)
+	require.NoError(err)
+
+	err = suite.controller.refreshToken(suite.ctx)
+
+	require.NoError(err)
+	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
+	require.Equal([]byte(fiber.MIMEApplicationJSON), suite.fastCtx.Response.Header.ContentType())
+	require.Equal(expectedBody, suite.fastCtx.Response.Body())
+}
+
+func (suite *TestSuite) TestRefreshTokenErrorUnauthorized() {
+	require := require.New(suite.T())
+
+	requestBody := &model.RefreshTokenRequest{
+		Token: suite.token,
+		CreateRequest: model.CreateRequest{
+			UUID:  suite.uuid,
+			Email: suite.email,
+		},
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+
+	suite.mock.On("RefreshToken", suite.ctx.UserContext(), suite.token, suite.uuid, suite.email).Return("", gorm.ErrRecordNotFound)
+
+	expectedErr := &fiber.Error{
+		Code:    fiber.StatusUnauthorized,
+		Message: "Invalid data",
+	}
+
+	err = suite.controller.refreshToken(suite.ctx)
+
+	require.EqualError(expectedErr, err.Error())
+}
+
+func (suite *TestSuite) TestRefreshTokenErrorBadRequest() {
+	require := require.New(suite.T())
+
+	requestBody := &model.RefreshTokenRequest{
+		Token: suite.token,
+		CreateRequest: model.CreateRequest{
+			UUID:  suite.uuid,
+			Email: suite.email,
+		},
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+
+	suite.mock.On("RefreshToken", suite.ctx.UserContext(), suite.token, suite.uuid, suite.email).Return("", application.ErrTokenRefreshed)
+
+	expectedErr := &fiber.Error{
+		Code:    fiber.StatusBadRequest,
+		Message: application.ErrTokenRefreshed.Error(),
+	}
+
+	err = suite.controller.refreshToken(suite.ctx)
+
+	require.EqualError(expectedErr, err.Error())
+}
+
+func (suite *TestSuite) TestRefreshTokenError() {
+	require := require.New(suite.T())
+
+	requestBody := &model.RefreshTokenRequest{
+		Token: suite.token,
+		CreateRequest: model.CreateRequest{
+			UUID:  suite.uuid,
+			Email: suite.email,
+		},
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+
+	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+
+	suite.mock.On("RefreshToken", suite.ctx.UserContext(), suite.token, suite.uuid, suite.email).Return("", gorm.ErrInvalidField)
+
+	expectedErr := &fiber.Error{
+		Code:    fiber.StatusInternalServerError,
+		Message: "Error refresh token user",
+	}
+
+	err = suite.controller.refreshToken(suite.ctx)
+
+	require.EqualError(expectedErr, err.Error())
+}
+
 func (suite *TestSuite) TestNewRoute() {
 	require := require.New(suite.T())
 	app := fiber.New()
@@ -379,7 +539,7 @@ func (suite *TestSuite) TestNewRoute() {
 	NewRoute(app)
 
 	routes := app.GetRoutes()
-	require.Len(routes, 2)
+	require.Len(routes, 3)
 
 	route1 := routes[0]
 	require.Equal(fiber.MethodPost, route1.Method)
@@ -390,6 +550,11 @@ func (suite *TestSuite) TestNewRoute() {
 	require.Equal(fiber.MethodPost, route2.Method)
 	require.Equal("/user/login", route2.Path)
 	require.Len(route2.Handlers, 1)
+
+	route3 := routes[2]
+	require.Equal(fiber.MethodPut, route3.Method)
+	require.Equal("/user/refresh-token", route3.Path)
+	require.Len(route3.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

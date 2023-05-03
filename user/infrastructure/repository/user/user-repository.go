@@ -1,6 +1,7 @@
 package user
 
 import (
+	"api-your-accounts/shared/domain/transaction"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/entity"
 	"context"
@@ -10,6 +11,14 @@ import (
 
 type gormUserRepository struct {
 	db *gorm.DB
+}
+
+func (r *gormUserRepository) WithTransaction(tx transaction.Transaction) domain.UserRepository {
+	if tx, ok := tx.Get().(*gorm.DB); ok {
+		return NewRepository(tx)
+	}
+
+	return r
 }
 
 func (r *gormUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {

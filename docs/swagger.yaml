@@ -33,6 +33,19 @@ definitions:
     - email
     - uuid
     type: object
+  model.RefreshTokenRequest:
+    properties:
+      email:
+        type: string
+      token:
+        type: string
+      uuid:
+        type: string
+    required:
+    - email
+    - token
+    - uuid
+    type: object
 info:
   contact:
     email: jonathancastaneda@jsc-developer.me
@@ -108,7 +121,6 @@ paths:
           $ref: '#/definitions/model.LoginRequest'
       produces:
       - application/json
-      - text/plain
       responses:
         "200":
           description: OK
@@ -128,6 +140,45 @@ paths:
           schema:
             type: string
       summary: Login user
+      tags:
+      - user
+  /user/refresh-token:
+    put:
+      consumes:
+      - application/json
+      description: refresh token for access
+      parameters:
+      - description: Refresh token data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: BadRequest
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Refresh token of user
       tags:
       - user
 swagger: "2.0"
