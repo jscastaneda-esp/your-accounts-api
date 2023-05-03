@@ -18,3 +18,8 @@ type CreateResponse struct {
 type LoginRequest struct {
 	CreateRequest
 }
+
+type RefreshTokenRequest struct {
+	CreateRequest
+	Token string `json:"token" validate:"required"`
+}

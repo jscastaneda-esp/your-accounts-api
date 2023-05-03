@@ -1,3 +1,6 @@
+//go:generate swag fmt
+//go:generate swag init
+
 package main
 
 import (

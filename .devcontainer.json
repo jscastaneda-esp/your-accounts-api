@@ -24,7 +24,8 @@
 				"ckolkman.vscode-postgres",
 				"SirTori.indenticator",
 				"rafamel.subtle-brackets",
-				"humao.rest-client"
+				"humao.rest-client",
+				"golang.go-nightly"
 			]
 		}
 	}

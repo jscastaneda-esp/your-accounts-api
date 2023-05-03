@@ -22,5 +22,5 @@ type UserToken struct {
 	RefreshedBy    *uint
 	ExpiresAt      time.Time `gorm:"not null"`
 	RefreshedAt    *time.Time
-	RefreshedToken *UserToken `gorm:"foreignKey:RefreshedId"`
+	RefreshedToken *UserToken `gorm:"foreignKey:RefreshedBy"`
 }

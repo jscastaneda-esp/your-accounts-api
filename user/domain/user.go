@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"api-your-accounts/shared/domain/transaction"
 	"context"
 	"time"
 )
@@ -15,6 +16,7 @@ type User struct {
 
 //go:generate mockery --name UserRepository --filename user-repository.go
 type UserRepository interface {
+	WithTransaction(tx transaction.Transaction) UserRepository
 	FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*User, error)
 	ExistsByUUID(ctx context.Context, uuid string) (bool, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)

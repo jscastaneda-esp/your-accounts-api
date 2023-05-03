@@ -6,6 +6,7 @@ import (
 
 	"api-your-accounts/shared/domain/validation"
 	"api-your-accounts/shared/infrastructure/db"
+	"api-your-accounts/shared/infrastructure/db/tx"
 	"api-your-accounts/user/application"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
@@ -78,7 +79,7 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 //	@Description	create token for access
 //	@Tags			user
 //	@Accept			json
-//	@Produce		json,plain
+//	@Produce		json
 //	@Param			request		body		model.LoginRequest	true	"Login data"
 //	@Success		200			{object}	map[string]any
 //	@Failure		401			{string}	string	"Unauthorized"
@@ -111,14 +112,58 @@ func (controller *userController) login(c *fiber.Ctx) error {
 	})
 }
 
+// RefreshTokenHandler godoc
+//
+//	@Summary		Refresh token of user
+//	@Description	refresh token for access
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request				body		model.RefreshTokenRequest	true	"Refresh token data"
+//	@Success		200					{object}	map[string]any
+//	@Failure		400					{string}	string	"BadRequest"
+//	@Failure		401					{string}	string	"Unauthorized"
+//	@Failure		422					{string}	string	"Unprocessable Entity"
+//	@Failure		500					{string}	string	"Internal Server Error"
+//	@Router			/user/refresh-token	[put]
+func (controller *userController) refreshToken(c *fiber.Ctx) error {
+	request := new(model.RefreshTokenRequest)
+	if err := c.BodyParser(request); err != nil {
+		log.Println("Error request body parser:", err)
+		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
+	}
+
+	if errors := validation.ValidateStruct(request); errors != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
+	}
+
+	token, err := controller.app.RefreshToken(c.UserContext(), request.Token, request.UUID, request.Email)
+	if err != nil {
+		log.Println("Error refresh token user:", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusUnauthorized, "Invalid data")
+		} else if errors.Is(err, application.ErrTokenRefreshed) {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+
+		return fiber.NewError(fiber.StatusInternalServerError, "Error refresh token user")
+	}
+
+	return c.JSON(fiber.Map{
+		"token": token,
+	})
+}
+
 func NewRoute(app *fiber.App) {
+	tm := tx.NewTransactionManager(db.DB)
 	userRepo := user.NewRepository(db.DB)
 	userTokenRepo := user_token.NewRepository(db.DB)
 	controller := &userController{
-		app: application.NewUserApp(userRepo, userTokenRepo),
+		app: application.NewUserApp(tm, userRepo, userTokenRepo),
 	}
 
 	group := app.Group("/user")
 	group.Post("/", controller.createUser)
 	group.Post("/login", controller.login)
+	group.Put("/refresh-token", controller.refreshToken)
 }
