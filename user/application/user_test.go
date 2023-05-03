@@ -256,7 +256,7 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 	}
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(store_transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
@@ -367,7 +367,7 @@ func (suite *TestSuite) TestRefreshTokenErrorTransaction() {
 	errExpected := errors.New("Error in transaction")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(store_transaction.Transaction) error")).Return(errExpected)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(errExpected)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 
@@ -400,7 +400,7 @@ func (suite *TestSuite) TestRefreshTokenErrorCreateNewToken() {
 	errExpected := errors.New("Error in creation")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(store_transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
@@ -443,7 +443,7 @@ func (suite *TestSuite) TestRefreshTokenErrorUpdateExistsToken() {
 	errExpected := errors.New("Error updating")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(store_transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
