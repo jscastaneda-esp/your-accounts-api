@@ -246,10 +246,10 @@ func (suite *TestSuite) TestCreateUserErrorSignUp() {
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestLoginSuccess() {
+func (suite *TestSuite) TestAuthSuccess() {
 	require := require.New(suite.T())
 
-	requestBody := &model.LoginRequest{
+	requestBody := &model.AuthRequest{
 		CreateRequest: model.CreateRequest{
 			UUID:  suite.uuid,
 			Email: suite.email,
@@ -261,21 +261,21 @@ func (suite *TestSuite) TestLoginSuccess() {
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	suite.fastCtx.Request.SetBody(body)
 
-	suite.mock.On("Login", suite.ctx.UserContext(), suite.uuid, suite.email).Return(suite.token, nil)
+	suite.mock.On("Auth", suite.ctx.UserContext(), suite.uuid, suite.email).Return(suite.token, nil)
 
 	expectedBody, err := json.Marshal(fiber.Map{
 		"token": suite.token,
 	})
 	require.NoError(err)
 
-	err = suite.controller.login(suite.ctx)
+	err = suite.controller.auth(suite.ctx)
 
 	require.NoError(err)
 	require.Equal([]byte(fiber.MIMEApplicationJSON), suite.fastCtx.Response.Header.ContentType())
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestLoginErrorBodyParser() {
+func (suite *TestSuite) TestAuthErrorBodyParser() {
 	require := require.New(suite.T())
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	expectedErr := &fiber.Error{
@@ -283,15 +283,15 @@ func (suite *TestSuite) TestLoginErrorBodyParser() {
 		Message: "unexpected end of JSON input",
 	}
 
-	err := suite.controller.login(suite.ctx)
+	err := suite.controller.auth(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestLoginErrorInvalidStruct() {
+func (suite *TestSuite) TestAuthErrorInvalidStruct() {
 	require := require.New(suite.T())
 
-	requestBody := &model.LoginRequest{
+	requestBody := &model.AuthRequest{
 		CreateRequest: model.CreateRequest{
 			UUID:  "invalid",
 			Email: suite.email,
@@ -311,7 +311,7 @@ func (suite *TestSuite) TestLoginErrorInvalidStruct() {
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	err = suite.controller.login(suite.ctx)
+	err = suite.controller.auth(suite.ctx)
 
 	require.NoError(err)
 	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
@@ -319,10 +319,10 @@ func (suite *TestSuite) TestLoginErrorInvalidStruct() {
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestLoginErrorUnauthorized() {
+func (suite *TestSuite) TestAuthErrorUnauthorized() {
 	require := require.New(suite.T())
 
-	requestBody := &model.LoginRequest{
+	requestBody := &model.AuthRequest{
 		CreateRequest: model.CreateRequest{
 			UUID:  suite.uuid,
 			Email: suite.email,
@@ -334,22 +334,22 @@ func (suite *TestSuite) TestLoginErrorUnauthorized() {
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	suite.fastCtx.Request.SetBody(body)
 
-	suite.mock.On("Login", suite.ctx.UserContext(), suite.uuid, suite.email).Return("", gorm.ErrRecordNotFound)
+	suite.mock.On("Auth", suite.ctx.UserContext(), suite.uuid, suite.email).Return("", gorm.ErrRecordNotFound)
 
 	expectedErr := &fiber.Error{
 		Code:    fiber.StatusUnauthorized,
 		Message: "Invalid credentials",
 	}
 
-	err = suite.controller.login(suite.ctx)
+	err = suite.controller.auth(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestLoginError() {
+func (suite *TestSuite) TestAuthError() {
 	require := require.New(suite.T())
 
-	requestBody := &model.LoginRequest{
+	requestBody := &model.AuthRequest{
 		CreateRequest: model.CreateRequest{
 			UUID:  suite.uuid,
 			Email: suite.email,
@@ -361,14 +361,14 @@ func (suite *TestSuite) TestLoginError() {
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	suite.fastCtx.Request.SetBody(body)
 
-	suite.mock.On("Login", suite.ctx.UserContext(), suite.uuid, suite.email).Return("", gorm.ErrInvalidField)
+	suite.mock.On("Auth", suite.ctx.UserContext(), suite.uuid, suite.email).Return("", gorm.ErrInvalidField)
 
 	expectedErr := &fiber.Error{
 		Code:    fiber.StatusInternalServerError,
-		Message: "Error login user",
+		Message: "Error authenticate user",
 	}
 
-	err = suite.controller.login(suite.ctx)
+	err = suite.controller.auth(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
@@ -548,7 +548,7 @@ func (suite *TestSuite) TestNewRoute() {
 
 	route2 := routes[1]
 	require.Equal(fiber.MethodPost, route2.Method)
-	require.Equal("/user/login", route2.Path)
+	require.Equal("/user/auth", route2.Path)
 	require.Len(route2.Handlers, 1)
 
 	route3 := routes[2]

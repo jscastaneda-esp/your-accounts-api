@@ -1,5 +1,15 @@
 basePath: /
 definitions:
+  model.AuthRequest:
+    properties:
+      email:
+        type: string
+      uuid:
+        type: string
+    required:
+    - email
+    - uuid
+    type: object
   model.CreateRequest:
     properties:
       email:
@@ -22,16 +32,6 @@ definitions:
         type: string
       uuid:
         type: string
-    type: object
-  model.LoginRequest:
-    properties:
-      email:
-        type: string
-      uuid:
-        type: string
-    required:
-    - email
-    - uuid
     type: object
   model.RefreshTokenRequest:
     properties:
@@ -107,18 +107,18 @@ paths:
       summary: Create user
       tags:
       - user
-  /user/login:
+  /user/auth:
     post:
       consumes:
       - application/json
       description: create token for access
       parameters:
-      - description: Login data
+      - description: Authentication data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.LoginRequest'
+          $ref: '#/definitions/model.AuthRequest'
       produces:
       - application/json
       responses:
@@ -139,7 +139,7 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Login user
+      summary: Authenticate user
       tags:
       - user
   /user/refresh-token:

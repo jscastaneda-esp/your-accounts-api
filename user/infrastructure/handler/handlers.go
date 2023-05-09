@@ -73,21 +73,21 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 	})
 }
 
-// LoginHandler godoc
+// AuthHandler godoc
 //
-//	@Summary		Login user
+//	@Summary		Authenticate user
 //	@Description	create token for access
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request		body		model.LoginRequest	true	"Login data"
+//	@Param			request		body		model.AuthRequest	true	"Authentication data"
 //	@Success		200			{object}	map[string]any
 //	@Failure		401			{string}	string	"Unauthorized"
 //	@Failure		422			{string}	string	"Unprocessable Entity"
 //	@Failure		500			{string}	string	"Internal Server Error"
-//	@Router			/user/login	[post]
-func (controller *userController) login(c *fiber.Ctx) error {
-	request := new(model.LoginRequest)
+//	@Router			/user/auth	[post]
+func (controller *userController) auth(c *fiber.Ctx) error {
+	request := new(model.AuthRequest)
 	if err := c.BodyParser(request); err != nil {
 		log.Println("Error request body parser:", err)
 		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
@@ -97,14 +97,14 @@ func (controller *userController) login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
 	}
 
-	token, err := controller.app.Login(c.UserContext(), request.UUID, request.Email)
+	token, err := controller.app.Auth(c.UserContext(), request.UUID, request.Email)
 	if err != nil {
-		log.Println("Error login user:", err)
+		log.Println("Error authenticate user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 		}
 
-		return fiber.NewError(fiber.StatusInternalServerError, "Error login user")
+		return fiber.NewError(fiber.StatusInternalServerError, "Error authenticate user")
 	}
 
 	return c.JSON(fiber.Map{
@@ -164,6 +164,6 @@ func NewRoute(app *fiber.App) {
 
 	group := app.Group("/user")
 	group.Post("/", controller.createUser)
-	group.Post("/login", controller.login)
+	group.Post("/auth", controller.auth)
 	group.Put("/refresh-token", controller.refreshToken)
 }

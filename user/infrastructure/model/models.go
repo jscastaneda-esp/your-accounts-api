@@ -15,7 +15,7 @@ type CreateResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type LoginRequest struct {
+type AuthRequest struct {
 	CreateRequest
 }
 

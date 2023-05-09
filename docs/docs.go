@@ -99,7 +99,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/login": {
+        "/user/auth": {
             "post": {
                 "description": "create token for access",
                 "consumes": [
@@ -111,15 +111,15 @@ const docTemplate = `{
                 "tags": [
                     "user"
                 ],
-                "summary": "Login user",
+                "summary": "Authenticate user",
                 "parameters": [
                     {
-                        "description": "Login data",
+                        "description": "Authentication data",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.LoginRequest"
+                            "$ref": "#/definitions/model.AuthRequest"
                         }
                     }
                 ],
@@ -213,6 +213,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.AuthRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "uuid"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                }
+            }
+        },
         "model.CreateRequest": {
             "type": "object",
             "required": [
@@ -241,21 +256,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "updated_at": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.LoginRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "uuid"
-            ],
-            "properties": {
-                "email": {
                     "type": "string"
                 },
                 "uuid": {

@@ -142,7 +142,7 @@ func (suite *TestSuite) TestSignUpError() {
 	require.Nil(res)
 }
 
-func (suite *TestSuite) TestLoginSuccess() {
+func (suite *TestSuite) TestAuthSuccess() {
 	require := require.New(suite.T())
 	ctx := context.Background()
 	userExpected := &domain.User{
@@ -162,25 +162,25 @@ func (suite *TestSuite) TestLoginSuccess() {
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("Create", ctx, userToken).Return(nil, nil)
 
-	token, err := suite.app.Login(ctx, suite.uuid, suite.email)
+	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
 	require.NoError(err)
 	require.Equal(suite.token, token)
 }
 
-func (suite *TestSuite) TestLoginErrorFind() {
+func (suite *TestSuite) TestAuthErrorFind() {
 	require := require.New(suite.T())
 	ctx := context.Background()
 	errExpected := errors.New("Not exists")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(nil, errExpected)
 
-	token, err := suite.app.Login(ctx, suite.uuid, suite.email)
+	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Empty(token)
 }
 
-func (suite *TestSuite) TestLoginErrorJWTGenerate() {
+func (suite *TestSuite) TestAuthErrorJWTGenerate() {
 	require := require.New(suite.T())
 	ctx := context.Background()
 	userExpected := &domain.User{
@@ -193,13 +193,13 @@ func (suite *TestSuite) TestLoginErrorJWTGenerate() {
 	}
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 
-	token, err := suite.app.Login(ctx, suite.uuid, suite.email)
+	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
 	require.EqualError(jwt.ErrInvalidToken, err.Error())
 	require.Empty(token)
 }
 
-func (suite *TestSuite) TestLoginErrorCreateUserToken() {
+func (suite *TestSuite) TestAuthErrorCreateUserToken() {
 	require := require.New(suite.T())
 	ctx := context.Background()
 	userExpected := &domain.User{
@@ -220,7 +220,7 @@ func (suite *TestSuite) TestLoginErrorCreateUserToken() {
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("Create", ctx, userToken).Return(nil, errExpected)
 
-	token, err := suite.app.Login(ctx, suite.uuid, suite.email)
+	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Empty(token)

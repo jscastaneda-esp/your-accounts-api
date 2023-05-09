@@ -21,7 +21,7 @@ var (
 type IUserApp interface {
 	Exists(ctx context.Context, uuid, email string) (bool, error)
 	SignUp(ctx context.Context, user *domain.User) (*domain.User, error)
-	Login(ctx context.Context, uuid, email string) (string, error)
+	Auth(ctx context.Context, uuid, email string) (string, error)
 	RefreshToken(ctx context.Context, token, uuid, email string) (string, error)
 }
 
@@ -53,7 +53,7 @@ func (app *userApp) SignUp(ctx context.Context, user *domain.User) (*domain.User
 	return app.userRepo.Create(ctx, user)
 }
 
-func (app *userApp) Login(ctx context.Context, uuid, email string) (string, error) {
+func (app *userApp) Auth(ctx context.Context, uuid, email string) (string, error) {
 	user, err := app.userRepo.FindByUUIDAndEmail(ctx, uuid, strings.ToLower(email))
 	if err != nil {
 		return "", err
