@@ -1,32 +1,29 @@
 {
-	"name": "API Your Account",
-	"dockerComposeFile": [
-		"./docker-compose.yml"
-	],
-	"service": "app",
-	"shutdownAction": "stopCompose",
-	"workspaceFolder": "/workspace",
-	"customizations": {
-		"vscode": {
-			"extensions": [
+  "name": "API Your Account",
+  "dockerComposeFile": ["./docker-compose.yml"],
+  "service": "app",
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
 				"streetsidesoftware.code-spell-checker",
+				"ms-azuretools.vscode-docker",
 				"dotenv.dotenv-vscode",
 				"GitHub.vscode-pull-request-github",
 				"eamodio.gitlens",
-				"Tyriar.lorem-ipsum",
-				"yzhang.markdown-all-in-one",
-				"christian-kohler.path-intellisense",
-				"streetsidesoftware.code-spell-checker-spanish",
-				"Gruntfuggly.todo-tree",
 				"golang.go",
 				"r3inbowari.gomodexplorer",
-				"ms-azuretools.vscode-docker",
-				"ckolkman.vscode-postgres",
 				"SirTori.indenticator",
-				"rafamel.subtle-brackets",
+				"Tyriar.lorem-ipsum",
+				"yzhang.markdown-all-in-one",
+				"ckolkman.vscode-postgres",
 				"humao.rest-client",
-				"golang.go-nightly"
+				"streetsidesoftware.code-spell-checker-spanish",
+				"rafamel.subtle-brackets",
+				"Gruntfuggly.todo-tree",
+				"cweijan.vscode-postgresql-client2"
 			]
-		}
-	}
+    }
+  }
 }

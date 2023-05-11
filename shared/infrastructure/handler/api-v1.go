@@ -1,31 +1,30 @@
 package handler
 
 import (
+	project "api-your-accounts/project/infrastructure/handler"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v3"
+	jwt "github.com/gofiber/jwt/v3"
 )
 
-const (
-	defaultJwtSecret = "aSecret"
+var (
+	projectRouter = project.NewRoute
 )
 
-func NewRoute(app *fiber.App) {
+func NewRoute(app fiber.Router) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 
 	api := app.Group("/api/v1")
 	// Middleware
 	{
-		api.Use(jwtware.New(jwtware.Config{
+		api.Use(jwt.New(jwt.Config{
 			SigningKey: []byte(jwtSecret),
 		}))
 	}
 
 	// Routes
 	{
-		api.Get("/", func(c *fiber.Ctx) error {
-			return c.SendString("Funciona")
-		})
+		projectRouter(api)
 	}
 }

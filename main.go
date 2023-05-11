@@ -41,7 +41,7 @@ var (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 //	@BasePath		/
 func main() {
-	log.SetFlags(log.Lshortfile + log.LUTC + log.LstdFlags)
+	log.SetFlags(log.Llongfile + log.LstdFlags)
 	if _, err := osStat(".env"); err == nil {
 		log.Println("Load .env file")
 		err = dotenvLoad()

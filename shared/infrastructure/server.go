@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -27,7 +28,7 @@ type Route struct {
 	Handler fiber.Handler
 }
 
-type Router func(app *fiber.App)
+type Router func(app fiber.Router)
 
 type Server struct {
 	testing bool
@@ -56,14 +57,21 @@ func (s *Server) Listen() *fiber.App {
 
 	// Middleware
 	{
+		const patternLog string = `${%s} |${%s} ${%srequestid} ${%s}| ${%s} |${%s}|${%s}| ${%s} | ${%s}
+Headers: ${%s}
+Params: ${%s}
+Body: ${%s}
+Response: ${%s}
+
+`
 		app.Use(logger.New(logger.Config{
-			Format:     "${time} | ${locals:requestid} | ${ip} |${status}|${method}| ${latency} | ${path}: ${error}\n",
-			TimeFormat: "2006-01-02 15:04:05",
-			TimeZone:   "UTC",
+			Format: fmt.Sprintf(patternLog,
+				logger.TagTime, logger.TagMagenta, logger.TagLocals, logger.TagReset, logger.TagIP, logger.TagStatus, logger.TagMethod, logger.TagLatency, logger.TagPath, logger.TagReqHeaders, logger.TagQueryStringParams, logger.TagBody, logger.TagResBody),
+			TimeFormat: "2006/01/02 15:04:05",
 		}))
 		app.Use(limiter.New(limiter.Config{
 			Next: func(c *fiber.Ctx) bool {
-				return c.IP() == "127.0.0.1"
+				return c.IP() == "127.0.0.1" || strings.HasPrefix(c.IP(), "172")
 			},
 			Max:        10,
 			Expiration: 1 * time.Minute,
@@ -94,7 +102,7 @@ func (s *Server) Listen() *fiber.App {
 			case Router:
 				r(app)
 			default:
-				log.Panic(fmt.Sprintf("use: invalid route %v\n", reflect.TypeOf(r)))
+				log.Panicf("use: invalid route %v\n", reflect.TypeOf(r))
 			}
 		}
 	}

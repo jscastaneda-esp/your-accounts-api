@@ -1,4 +1,3 @@
 {
-  "dotenv.enableAutocloaking": false,
-  "go.diagnostic.vulncheck": "Imports"
+  "dotenv.enableAutocloaking": false
 }

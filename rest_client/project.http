@@ -1,0 +1,32 @@
+### Create project
+POST http://localhost:8080/api/v1/project/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODM5MjY4ODgsImlhdCI6MTY4Mzg0MDQ4OH0.cM8u6-GVNcG_tZBRrHCWI5JBrm9K-YpLKcuU8iySAiw
+
+{
+    "userId": 1,
+    "type": "budget"
+}
+
+### Clone project
+POST http://localhost:8080/api/v1/project/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODM5MjY4ODgsImlhdCI6MTY4Mzg0MDQ4OH0.cM8u6-GVNcG_tZBRrHCWI5JBrm9K-YpLKcuU8iySAiw
+
+{
+    "userId": 1,
+    "type": "budget",
+    "cloneId": 1
+}
+
+### Read By User
+GET http://localhost:8080/api/v1/project/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODM5MjY4ODgsImlhdCI6MTY4Mzg0MDQ4OH0.cM8u6-GVNcG_tZBRrHCWI5JBrm9K-YpLKcuU8iySAiw
+
+### Read Transactions By Project
+GET http://localhost:8080/api/v1/project/transactions/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODM5MjY4ODgsImlhdCI6MTY4Mzg0MDQ4OH0.cM8u6-GVNcG_tZBRrHCWI5JBrm9K-YpLKcuU8iySAiw
+
+### Delete Project
+DELETE http://localhost:8080/api/v1/project/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODM5MjY4ODgsImlhdCI6MTY4Mzg0MDQ4OH0.cM8u6-GVNcG_tZBRrHCWI5JBrm9K-YpLKcuU8iySAiw

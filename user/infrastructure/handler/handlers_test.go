@@ -26,7 +26,7 @@ type TestSuite struct {
 	fastCtx    *fasthttp.RequestCtx
 	ctx        *fiber.Ctx
 	mock       *mocks.IUserApp
-	controller *userController
+	controller *controller
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -43,12 +43,12 @@ func (suite *TestSuite) SetupTest() {
 	suite.fastCtx.Request.Reset()
 	suite.fastCtx.Response.Reset()
 	suite.mock = mocks.NewIUserApp(suite.T())
-	suite.controller = &userController{
+	suite.controller = &controller{
 		app: suite.mock,
 	}
 }
 
-func (suite *TestSuite) TestCreateUserSuccess() {
+func (suite *TestSuite) TestCreateSuccess() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -81,14 +81,14 @@ func (suite *TestSuite) TestCreateUserSuccess() {
 	})
 	require.NoError(err)
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.NoError(err)
 	require.Equal([]byte(fiber.MIMEApplicationJSON), suite.fastCtx.Response.Header.ContentType())
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestCreateUserSuccessRecordNotFound() {
+func (suite *TestSuite) TestCreateSuccessRecordNotFound() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -121,27 +121,26 @@ func (suite *TestSuite) TestCreateUserSuccessRecordNotFound() {
 	})
 	require.NoError(err)
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.NoError(err)
 	require.Equal([]byte(fiber.MIMEApplicationJSON), suite.fastCtx.Response.Header.ContentType())
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestCreateUserErrorBodyParser() {
+func (suite *TestSuite) TestCreateErrorBodyParser() {
 	require := require.New(suite.T())
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	expectedErr := &fiber.Error{
-		Code:    fiber.StatusUnprocessableEntity,
-		Message: "unexpected end of JSON input",
-	}
 
-	err := suite.controller.createUser(suite.ctx)
+	err := suite.controller.create(suite.ctx)
 
-	require.EqualError(expectedErr, err.Error())
+	require.NoError(err)
+	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
+	require.Equal([]byte(fiber.MIMETextPlainCharsetUTF8), suite.fastCtx.Response.Header.ContentType())
+	require.Equal([]byte("unexpected end of JSON input"), suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestCreateUserErrorInvalidStruct() {
+func (suite *TestSuite) TestCreateErrorInvalidStruct() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -162,7 +161,7 @@ func (suite *TestSuite) TestCreateUserErrorInvalidStruct() {
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.NoError(err)
 	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
@@ -170,7 +169,7 @@ func (suite *TestSuite) TestCreateUserErrorInvalidStruct() {
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
-func (suite *TestSuite) TestCreateUserErrorConflict() {
+func (suite *TestSuite) TestCreateErrorConflict() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -190,12 +189,12 @@ func (suite *TestSuite) TestCreateUserErrorConflict() {
 		Message: "User already exists",
 	}
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestCreateUserErrorExists() {
+func (suite *TestSuite) TestCreateErrorExists() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -215,12 +214,12 @@ func (suite *TestSuite) TestCreateUserErrorExists() {
 		Message: "Error sign up user",
 	}
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
 
-func (suite *TestSuite) TestCreateUserErrorSignUp() {
+func (suite *TestSuite) TestCreateErrorSignUp() {
 	require := require.New(suite.T())
 
 	requestBody := &model.CreateRequest{
@@ -241,7 +240,7 @@ func (suite *TestSuite) TestCreateUserErrorSignUp() {
 		Message: "Error sign up user",
 	}
 
-	err = suite.controller.createUser(suite.ctx)
+	err = suite.controller.create(suite.ctx)
 
 	require.EqualError(expectedErr, err.Error())
 }
@@ -278,14 +277,13 @@ func (suite *TestSuite) TestAuthSuccess() {
 func (suite *TestSuite) TestAuthErrorBodyParser() {
 	require := require.New(suite.T())
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	expectedErr := &fiber.Error{
-		Code:    fiber.StatusUnprocessableEntity,
-		Message: "unexpected end of JSON input",
-	}
 
 	err := suite.controller.auth(suite.ctx)
 
-	require.EqualError(expectedErr, err.Error())
+	require.NoError(err)
+	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
+	require.Equal([]byte(fiber.MIMETextPlainCharsetUTF8), suite.fastCtx.Response.Header.ContentType())
+	require.Equal([]byte("unexpected end of JSON input"), suite.fastCtx.Response.Body())
 }
 
 func (suite *TestSuite) TestAuthErrorInvalidStruct() {
@@ -406,14 +404,13 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 func (suite *TestSuite) TestRefreshTokenErrorBodyParser() {
 	require := require.New(suite.T())
 	suite.fastCtx.Request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	expectedErr := &fiber.Error{
-		Code:    fiber.StatusUnprocessableEntity,
-		Message: "unexpected end of JSON input",
-	}
 
 	err := suite.controller.refreshToken(suite.ctx)
 
-	require.EqualError(expectedErr, err.Error())
+	require.NoError(err)
+	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
+	require.Equal([]byte(fiber.MIMETextPlainCharsetUTF8), suite.fastCtx.Response.Header.ContentType())
+	require.Equal([]byte("unexpected end of JSON input"), suite.fastCtx.Response.Body())
 }
 
 func (suite *TestSuite) TestRefreshTokenErrorInvalidStruct() {
