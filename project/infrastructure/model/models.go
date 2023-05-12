@@ -22,7 +22,7 @@ type ReadResponse struct {
 	Type domain.ProjectType `json:"type,omitempty"`
 }
 
-type ReadTransactionResponse struct {
+type ReadLogsResponse struct {
 	ID          uint      `json:"id,omitempty"`
 	Description string    `json:"description,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`

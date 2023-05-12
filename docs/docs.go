@@ -97,6 +97,12 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -112,16 +118,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/project/transactions/{id}": {
+        "/api/v1/project/logs/{id}": {
             "get": {
-                "description": "read transactions associated to a project",
+                "description": "read logs associated to a project",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "project"
                 ],
-                "summary": "Read transactions by project",
+                "summary": "Read logs by project",
                 "parameters": [
                     {
                         "type": "string",
@@ -144,7 +150,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ReadTransactionResponse"
+                                "$ref": "#/definitions/model.ReadLogsResponse"
                             }
                         }
                     },
@@ -203,7 +209,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -326,6 +335,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/api-your-accounts_user_infrastructure_model.CreateResponse"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "409": {
                         "description": "Conflict",
                         "schema": {
@@ -376,6 +391,12 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/model.AuthResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
                         }
                     },
                     "401": {
@@ -462,6 +483,7 @@ const docTemplate = `{
         "api-your-accounts_project_infrastructure_model.CreateRequest": {
             "type": "object",
             "required": [
+                "name",
                 "type",
                 "userId"
             ],
@@ -469,6 +491,10 @@ const docTemplate = `{
                 "cloneId": {
                     "type": "integer",
                     "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 20
                 },
                 "type": {
                     "enum": [
@@ -561,6 +587,20 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ReadLogsResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.ReadResponse": {
             "type": "object",
             "properties": {
@@ -572,20 +612,6 @@ const docTemplate = `{
                 },
                 "type": {
                     "$ref": "#/definitions/domain.ProjectType"
-                }
-            }
-        },
-        "model.ReadTransactionResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 }
             }
         },

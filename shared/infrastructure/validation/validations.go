@@ -10,7 +10,7 @@ import (
 func Validate(c *fiber.Ctx, request any) bool {
 	if err := c.BodyParser(request); err != nil {
 		log.Println("Error request body parser:", err)
-		c.Status(fiber.StatusUnprocessableEntity).SendString(err.Error())
+		c.Status(fiber.StatusBadRequest)
 		return false
 	}
 
