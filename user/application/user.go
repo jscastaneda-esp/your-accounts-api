@@ -2,7 +2,7 @@ package application
 
 import (
 	"api-your-accounts/shared/domain/jwt"
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"api-your-accounts/user/domain"
 	"context"
 	"errors"
@@ -26,7 +26,7 @@ type IUserApp interface {
 }
 
 type userApp struct {
-	tm            transaction.TransactionManager
+	tm            persistent.TransactionManager
 	userRepo      domain.UserRepository
 	userTokenRepo domain.UserTokenRepository
 }
@@ -96,7 +96,7 @@ func (app *userApp) RefreshToken(ctx context.Context, token, uuid, email string)
 		return "", err
 	}
 
-	err = app.tm.Transaction(func(tx transaction.Transaction) error {
+	err = app.tm.Transaction(func(tx persistent.Transaction) error {
 		repo := app.userTokenRepo.WithTransaction(tx)
 
 		newUserToken := &domain.UserToken{
@@ -126,6 +126,6 @@ func (app *userApp) RefreshToken(ctx context.Context, token, uuid, email string)
 	return token, nil
 }
 
-func NewUserApp(tm transaction.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
+func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
 	return &userApp{tm, userRepo, userTokenRepo}
 }

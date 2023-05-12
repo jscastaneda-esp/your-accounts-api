@@ -1,7 +1,7 @@
-package tx
+package persistent
 
 import (
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"database/sql"
 	"regexp"
 	"testing"
@@ -18,7 +18,7 @@ type TestSuite struct {
 	suite.Suite
 	mock sqlmock.Sqlmock
 	db   *gorm.DB
-	tm   transaction.TransactionManager
+	tm   persistent.TransactionManager
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -90,7 +90,7 @@ func (suite *TestSuite) TestTransactionSuccess() {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
-	err := suite.tm.Transaction(func(tx transaction.Transaction) error {
+	err := suite.tm.Transaction(func(tx persistent.Transaction) error {
 		db, err := tx.Get().(*gorm.DB).DB()
 		require.NoError(err)
 

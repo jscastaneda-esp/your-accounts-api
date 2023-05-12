@@ -1,7 +1,7 @@
-package tx
+package persistent
 
 import (
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"errors"
 
 	"gorm.io/gorm"
@@ -32,7 +32,7 @@ type gormTransactionManager struct {
 	db *gorm.DB
 }
 
-func (tm *gormTransactionManager) Transaction(fc func(tx transaction.Transaction) error) error {
+func (tm *gormTransactionManager) Transaction(fc func(tx persistent.Transaction) error) error {
 	return tm.db.Transaction(func(db *gorm.DB) error {
 		tx := &gormTransaction{}
 		tx.Set(db)
@@ -40,6 +40,6 @@ func (tm *gormTransactionManager) Transaction(fc func(tx transaction.Transaction
 	})
 }
 
-func NewTransactionManager(db *gorm.DB) transaction.TransactionManager {
+func NewTransactionManager(db *gorm.DB) persistent.TransactionManager {
 	return &gormTransactionManager{db}
 }

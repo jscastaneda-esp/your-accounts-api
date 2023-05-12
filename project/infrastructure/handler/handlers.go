@@ -36,8 +36,19 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
+	project := &domain.Project{
+		Name:   request.Name,
+		UserId: request.UserId,
+		Type:   request.Type,
+	}
+	result, err := ctrl.app.Create(c.UserContext(), project)
+	if err != nil {
+		log.Println("Error creating project:", err)
+		return fiber.NewError(fiber.StatusInternalServerError, "Error creating project")
+	}
+
 	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{
-		ID: uint(1),
+		ID: result.ID,
 	})
 }
 

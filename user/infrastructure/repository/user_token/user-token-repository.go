@@ -1,7 +1,7 @@
 package user_token
 
 import (
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/entity"
 	"context"
@@ -13,7 +13,7 @@ type gormUserTokenRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormUserTokenRepository) WithTransaction(tx transaction.Transaction) domain.UserTokenRepository {
+func (r *gormUserTokenRepository) WithTransaction(tx persistent.Transaction) domain.UserTokenRepository {
 	if tx, ok := tx.Get().(*gorm.DB); ok {
 		return NewRepository(tx)
 	}

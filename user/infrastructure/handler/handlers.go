@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"api-your-accounts/shared/infrastructure/db"
-	"api-your-accounts/shared/infrastructure/db/tx"
+	"api-your-accounts/shared/infrastructure/db/persistent"
 	"api-your-accounts/shared/infrastructure/validation"
 	"api-your-accounts/user/application"
 	"api-your-accounts/user/domain"
@@ -142,7 +142,7 @@ func (ctrl *controller) refreshToken(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	tm := tx.NewTransactionManager(db.DB)
+	tm := persistent.NewTransactionManager(db.DB)
 	userRepo := user.NewRepository(db.DB)
 	userTokenRepo := user_token.NewRepository(db.DB)
 	controller := &controller{

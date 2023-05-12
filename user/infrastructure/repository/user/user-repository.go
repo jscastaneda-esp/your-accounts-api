@@ -1,7 +1,7 @@
 package user
 
 import (
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/entity"
 	"context"
@@ -13,7 +13,7 @@ type gormUserRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormUserRepository) WithTransaction(tx transaction.Transaction) domain.UserRepository {
+func (r *gormUserRepository) WithTransaction(tx persistent.Transaction) domain.UserRepository {
 	if tx, ok := tx.Get().(*gorm.DB); ok {
 		return NewRepository(tx)
 	}

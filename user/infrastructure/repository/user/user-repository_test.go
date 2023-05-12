@@ -1,8 +1,8 @@
 package user
 
 import (
+	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
 	"api-your-accounts/shared/domain/test_utils"
-	mocksShared "api-your-accounts/shared/domain/transaction/mocks"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"

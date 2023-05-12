@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	transaction "api-your-accounts/shared/domain/transaction"
+	persistent "api-your-accounts/shared/domain/persistent"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,11 +14,11 @@ type TransactionManager struct {
 }
 
 // Transaction provides a mock function with given fields: fc
-func (_m *TransactionManager) Transaction(fc func(transaction.Transaction) error) error {
+func (_m *TransactionManager) Transaction(fc func(persistent.Transaction) error) error {
 	ret := _m.Called(fc)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(func(transaction.Transaction) error) error); ok {
+	if rf, ok := ret.Get(0).(func(func(persistent.Transaction) error) error); ok {
 		r0 = rf(fc)
 	} else {
 		r0 = ret.Error(0)
