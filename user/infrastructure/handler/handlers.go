@@ -30,6 +30,7 @@ type controller struct {
 //	@Produce		json
 //	@Param			request	body		model.CreateRequest	true	"User data"
 //	@Success		201		{object}	model.CreateResponse
+//	@Failure		400		{string}	string
 //	@Failure		409		{string}	string
 //	@Failure		422		{string}	string
 //	@Failure		500		{string}	string
@@ -77,6 +78,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Produce		json
 //	@Param			request		body		model.AuthRequest	true	"Authentication data"
 //	@Success		200			{object}	model.AuthResponse
+//	@Failure		400			{string}	string
 //	@Failure		401			{string}	string
 //	@Failure		422			{string}	string
 //	@Failure		500			{string}	string
