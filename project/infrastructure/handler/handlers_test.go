@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"api-your-accounts/project/application"
 	"api-your-accounts/project/application/mocks"
 	"api-your-accounts/project/domain"
 	"api-your-accounts/project/infrastructure/model"
@@ -158,6 +159,30 @@ func (suite *TestSuite) TestCreate404() {
 	require.Equal(expectedErr, resp)
 }
 
+func (suite *TestSuite) TestCreate409() {
+	require := require.New(suite.T())
+	requestBody := &model.CreateRequest{
+		Name:   "Test",
+		UserId: suite.userId,
+		Type:   suite.typeBudget,
+	}
+	body, err := json.Marshal(requestBody)
+	require.NoError(err)
+	suite.mock.On("Create", mock.Anything, mock.Anything).Return(nil, application.ErrProjectAlreadyExists)
+	expectedErr := []byte(application.ErrProjectAlreadyExists.Error())
+
+	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
+	response, err := suite.app.Test(request)
+
+	require.NoError(err)
+	require.NotNil(response)
+	require.Equal(fiber.StatusConflict, response.StatusCode)
+	resp, err := io.ReadAll(response.Body)
+	require.NoError(err)
+	require.Equal(expectedErr, resp)
+}
+
 func (suite *TestSuite) TestCreate422() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
@@ -274,7 +299,6 @@ func (suite *TestSuite) TestReadLogs200() {
 	result := &domain.ProjectLog{
 		ID:          1,
 		Description: "Test",
-		Detail:      "",
 		ProjectId:   suite.projectId,
 		CreatedAt:   time.Now(),
 	}
@@ -347,6 +371,22 @@ func (suite *TestSuite) TestDelete404() {
 	require.NoError(err)
 	require.NotNil(response)
 	require.Equal(fiber.StatusNotFound, response.StatusCode)
+}
+
+func (suite *TestSuite) TestDelete404ErrorDelete() {
+	require := require.New(suite.T())
+	suite.mock.On("Delete", mock.Anything, suite.projectId).Return(gorm.ErrRecordNotFound)
+	expectedErr := []byte("Project ID not found")
+
+	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/%d", suite.projectId), nil)
+	response, err := suite.app.Test(request)
+
+	require.NoError(err)
+	require.NotNil(response)
+	require.Equal(fiber.StatusNotFound, response.StatusCode)
+	resp, err := io.ReadAll(response.Body)
+	require.NoError(err)
+	require.Equal(expectedErr, resp)
 }
 
 func (suite *TestSuite) TestDelete500() {

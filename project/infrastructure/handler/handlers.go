@@ -4,6 +4,8 @@ import (
 	"api-your-accounts/project/application"
 	"api-your-accounts/project/domain"
 	"api-your-accounts/project/infrastructure/model"
+	"api-your-accounts/project/infrastructure/repository/project"
+	"api-your-accounts/project/infrastructure/repository/project_log"
 	"api-your-accounts/shared/infrastructure/db"
 	"api-your-accounts/shared/infrastructure/db/persistent"
 	"api-your-accounts/shared/infrastructure/validation"
@@ -31,6 +33,7 @@ type controller struct {
 //	@Failure		400					{string}	string
 //	@Failure		401					{string}	string
 //	@Failure		404					{string}	string
+//	@Failure		409					{string}	string
 //	@Failure		422					{string}	string
 //	@Failure		500					{string}	string
 //	@Router			/api/v1/project/	[post]
@@ -60,7 +63,11 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	if err != nil {
 		log.Println("Error creating project:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating project")
+		if errors.Is(err, application.ErrProjectAlreadyExists) {
+			return fiber.NewError(fiber.StatusConflict, err.Error())
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusInternalServerError, "Error creating project")
+		}
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{
@@ -170,6 +177,10 @@ func (ctrl *controller) delete(c *fiber.Ctx) error {
 	err = ctrl.app.Delete(c.UserContext(), uint(id))
 	if err != nil {
 		log.Println("Error deleting project:", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusNotFound, "Project ID not found")
+		}
+
 		return fiber.NewError(fiber.StatusInternalServerError, "Error deleting project")
 	}
 
@@ -178,8 +189,10 @@ func (ctrl *controller) delete(c *fiber.Ctx) error {
 
 func NewRoute(router fiber.Router) {
 	tm := persistent.NewTransactionManager(db.DB)
+	projectRepo := project.NewRepository(db.DB)
+	projectLogRepo := project_log.NewRepository(db.DB)
 	controller := &controller{
-		app: application.NewProjectApp(tm, nil, nil),
+		app: application.NewProjectApp(tm, projectRepo, projectLogRepo),
 	}
 
 	group := router.Group("/project")

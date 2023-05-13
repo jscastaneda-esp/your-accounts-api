@@ -103,6 +103,12 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {

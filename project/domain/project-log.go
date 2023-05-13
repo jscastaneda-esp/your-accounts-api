@@ -9,7 +9,7 @@ import (
 type ProjectLog struct {
 	ID          uint
 	Description string
-	Detail      string
+	Detail      *string
 	ProjectId   uint
 	CreatedAt   time.Time
 }

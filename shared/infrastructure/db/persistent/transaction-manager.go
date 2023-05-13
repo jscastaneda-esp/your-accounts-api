@@ -43,3 +43,11 @@ func (tm *gormTransactionManager) Transaction(fc func(tx persistent.Transaction)
 func NewTransactionManager(db *gorm.DB) persistent.TransactionManager {
 	return &gormTransactionManager{db}
 }
+
+func DefaultWithTransaction[T any](tx persistent.Transaction, newFn func(db *gorm.DB) T, defaultValue T) T {
+	if db, ok := tx.Get().(*gorm.DB); ok {
+		return newFn(db)
+	}
+
+	return defaultValue
+}

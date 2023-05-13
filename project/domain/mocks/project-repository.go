@@ -56,6 +56,30 @@ func (_m *ProjectRepository) Delete(ctx context.Context, id uint) error {
 	return r0
 }
 
+// ExistsByNameAndUserIdAndType provides a mock function with given fields: ctx, name, userId, typeP
+func (_m *ProjectRepository) ExistsByNameAndUserIdAndType(ctx context.Context, name string, userId uint, typeP domain.ProjectType) (bool, error) {
+	ret := _m.Called(ctx, name, userId, typeP)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, uint, domain.ProjectType) (bool, error)); ok {
+		return rf(ctx, name, userId, typeP)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, uint, domain.ProjectType) bool); ok {
+		r0 = rf(ctx, name, userId, typeP)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, uint, domain.ProjectType) error); ok {
+		r1 = rf(ctx, name, userId, typeP)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // FindByUserId provides a mock function with given fields: ctx, userId
 func (_m *ProjectRepository) FindByUserId(ctx context.Context, userId uint) ([]*domain.Project, error) {
 	ret := _m.Called(ctx, userId)
@@ -83,14 +107,16 @@ func (_m *ProjectRepository) FindByUserId(ctx context.Context, userId uint) ([]*
 }
 
 // WithTransaction provides a mock function with given fields: tx
-func (_m *ProjectRepository) WithTransaction(tx persistent.Transaction) domain.Project {
+func (_m *ProjectRepository) WithTransaction(tx persistent.Transaction) domain.ProjectRepository {
 	ret := _m.Called(tx)
 
-	var r0 domain.Project
-	if rf, ok := ret.Get(0).(func(persistent.Transaction) domain.Project); ok {
+	var r0 domain.ProjectRepository
+	if rf, ok := ret.Get(0).(func(persistent.Transaction) domain.ProjectRepository); ok {
 		r0 = rf(tx)
 	} else {
-		r0 = ret.Get(0).(domain.Project)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(domain.ProjectRepository)
+		}
 	}
 
 	return r0

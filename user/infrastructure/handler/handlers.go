@@ -46,18 +46,14 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		Email: request.Email,
 	}
 
-	exists, err := ctrl.app.Exists(c.UserContext(), user.UUID, user.Email)
-	if exists {
-		return fiber.NewError(fiber.StatusConflict, "User already exists")
-	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Println("Error sign up user:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
-	}
-
 	result, err := ctrl.app.SignUp(c.UserContext(), user)
 	if err != nil {
 		log.Println("Error sign up user:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
+		if errors.Is(err, application.ErrUserAlreadyExists) {
+			return fiber.NewError(fiber.StatusConflict, err.Error())
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
+		}
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{

@@ -2,6 +2,7 @@ package persistent
 
 import (
 	"api-your-accounts/shared/domain/persistent"
+	"api-your-accounts/shared/domain/persistent/mocks"
 	"database/sql"
 	"regexp"
 	"testing"
@@ -16,9 +17,10 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	mock sqlmock.Sqlmock
-	db   *gorm.DB
-	tm   persistent.TransactionManager
+	mock   sqlmock.Sqlmock
+	mockTx *mocks.Transaction
+	db     *gorm.DB
+	tm     persistent.TransactionManager
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -40,6 +42,10 @@ func (suite *TestSuite) SetupSuite() {
 	require.NoError(err)
 
 	suite.tm = NewTransactionManager(suite.db)
+}
+
+func (suite *TestSuite) SetupTest() {
+	suite.mockTx = mocks.NewTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -104,6 +110,30 @@ func (suite *TestSuite) TestTransactionSuccess() {
 	})
 
 	require.NoError(err)
+}
+
+func (suite *TestSuite) TestDefaultWithTransactionSuccessNew() {
+	require := require.New(suite.T())
+	suite.mockTx.On("Get").Return(suite.db)
+
+	result := DefaultWithTransaction(suite.mockTx, func(db *gorm.DB) string {
+		return "New"
+	}, "Default")
+
+	require.NotNil(result)
+	require.Equal("New", result)
+}
+
+func (suite *TestSuite) TestDefaultWithTransactionSuccessDefault() {
+	require := require.New(suite.T())
+	suite.mockTx.On("Get").Return("other")
+
+	result := DefaultWithTransaction(suite.mockTx, func(db *gorm.DB) string {
+		return "New"
+	}, "Default")
+
+	require.NotNil(result)
+	require.Equal("Default", result)
 }
 
 func TestTestSuite(t *testing.T) {

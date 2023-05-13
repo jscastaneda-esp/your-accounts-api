@@ -17,8 +17,9 @@ type Project struct {
 
 //go:generate mockery --name ProjectRepository --filename project-repository.go
 type ProjectRepository interface {
-	persistent.TransactionRepository[Project]
+	persistent.TransactionRepository[ProjectRepository]
 	persistent.CreateRepository[Project]
 	FindByUserId(ctx context.Context, userId uint) ([]*Project, error)
+	ExistsByNameAndUserIdAndType(ctx context.Context, name string, userId uint, typeP ProjectType) (bool, error)
 	persistent.DeleteRepository[uint]
 }

@@ -2,6 +2,7 @@ package user_token
 
 import (
 	"api-your-accounts/shared/domain/persistent"
+	persistentInfra "api-your-accounts/shared/infrastructure/db/persistent"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/entity"
 	"context"
@@ -14,11 +15,7 @@ type gormUserTokenRepository struct {
 }
 
 func (r *gormUserTokenRepository) WithTransaction(tx persistent.Transaction) domain.UserTokenRepository {
-	if tx, ok := tx.Get().(*gorm.DB); ok {
-		return NewRepository(tx)
-	}
-
-	return r
+	return persistentInfra.DefaultWithTransaction[domain.UserTokenRepository](tx, NewRepository, r)
 }
 
 func (r *gormUserTokenRepository) Create(ctx context.Context, userToken *domain.UserToken) (*domain.UserToken, error) {

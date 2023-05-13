@@ -62,45 +62,6 @@ func (suite *TestSuite) TestCreate201() {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	suite.mock.On("Exists", mock.Anything, suite.uuid, suite.email).Return(false, nil)
-	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(result, nil)
-	expectedBody, err := json.Marshal(model.CreateResponse{
-		ID:        result.ID,
-		UUID:      result.UUID,
-		Email:     result.Email,
-		CreatedAt: result.CreatedAt,
-		UpdatedAt: result.UpdatedAt,
-	})
-	require.NoError(err)
-
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
-	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	response, err := suite.app.Test(request)
-
-	require.NoError(err)
-	require.NotNil(response)
-	require.Equal(fiber.StatusCreated, response.StatusCode)
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal(expectedBody, resp)
-}
-
-func (suite *TestSuite) TestCreate201ErrorExists() {
-	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
-		UUID:  suite.uuid,
-		Email: suite.email,
-	}
-	body, err := json.Marshal(requestBody)
-	require.NoError(err)
-	result := &domain.User{
-		ID:        1,
-		UUID:      requestBody.UUID,
-		Email:     requestBody.Email,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.On("Exists", mock.Anything, suite.uuid, suite.email).Return(false, gorm.ErrRecordNotFound)
 	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(result, nil)
 	expectedBody, err := json.Marshal(model.CreateResponse{
 		ID:        result.ID,
@@ -143,8 +104,8 @@ func (suite *TestSuite) TestCreate409() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Exists", mock.Anything, suite.uuid, suite.email).Return(true, nil)
-	expectedErr := []byte("User already exists")
+	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(nil, application.ErrUserAlreadyExists)
+	expectedErr := []byte(application.ErrUserAlreadyExists.Error())
 
 	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
@@ -186,7 +147,7 @@ func (suite *TestSuite) TestCreate422() {
 	require.Equal(expectedBody, resp)
 }
 
-func (suite *TestSuite) TestCreate500ErrorExists() {
+func (suite *TestSuite) TestCreate500() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
 		UUID:  suite.uuid,
@@ -194,30 +155,6 @@ func (suite *TestSuite) TestCreate500ErrorExists() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Exists", mock.Anything, suite.uuid, suite.email).Return(false, gorm.ErrInvalidField)
-	expectedErr := []byte("Error sign up user")
-
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
-	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	response, err := suite.app.Test(request)
-
-	require.NoError(err)
-	require.NotNil(response)
-	require.Equal(fiber.StatusInternalServerError, response.StatusCode)
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal(expectedErr, resp)
-}
-
-func (suite *TestSuite) TestCreate500ErrorSignUp() {
-	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
-		UUID:  suite.uuid,
-		Email: suite.email,
-	}
-	body, err := json.Marshal(requestBody)
-	require.NoError(err)
-	suite.mock.On("Exists", mock.Anything, suite.uuid, suite.email).Return(false, nil)
 	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(nil, gorm.ErrInvalidField)
 	expectedErr := []byte("Error sign up user")
 
