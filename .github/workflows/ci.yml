@@ -6,6 +6,7 @@ on:
       - main
   pull_request:
     branches: [main]
+  workflow_call:
 
 # cancel in-progress runs on new commits to same PR (gitub.event.number)
 concurrency:
