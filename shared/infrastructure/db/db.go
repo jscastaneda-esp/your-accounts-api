@@ -28,7 +28,7 @@ func NewDB() {
 
 		var err error
 		newLogger := logger.New(
-			log.New(os.Stdout, "\r\n", log.Llongfile+log.LstdFlags), // io writer
+			log.New(os.Stdout, "\r\n", log.Llongfile+log.LstdFlags),
 			logger.Config{
 				SlowThreshold:             200 * time.Millisecond,
 				LogLevel:                  logger.Info,
@@ -42,6 +42,9 @@ func NewDB() {
 			log.Fatal(err)
 		}
 
+		if err = declareEnums(DB); err != nil {
+			log.Fatal(err)
+		}
 		if err = DB.AutoMigrate(
 			&user.User{},
 			&user.UserToken{},
@@ -49,7 +52,6 @@ func NewDB() {
 			&project.ProjectLog{},
 			&budget.Budget{},
 			&budget.BudgetAvailableBalance{},
-			&budget.CategoryBill{},
 			&budget.BudgetBill{},
 			&budget.BudgetBillTransaction{},
 			&budget.BudgetBillShared{},
@@ -57,4 +59,36 @@ func NewDB() {
 			log.Fatal(err)
 		}
 	}
+}
+
+func declareEnums(db *gorm.DB) error {
+	if err := db.Exec(`
+	DO $$ BEGIN
+		CREATE TYPE project_type AS ENUM ('budget');
+	EXCEPTION
+		WHEN duplicate_object THEN null;
+	END $$;
+	`).Error; err != nil {
+		return err
+	}
+
+	if err := db.Exec(`
+	DO $$ BEGIN
+		CREATE TYPE budget_bill_category AS ENUM (
+			'house',
+			'entertainment',
+			'personal',
+			'vehicle_transportation',
+			'education',
+			'services',
+			'others'
+		);
+	EXCEPTION
+		WHEN duplicate_object THEN null;
+	END $$;
+	`).Error; err != nil {
+		return err
+	}
+
+	return nil
 }

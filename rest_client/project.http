@@ -15,7 +15,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1MTkxMjAsImlhdCI6MTY4NDQzMjcyMH0.ZA05TeFkt2kX4eQAc_U8yGaX8oS3fgjc26E4Nw4ztFE
 
 {
-    "cloneId": 2
+    "cloneId": 1
 }
 
 ### Read By User
