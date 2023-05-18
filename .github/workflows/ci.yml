@@ -1,11 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches: [main]
   workflow_call:
 
 # cancel in-progress runs on new commits to same PR (gitub.event.number)
@@ -26,7 +21,8 @@ jobs:
           go-version-file: "go.mod"
           cache: true
       - run: go vet ./...
-  tests:
+
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

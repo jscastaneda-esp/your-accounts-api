@@ -6,7 +6,12 @@ on:
       - main
 
 jobs:
+  test:
+    name: Test and lint
+    uses: jscastaneda-esp/api-your-accounts/.github/workflows/ci.yml@main
+
   deploy:
+    name: Deploy in production
     runs-on: ubuntu-latest
     environment:
       name: Production
