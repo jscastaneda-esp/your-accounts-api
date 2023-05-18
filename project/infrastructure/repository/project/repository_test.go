@@ -20,7 +20,6 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	name       string
 	userId     uint
 	typeBudget domain.ProjectType
 	mock       sqlmock.Sqlmock
@@ -29,7 +28,6 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.name = "Test"
 	suite.userId = 1
 	suite.typeBudget = domain.Budget
 
@@ -89,15 +87,14 @@ func (suite *TestSuite) TestCreateSuccess() {
 	suite.mock.ExpectBegin()
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "projects" ("updated_at","name","user_id","type") 
-		VALUES ($1,$2,$3,$4) 
+		INSERT INTO "projects" ("updated_at","user_id","type") 
+		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(test_utils.AnyTime{}, suite.name, suite.userId, suite.typeBudget).
+		WithArgs(test_utils.AnyTime{}, suite.userId, suite.typeBudget).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
 	project := &domain.Project{
-		Name:   suite.name,
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
@@ -107,7 +104,6 @@ func (suite *TestSuite) TestCreateSuccess() {
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(uint(999), res.ID)
-	require.Equal(project.Name, res.Name)
 	require.Equal(project.UserId, res.UserId)
 	require.Equal(project.Type, res.Type)
 }
@@ -118,15 +114,14 @@ func (suite *TestSuite) TestCreateError() {
 	suite.mock.ExpectBegin()
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "projects" ("updated_at","name","user_id","type") 
-		VALUES ($1,$2,$3,$4) 
+		INSERT INTO "projects" ("updated_at","user_id","type") 
+		VALUES ($1,$2,$3) 
 		RETURNING "id","created_at"
 		`)).
-		WithArgs(test_utils.AnyTime{}, suite.name, suite.userId, suite.typeBudget).
+		WithArgs(test_utils.AnyTime{}, suite.userId, suite.typeBudget).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	project := &domain.Project{
-		Name:   suite.name,
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
@@ -135,6 +130,55 @@ func (suite *TestSuite) TestCreateError() {
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Nil(res)
+}
+
+func (suite *TestSuite) TestFinByIdSuccess() {
+	require := require.New(suite.T())
+	projectExpected := &domain.Project{
+		ID:        999,
+		UserId:    suite.userId,
+		Type:      suite.typeBudget,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT *
+		FROM "projects"
+		WHERE "projects"."id" = $1
+		ORDER BY "projects"."id" LIMIT 1
+		`)).
+		WithArgs(projectExpected.ID).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
+			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.UserId, projectExpected.Type),
+		)
+
+	project, err := suite.repository.FindById(context.Background(), projectExpected.ID)
+
+	require.NoError(err)
+	require.NotNil(project)
+	require.Equal(projectExpected.ID, project.ID)
+	require.Equal(projectExpected.UserId, project.UserId)
+	require.Equal(projectExpected.Type, project.Type)
+}
+
+func (suite *TestSuite) TestFinByIdError() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`
+		SELECT *
+		FROM "projects"
+		WHERE "projects"."id" = $1
+		ORDER BY "projects"."id" LIMIT 1
+		`)).
+		WithArgs(999).
+		WillReturnError(gorm.ErrInvalidField)
+
+	project, err := suite.repository.FindById(context.Background(), 999)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.Nil(project)
 }
 
 func (suite *TestSuite) TestFindByUserIdSuccess() {
@@ -149,9 +193,9 @@ func (suite *TestSuite) TestFindByUserIdSuccess() {
 		`)).
 		WithArgs(suite.userId).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "user_id", "type"}).
-			AddRow(999, time.Now(), time.Now(), suite.name, suite.userId, suite.typeBudget).
-			AddRow(1000, time.Now(), time.Now(), suite.name, suite.userId, suite.typeBudget),
+			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
+			AddRow(999, time.Now(), time.Now(), suite.userId, suite.typeBudget).
+			AddRow(1000, time.Now(), time.Now(), suite.userId, suite.typeBudget),
 		)
 
 	projects, err := suite.repository.FindByUserId(context.Background(), suite.userId)
@@ -160,11 +204,9 @@ func (suite *TestSuite) TestFindByUserIdSuccess() {
 	require.NotNil(projects)
 	require.Len(projects, 2)
 	require.Equal(uint(999), projects[0].ID)
-	require.Equal(suite.name, projects[0].Name)
 	require.Equal(suite.userId, projects[0].UserId)
 	require.Equal(suite.typeBudget, projects[0].Type)
 	require.Equal(uint(1000), projects[1].ID)
-	require.Equal(suite.name, projects[1].Name)
 	require.Equal(suite.userId, projects[1].UserId)
 	require.Equal(suite.typeBudget, projects[1].Type)
 }
@@ -188,71 +230,10 @@ func (suite *TestSuite) TestFindByUserIdError() {
 	require.Empty(projects)
 }
 
-func (suite *TestSuite) TestExistsByNameAndUserIdAndTypeSuccessTrue() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT COUNT(1) 
-		FROM projects 
-		WHERE name = $1
-		AND user_id = $2
-		AND type = $3
-		`)).
-		WithArgs(suite.name, suite.userId, suite.typeBudget).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-	exists, err := suite.repository.ExistsByNameAndUserIdAndType(context.Background(), suite.name, suite.userId, suite.typeBudget)
-
-	require.NoError(err)
-	require.True(exists)
-}
-
-func (suite *TestSuite) TestExistsByNameAndUserIdAndTypeSuccessFalse() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT COUNT(1) 
-		FROM projects 
-		WHERE name = $1
-		AND user_id = $2
-		AND type = $3
-		`)).
-		WithArgs(suite.name, suite.userId, suite.typeBudget).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-
-	exists, err := suite.repository.ExistsByNameAndUserIdAndType(context.Background(), suite.name, suite.userId, suite.typeBudget)
-
-	require.NoError(err)
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsByNameAndUserIdAndTypeError() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT COUNT(1) 
-		FROM projects 
-		WHERE name = $1
-		AND user_id = $2
-		AND type = $3
-		`)).
-		WithArgs(suite.name, suite.userId, suite.typeBudget).
-		WillReturnError(gorm.ErrInvalidField)
-
-	exists, err := suite.repository.ExistsByNameAndUserIdAndType(context.Background(), suite.name, suite.userId, suite.typeBudget)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.False(exists)
-}
-
 func (suite *TestSuite) TestDeleteSuccess() {
 	require := require.New(suite.T())
 	projectExpected := &domain.Project{
 		ID:        999,
-		Name:      suite.name,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
 		CreatedAt: time.Now(),
@@ -267,10 +248,24 @@ func (suite *TestSuite) TestDeleteSuccess() {
 		`)).
 		WithArgs(projectExpected.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "user_id", "type"}).
-			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.Name, projectExpected.UserId, projectExpected.Type),
+			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
+			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.UserId, projectExpected.Type),
 		)
 	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`
+		DELETE FROM "project_logs"
+		WHERE "project_logs"."project_id" = $1
+		`)).
+		WithArgs(projectExpected.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`
+		DELETE FROM "budgets"
+		WHERE "budgets"."project_id" = $1
+		`)).
+		WithArgs(projectExpected.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta(`
 		DELETE FROM "projects"
@@ -289,7 +284,6 @@ func (suite *TestSuite) TestDeleteErrorFind() {
 	require := require.New(suite.T())
 	projectExpected := &domain.Project{
 		ID:        999,
-		Name:      suite.name,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
 		CreatedAt: time.Now(),
@@ -314,7 +308,6 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 	require := require.New(suite.T())
 	projectExpected := &domain.Project{
 		ID:        999,
-		Name:      suite.name,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
 		CreatedAt: time.Now(),
@@ -329,10 +322,24 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 		`)).
 		WithArgs(projectExpected.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "user_id", "type"}).
-			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.Name, projectExpected.UserId, projectExpected.Type),
+			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
+			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.UserId, projectExpected.Type),
 		)
 	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`
+		DELETE FROM "project_logs"
+		WHERE "project_logs"."project_id" = $1
+		`)).
+		WithArgs(projectExpected.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`
+		DELETE FROM "budgets"
+		WHERE "budgets"."project_id" = $1
+		`)).
+		WithArgs(projectExpected.ID).
+		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta(`
 		DELETE FROM "projects"
