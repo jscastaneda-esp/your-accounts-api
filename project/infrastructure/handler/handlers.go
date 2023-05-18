@@ -33,7 +33,6 @@ type controller struct {
 //	@Failure		400					{string}	string
 //	@Failure		401					{string}	string
 //	@Failure		404					{string}	string
-//	@Failure		409					{string}	string
 //	@Failure		422					{string}	string
 //	@Failure		500					{string}	string
 //	@Router			/api/v1/project/	[post]
@@ -43,18 +42,16 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	project := &domain.Project{
-		Name:   request.Name,
-		UserId: request.UserId,
-		Type:   request.Type,
-	}
-
 	var result *domain.Project
 	var err error
 	if request.CloneId == nil {
-		result, err = ctrl.app.Create(c.UserContext(), project)
+		project := &domain.Project{
+			UserId: request.UserId,
+			Type:   request.Type,
+		}
+		result, err = ctrl.app.Create(c.UserContext(), project, nil)
 	} else {
-		result, err = ctrl.app.Clone(c.UserContext(), project, *request.CloneId)
+		result, err = ctrl.app.Clone(c.UserContext(), *request.CloneId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Printf("Clone ID %d not found\n", *request.CloneId)
 			return fiber.NewError(fiber.StatusNotFound, "Error creating project. Clone ID not found")
@@ -63,9 +60,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	if err != nil {
 		log.Println("Error creating project:", err)
-		if errors.Is(err, application.ErrProjectAlreadyExists) {
-			return fiber.NewError(fiber.StatusConflict, err.Error())
-		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusInternalServerError, "Error creating project")
 		}
 	}
@@ -106,7 +101,7 @@ func (ctrl *controller) readByUser(c *fiber.Ctx) error {
 	for _, project := range projects {
 		response = append(response, model.ReadResponse{
 			ID:   project.ID,
-			Name: project.Name,
+			Name: "PENDIENTE",
 			Type: project.Type,
 		})
 	}

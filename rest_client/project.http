@@ -1,7 +1,7 @@
 ### Create project
 POST http://localhost:8080/api/v1/project/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQwMjgxNTYsImlhdCI6MTY4Mzk0MTc1Nn0.HbAwb48nNP2TXWg-czi4H0MgkcnacsjFAcRwRp93M4s
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1MTkxMjAsImlhdCI6MTY4NDQzMjcyMH0.ZA05TeFkt2kX4eQAc_U8yGaX8oS3fgjc26E4Nw4ztFE
 
 {
     "name": "Test5",
@@ -12,22 +12,19 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4O
 ### Clone project
 POST http://localhost:8080/api/v1/project/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQwMjgxNTYsImlhdCI6MTY4Mzk0MTc1Nn0.HbAwb48nNP2TXWg-czi4H0MgkcnacsjFAcRwRp93M4s
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1MTkxMjAsImlhdCI6MTY4NDQzMjcyMH0.ZA05TeFkt2kX4eQAc_U8yGaX8oS3fgjc26E4Nw4ztFE
 
 {
-    "name": "Test",
-    "userId": 1,
-    "type": "budget",
-    "cloneId": 1
+    "cloneId": 2
 }
 
 ### Read By User
 GET http://localhost:8080/api/v1/project/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQwMjgxNTYsImlhdCI6MTY4Mzk0MTc1Nn0.HbAwb48nNP2TXWg-czi4H0MgkcnacsjFAcRwRp93M4s
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1MTkxMjAsImlhdCI6MTY4NDQzMjcyMH0.ZA05TeFkt2kX4eQAc_U8yGaX8oS3fgjc26E4Nw4ztFE
 
 ### Read Logs By Project
-GET http://localhost:8080/api/v1/project/logs/6
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQwMjgxNTYsImlhdCI6MTY4Mzk0MTc1Nn0.HbAwb48nNP2TXWg-czi4H0MgkcnacsjFAcRwRp93M4s
+GET http://localhost:8080/api/v1/project/logs/4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1MTkxMjAsImlhdCI6MTY4NDQzMjcyMH0.ZA05TeFkt2kX4eQAc_U8yGaX8oS3fgjc26E4Nw4ztFE
 
 ### Delete Project
 DELETE http://localhost:8080/api/v1/project/1

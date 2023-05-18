@@ -6,9 +6,9 @@ import (
 )
 
 type CreateRequest struct {
-	Name    string             `json:"name,omitempty" validate:"required,max=20"`
-	Type    domain.ProjectType `json:"type,omitempty" validate:"required,oneof='budget'"`
-	UserId  uint               `json:"userId,omitempty" validate:"required,min=1"`
+	Name    string             `json:"name,omitempty" validate:"required_without=CloneId,omitempty,max=40"`
+	Type    domain.ProjectType `json:"type,omitempty" validate:"required_without=CloneId,omitempty,oneof='budget'"`
+	UserId  uint               `json:"userId,omitempty" validate:"required_without=CloneId,omitempty,min=1"`
 	CloneId *uint              `json:"cloneId,omitempty" validate:"omitempty,min=1"`
 }
 

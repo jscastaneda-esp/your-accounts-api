@@ -20,7 +20,6 @@ func (r *gormProjectRepository) WithTransaction(tx persistent.Transaction) domai
 
 func (r *gormProjectRepository) Create(ctx context.Context, project *domain.Project) (*domain.Project, error) {
 	model := &entity.Project{
-		Name:   project.Name,
 		UserId: project.UserId,
 		Type:   project.Type,
 	}
@@ -31,7 +30,21 @@ func (r *gormProjectRepository) Create(ctx context.Context, project *domain.Proj
 
 	return &domain.Project{
 		ID:        model.ID,
-		Name:      model.Name,
+		UserId:    model.UserId,
+		Type:      model.Type,
+		CreatedAt: model.CreatedAt,
+		UpdatedAt: model.UpdatedAt,
+	}, nil
+}
+
+func (r *gormProjectRepository) FindById(ctx context.Context, id uint) (*domain.Project, error) {
+	model, err := r.findById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.Project{
+		ID:        model.ID,
 		UserId:    model.UserId,
 		Type:      model.Type,
 		CreatedAt: model.CreatedAt,
@@ -52,7 +65,6 @@ func (r *gormProjectRepository) FindByUserId(ctx context.Context, userId uint) (
 	for _, model := range models {
 		projects = append(projects, &domain.Project{
 			ID:        model.ID,
-			Name:      model.Name,
 			UserId:    model.UserId,
 			Type:      model.Type,
 			CreatedAt: model.CreatedAt,
@@ -63,19 +75,9 @@ func (r *gormProjectRepository) FindByUserId(ctx context.Context, userId uint) (
 	return projects, nil
 }
 
-func (r *gormProjectRepository) ExistsByNameAndUserIdAndType(ctx context.Context, name string, userId uint, typeP domain.ProjectType) (bool, error) {
-	var count int
-	err := r.db.Raw("SELECT COUNT(1) FROM projects WHERE name = ? AND user_id = ? AND type = ?", name, userId, typeP).Scan(&count).Error
-	if err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
-}
-
 func (r *gormProjectRepository) Delete(ctx context.Context, id uint) error {
-	model := new(entity.Project)
-	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
+	model, err := r.findById(ctx, id)
+	if err != nil {
 		return err
 	}
 
@@ -84,6 +86,15 @@ func (r *gormProjectRepository) Delete(ctx context.Context, id uint) error {
 	}
 
 	return nil
+}
+
+func (r *gormProjectRepository) findById(ctx context.Context, id uint) (*entity.Project, error) {
+	model := new(entity.Project)
+	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
+		return nil, err
+	}
+
+	return model, nil
 }
 
 func NewRepository(db *gorm.DB) domain.ProjectRepository {

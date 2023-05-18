@@ -103,12 +103,6 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -488,11 +482,6 @@ const docTemplate = `{
     "definitions": {
         "api-your-accounts_project_infrastructure_model.CreateRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "type",
-                "userId"
-            ],
             "properties": {
                 "cloneId": {
                     "type": "integer",
@@ -500,7 +489,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20
+                    "maxLength": 40
                 },
                 "type": {
                     "enum": [

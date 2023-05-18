@@ -9,9 +9,8 @@ import (
 type Project struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Name        string             `gorm:"not null;size:20;uniqueIndex:unq_project"`
-	UserId      uint               `gorm:"not null;uniqueIndex:unq_project"`
-	Type        domain.ProjectType `gorm:"not null;size:10;uniqueIndex:unq_project"`
+	UserId      uint               `gorm:"not null"`
+	Type        domain.ProjectType `gorm:"not null;size:10"`
 	ProjectLogs []ProjectLog       `gorm:"foreignKey:ProjectId"`
 	Budget      budget.Budget      `gorm:"foreignKey:ProjectId"`
 }

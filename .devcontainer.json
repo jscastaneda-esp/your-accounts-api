@@ -22,7 +22,25 @@
 				"rafamel.subtle-brackets",
 				"Gruntfuggly.todo-tree",
 				"cweijan.vscode-postgresql-client2"
-			]
+			],
+			"settings": {
+				"dotenv.enableAutocloaking": false,
+				"gopls": {
+					"ui.semanticTokens": true
+				},
+				"go.inlayHints.assignVariableTypes": true,
+				"go.inlayHints.compositeLiteralFields": true,
+				"go.inlayHints.compositeLiteralTypes": true,
+				"go.inlayHints.constantValues": true,
+				"go.inlayHints.functionTypeParameters": true,
+				"go.inlayHints.parameterNames": true,
+				"go.inlayHints.rangeVariableTypes": true,
+				"go.diagnostic.vulncheck": "Imports",
+				"[go]": {
+					"editor.defaultFormatter": "golang.go",
+					"editor.tabSize": 4
+				}
+			}
     }
   }
 }

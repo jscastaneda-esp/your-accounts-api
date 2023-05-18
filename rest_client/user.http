@@ -21,7 +21,7 @@ PUT http://localhost:8080/user/refresh-token
 Content-Type: application/json
 
 {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODMxNDQ1ODcsImlhdCI6MTY4MzA1ODE4N30.xNk7TPUSMdFBxXJ1XOFSgsgImkhfwjLopHDgEFVQA0g",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQwMjgxNTYsImlhdCI6MTY4Mzk0MTc1Nn0.HbAwb48nNP2TXWg-czi4H0MgkcnacsjFAcRwRp93M4s",
     "uuid": "12345678901234567890123456789012",
     "email": "jcaatanedaesp@gmail.com"
 }

@@ -95,12 +95,6 @@
                             "type": "string"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {
@@ -480,11 +474,6 @@
     "definitions": {
         "api-your-accounts_project_infrastructure_model.CreateRequest": {
             "type": "object",
-            "required": [
-                "name",
-                "type",
-                "userId"
-            ],
             "properties": {
                 "cloneId": {
                     "type": "integer",
@@ -492,7 +481,7 @@
                 },
                 "name": {
                     "type": "string",
-                    "maxLength": 20
+                    "maxLength": 40
                 },
                 "type": {
                     "enum": [

@@ -8,7 +8,6 @@ import (
 
 type Project struct {
 	ID        uint
-	Name      string
 	UserId    uint
 	Type      ProjectType
 	CreatedAt time.Time
@@ -19,7 +18,7 @@ type Project struct {
 type ProjectRepository interface {
 	persistent.TransactionRepository[ProjectRepository]
 	persistent.CreateRepository[Project]
+	persistent.ReadRepository[Project, uint]
 	FindByUserId(ctx context.Context, userId uint) ([]*Project, error)
-	ExistsByNameAndUserIdAndType(ctx context.Context, name string, userId uint, typeP ProjectType) (bool, error)
 	persistent.DeleteRepository[uint]
 }

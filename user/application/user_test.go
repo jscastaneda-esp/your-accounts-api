@@ -251,11 +251,6 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token + "New", expiresAt, nil
 	}
-	newUserToken := &domain.UserToken{
-		Token:     suite.token + "New",
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	newUserTokenExpected := &domain.UserToken{
 		ID:        1000,
 		Token:     suite.token + "New",
@@ -268,8 +263,8 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
-	suite.mockUserTokenRepo.On("Create", ctx, newUserToken).Return(newUserTokenExpected, nil)
-	suite.mockUserTokenRepo.On("Update", ctx, mock.AnythingOfType("*domain.UserToken")).Return(nil, nil)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(newUserTokenExpected, nil)
+	suite.mockUserTokenRepo.On("Update", ctx, mock.Anything).Return(nil, nil)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 
@@ -437,11 +432,6 @@ func (suite *TestSuite) TestRefreshTokenErrorUpdateExistsToken() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token + "New", expiresAt, nil
 	}
-	newUserToken := &domain.UserToken{
-		Token:     suite.token + "New",
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	newUserTokenExpected := &domain.UserToken{
 		ID:        1000,
 		Token:     suite.token + "New",
@@ -455,8 +445,8 @@ func (suite *TestSuite) TestRefreshTokenErrorUpdateExistsToken() {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
-	suite.mockUserTokenRepo.On("Create", ctx, newUserToken).Return(newUserTokenExpected, nil)
-	suite.mockUserTokenRepo.On("Update", ctx, mock.AnythingOfType("*domain.UserToken")).Return(nil, errExpected)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(newUserTokenExpected, nil)
+	suite.mockUserTokenRepo.On("Update", ctx, mock.Anything).Return(nil, errExpected)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 

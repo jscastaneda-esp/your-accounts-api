@@ -56,23 +56,25 @@ func (_m *ProjectRepository) Delete(ctx context.Context, id uint) error {
 	return r0
 }
 
-// ExistsByNameAndUserIdAndType provides a mock function with given fields: ctx, name, userId, typeP
-func (_m *ProjectRepository) ExistsByNameAndUserIdAndType(ctx context.Context, name string, userId uint, typeP domain.ProjectType) (bool, error) {
-	ret := _m.Called(ctx, name, userId, typeP)
+// FindById provides a mock function with given fields: ctx, id
+func (_m *ProjectRepository) FindById(ctx context.Context, id uint) (*domain.Project, error) {
+	ret := _m.Called(ctx, id)
 
-	var r0 bool
+	var r0 *domain.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint, domain.ProjectType) (bool, error)); ok {
-		return rf(ctx, name, userId, typeP)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*domain.Project, error)); ok {
+		return rf(ctx, id)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint, domain.ProjectType) bool); ok {
-		r0 = rf(ctx, name, userId, typeP)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *domain.Project); ok {
+		r0 = rf(ctx, id)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.Project)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, uint, domain.ProjectType) error); ok {
-		r1 = rf(ctx, name, userId, typeP)
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
 	} else {
 		r1 = ret.Error(1)
 	}

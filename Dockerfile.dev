@@ -1,5 +1,9 @@
 FROM golang:1.20
 
+RUN apt-get update && apt install -y zsh
+RUN sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
+RUN chsh -s $(which zsh)
+
 RUN go install -v github.com/cweill/gotests/gotests@v1.6.0
 RUN go install -v github.com/fatih/gomodifytags@v1.16.0
 RUN go install -v github.com/josharian/impl@v1.1.0

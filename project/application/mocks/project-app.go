@@ -14,25 +14,25 @@ type IProjectApp struct {
 	mock.Mock
 }
 
-// Clone provides a mock function with given fields: ctx, project, baseId
-func (_m *IProjectApp) Clone(ctx context.Context, project *domain.Project, baseId uint) (*domain.Project, error) {
-	ret := _m.Called(ctx, project, baseId)
+// Clone provides a mock function with given fields: ctx, baseId
+func (_m *IProjectApp) Clone(ctx context.Context, baseId uint) (*domain.Project, error) {
+	ret := _m.Called(ctx, baseId)
 
 	var r0 *domain.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, uint) (*domain.Project, error)); ok {
-		return rf(ctx, project, baseId)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*domain.Project, error)); ok {
+		return rf(ctx, baseId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, uint) *domain.Project); ok {
-		r0 = rf(ctx, project, baseId)
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *domain.Project); ok {
+		r0 = rf(ctx, baseId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.Project, uint) error); ok {
-		r1 = rf(ctx, project, baseId)
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, baseId)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -40,25 +40,25 @@ func (_m *IProjectApp) Clone(ctx context.Context, project *domain.Project, baseI
 	return r0, r1
 }
 
-// Create provides a mock function with given fields: ctx, project
-func (_m *IProjectApp) Create(ctx context.Context, project *domain.Project) (*domain.Project, error) {
-	ret := _m.Called(ctx, project)
+// Create provides a mock function with given fields: ctx, project, cloneId
+func (_m *IProjectApp) Create(ctx context.Context, project *domain.Project, cloneId *uint) (*domain.Project, error) {
+	ret := _m.Called(ctx, project, cloneId)
 
 	var r0 *domain.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project) (*domain.Project, error)); ok {
-		return rf(ctx, project)
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, *uint) (*domain.Project, error)); ok {
+		return rf(ctx, project, cloneId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project) *domain.Project); ok {
-		r0 = rf(ctx, project)
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, *uint) *domain.Project); ok {
+		r0 = rf(ctx, project, cloneId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.Project) error); ok {
-		r1 = rf(ctx, project)
+	if rf, ok := ret.Get(1).(func(context.Context, *domain.Project, *uint) error); ok {
+		r1 = rf(ctx, project, cloneId)
 	} else {
 		r1 = ret.Error(1)
 	}

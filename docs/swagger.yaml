@@ -6,7 +6,7 @@ definitions:
         minimum: 1
         type: integer
       name:
-        maxLength: 20
+        maxLength: 40
         type: string
       type:
         allOf:
@@ -16,10 +16,6 @@ definitions:
       userId:
         minimum: 1
         type: integer
-    required:
-    - name
-    - type
-    - userId
     type: object
   api-your-accounts_project_infrastructure_model.CreateResponse:
     properties:
@@ -167,10 +163,6 @@ paths:
             type: string
         "404":
           description: Not Found
-          schema:
-            type: string
-        "409":
-          description: Conflict
           schema:
             type: string
         "422":
