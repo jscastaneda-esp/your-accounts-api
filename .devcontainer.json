@@ -7,40 +7,44 @@
   "customizations": {
     "vscode": {
       "extensions": [
-				"streetsidesoftware.code-spell-checker",
-				"ms-azuretools.vscode-docker",
-				"dotenv.dotenv-vscode",
-				"GitHub.vscode-pull-request-github",
-				"eamodio.gitlens",
-				"golang.go",
-				"r3inbowari.gomodexplorer",
-				"SirTori.indenticator",
-				"Tyriar.lorem-ipsum",
-				"yzhang.markdown-all-in-one",
-				"humao.rest-client",
-				"streetsidesoftware.code-spell-checker-spanish",
-				"rafamel.subtle-brackets",
-				"Gruntfuggly.todo-tree",
-				"cweijan.vscode-postgresql-client2"
-			],
-			"settings": {
-				"dotenv.enableAutocloaking": false,
-				"gopls": {
-					"ui.semanticTokens": true
-				},
-				"go.inlayHints.assignVariableTypes": true,
-				"go.inlayHints.compositeLiteralFields": true,
-				"go.inlayHints.compositeLiteralTypes": true,
-				"go.inlayHints.constantValues": true,
-				"go.inlayHints.functionTypeParameters": true,
-				"go.inlayHints.parameterNames": true,
-				"go.inlayHints.rangeVariableTypes": true,
-				"go.diagnostic.vulncheck": "Imports",
-				"[go]": {
-					"editor.defaultFormatter": "golang.go",
-					"editor.tabSize": 4
-				}
-			}
+        "streetsidesoftware.code-spell-checker",
+        "ms-azuretools.vscode-docker",
+        "dotenv.dotenv-vscode",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "golang.go",
+        "r3inbowari.gomodexplorer",
+        "SirTori.indenticator",
+        "Tyriar.lorem-ipsum",
+        "yzhang.markdown-all-in-one",
+        "humao.rest-client",
+        "streetsidesoftware.code-spell-checker-spanish",
+        "rafamel.subtle-brackets",
+        "Gruntfuggly.todo-tree",
+        "cweijan.vscode-postgresql-client2",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "dotenv.enableAutocloaking": false,
+        "gopls": {
+          "ui.semanticTokens": true
+        },
+        "go.inlayHints.assignVariableTypes": true,
+        "go.inlayHints.compositeLiteralFields": true,
+        "go.inlayHints.compositeLiteralTypes": true,
+        "go.inlayHints.constantValues": true,
+        "go.inlayHints.functionTypeParameters": true,
+        "go.inlayHints.parameterNames": true,
+        "go.inlayHints.rangeVariableTypes": true,
+        "go.diagnostic.vulncheck": "Imports",
+        "[go]": {
+          "editor.defaultFormatter": "golang.go",
+          "editor.tabSize": 4
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        }
+      }
     }
   }
 }

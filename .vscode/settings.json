@@ -11,6 +11,11 @@
   "go.inlayHints.parameterNames": true,
   "go.inlayHints.rangeVariableTypes": true,
   "go.diagnostic.vulncheck": "Imports",
-  "editor.defaultFormatter": "golang.go",
-  "editor.tabSize": 4
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.tabSize": 4
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
