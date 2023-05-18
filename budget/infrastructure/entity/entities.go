@@ -1,6 +1,9 @@
 package entity
 
-import "api-your-accounts/shared/infrastructure/db/entity"
+import (
+	"api-your-accounts/budget/domain"
+	"api-your-accounts/shared/infrastructure/db/entity"
+)
 
 type Budget struct {
 	entity.BaseModel
@@ -30,26 +33,19 @@ type BudgetAvailableBalance struct {
 	BudgetId uint    `gorm:"not null;uniqueIndex:unq_available"`
 }
 
-type CategoryBill struct {
-	entity.BaseModel
-	entity.BaseUpdateModel
-	Type        string       `gorm:"not null;size:50;unique"`
-	BudgetBills []BudgetBill `gorm:"foreignKey:CategoryId"`
-}
-
 type BudgetBill struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Description            string                  `gorm:"not null;size:200;uniqueIndex:unq_bill"`
-	Amount                 float64                 `gorm:"not null;default:0"`
-	Payment                float64                 `gorm:"not null;default:0"`
-	Shared                 bool                    `gorm:"not null;default:false"`
-	DueDate                uint8                   `gorm:"not null;default:0"`
-	Complete               bool                    `gorm:"not null;default:false"`
-	BudgetId               uint                    `gorm:"not null;uniqueIndex:unq_bill"`
-	CategoryId             uint                    `gorm:"not null"`
-	BudgetBillTransactions []BudgetBillTransaction `gorm:"foreignKey:BudgetBillId"`
-	BudgetBillShareds      []BudgetBillShared      `gorm:"foreignKey:BudgetBillId"`
+	Description            string                    `gorm:"not null;size:200;uniqueIndex:unq_bill"`
+	Amount                 float64                   `gorm:"not null;default:0"`
+	Payment                float64                   `gorm:"not null;default:0"`
+	Shared                 bool                      `gorm:"not null;default:false"`
+	DueDate                uint8                     `gorm:"not null;default:0"`
+	Complete               bool                      `gorm:"not null;default:false"`
+	BudgetId               uint                      `gorm:"not null;uniqueIndex:unq_bill"`
+	Category               domain.BudgetBillCategory `gorm:"not null;type:budget_bill_category"`
+	BudgetBillTransactions []BudgetBillTransaction   `gorm:"foreignKey:BudgetBillId"`
+	BudgetBillShareds      []BudgetBillShared        `gorm:"foreignKey:BudgetBillId"`
 }
 
 type BudgetBillTransaction struct {
