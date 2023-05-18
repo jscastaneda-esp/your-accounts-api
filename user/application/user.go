@@ -2,7 +2,7 @@ package application
 
 import (
 	"api-your-accounts/shared/domain/jwt"
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
 	"api-your-accounts/user/domain"
 	"context"
 	"errors"
@@ -12,44 +12,41 @@ import (
 )
 
 var (
-	ErrTokenRefreshed = errors.New("token already refreshed")
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrTokenRefreshed    = errors.New("token already refreshed")
 
 	jwtGenerate = jwt.JwtGenerate
 )
 
 //go:generate mockery --name IUserApp --filename user-app.go
 type IUserApp interface {
-	Exists(ctx context.Context, uuid, email string) (bool, error)
 	SignUp(ctx context.Context, user *domain.User) (*domain.User, error)
 	Auth(ctx context.Context, uuid, email string) (string, error)
 	RefreshToken(ctx context.Context, token, uuid, email string) (string, error)
 }
 
 type userApp struct {
-	tm            transaction.TransactionManager
+	tm            persistent.TransactionManager
 	userRepo      domain.UserRepository
 	userTokenRepo domain.UserTokenRepository
 }
 
-func (app *userApp) Exists(ctx context.Context, uuid, email string) (bool, error) {
-	exists, err := app.userRepo.ExistsByUUID(ctx, uuid)
-	if err != nil {
-		return false, err
-	}
-	if exists {
-		return exists, nil
-	}
-
-	exists, err = app.userRepo.ExistsByEmail(ctx, strings.ToLower(email))
-	if err != nil {
-		return false, err
-	}
-
-	return exists, nil
-}
-
 func (app *userApp) SignUp(ctx context.Context, user *domain.User) (*domain.User, error) {
+	exists, err := app.userRepo.ExistsByUUID(ctx, user.UUID)
+	if err != nil {
+		return nil, err
+	} else if exists {
+		return nil, ErrUserAlreadyExists
+	}
+
 	user.Email = strings.ToLower(user.Email)
+	exists, err = app.userRepo.ExistsByEmail(ctx, user.Email)
+	if err != nil {
+		return nil, err
+	} else if exists {
+		return nil, ErrUserAlreadyExists
+	}
+
 	return app.userRepo.Create(ctx, user)
 }
 
@@ -96,7 +93,7 @@ func (app *userApp) RefreshToken(ctx context.Context, token, uuid, email string)
 		return "", err
 	}
 
-	err = app.tm.Transaction(func(tx transaction.Transaction) error {
+	err = app.tm.Transaction(func(tx persistent.Transaction) error {
 		repo := app.userTokenRepo.WithTransaction(tx)
 
 		newUserToken := &domain.UserToken{
@@ -126,6 +123,6 @@ func (app *userApp) RefreshToken(ctx context.Context, token, uuid, email string)
 	return token, nil
 }
 
-func NewUserApp(tm transaction.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
+func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
 	return &userApp{tm, userRepo, userTokenRepo}
 }

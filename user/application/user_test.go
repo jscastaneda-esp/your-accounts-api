@@ -2,8 +2,8 @@ package application
 
 import (
 	"api-your-accounts/shared/domain/jwt"
-	"api-your-accounts/shared/domain/transaction"
-	mocksShared "api-your-accounts/shared/domain/transaction/mocks"
+	"api-your-accounts/shared/domain/persistent"
+	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/domain/mocks"
 	"context"
@@ -43,66 +43,6 @@ func (suite *TestSuite) SetupTest() {
 	suite.app = NewUserApp(suite.mockTransactionManager, suite.mockUserRepo, suite.mockUserTokenRepo)
 }
 
-func (suite *TestSuite) TestExistsSuccessUUID() {
-	require := require.New(suite.T())
-	ctx := context.Background()
-	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(true, nil)
-
-	exists, err := suite.app.Exists(ctx, suite.uuid, suite.email)
-
-	require.NoError(err)
-	require.True(exists)
-}
-
-func (suite *TestSuite) TestExistsSuccessEmail() {
-	require := require.New(suite.T())
-	ctx := context.Background()
-	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
-	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(true, nil)
-
-	exists, err := suite.app.Exists(ctx, suite.uuid, suite.email)
-
-	require.NoError(err)
-	require.True(exists)
-}
-
-func (suite *TestSuite) TestExistsSuccessNot() {
-	require := require.New(suite.T())
-	ctx := context.Background()
-	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
-	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(false, nil)
-
-	exists, err := suite.app.Exists(ctx, suite.uuid, suite.email)
-
-	require.NoError(err)
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsErrorUUID() {
-	require := require.New(suite.T())
-	ctx := context.Background()
-	errExpected := errors.New("Not exists")
-	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, errExpected)
-
-	exists, err := suite.app.Exists(ctx, suite.uuid, suite.email)
-
-	require.EqualError(errExpected, err.Error())
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsErrorEmail() {
-	require := require.New(suite.T())
-	ctx := context.Background()
-	errExpected := errors.New("Not exists")
-	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
-	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(false, errExpected)
-
-	exists, err := suite.app.Exists(ctx, suite.uuid, suite.email)
-
-	require.EqualError(errExpected, err.Error())
-	require.False(exists)
-}
-
 func (suite *TestSuite) TestSignUpSuccess() {
 	require := require.New(suite.T())
 	ctx := context.Background()
@@ -115,6 +55,8 @@ func (suite *TestSuite) TestSignUpSuccess() {
 		UUID:  user.UUID,
 		Email: user.Email,
 	}
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
+	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(false, nil)
 	suite.mockUserRepo.On("Create", ctx, user).Return(userExpected, nil)
 
 	res, err := suite.app.SignUp(ctx, user)
@@ -126,7 +68,71 @@ func (suite *TestSuite) TestSignUpSuccess() {
 	require.Equal(userExpected.Email, res.Email)
 }
 
-func (suite *TestSuite) TestSignUpError() {
+func (suite *TestSuite) TestSignUpErrorExistsByUUID() {
+	require := require.New(suite.T())
+	ctx := context.Background()
+	user := &domain.User{
+		UUID:  suite.uuid,
+		Email: suite.email,
+	}
+	errExpected := errors.New("Not exists")
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, errExpected)
+
+	res, err := suite.app.SignUp(ctx, user)
+
+	require.EqualError(errExpected, err.Error())
+	require.Nil(res)
+}
+
+func (suite *TestSuite) TestSignUpExistsByUUID() {
+	require := require.New(suite.T())
+	ctx := context.Background()
+	user := &domain.User{
+		UUID:  suite.uuid,
+		Email: suite.email,
+	}
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(true, nil)
+
+	res, err := suite.app.SignUp(ctx, user)
+
+	require.EqualError(ErrUserAlreadyExists, err.Error())
+	require.Nil(res)
+}
+
+func (suite *TestSuite) TestSignUpErrorExistsByEmail() {
+	require := require.New(suite.T())
+	ctx := context.Background()
+	user := &domain.User{
+		UUID:  suite.uuid,
+		Email: suite.email,
+	}
+	errExpected := errors.New("Not exists")
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
+	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(false, errExpected)
+
+	res, err := suite.app.SignUp(ctx, user)
+
+	require.EqualError(errExpected, err.Error())
+	require.Nil(res)
+}
+
+func (suite *TestSuite) TestSignUpExistsByEmail() {
+	require := require.New(suite.T())
+	ctx := context.Background()
+	user := &domain.User{
+		UUID:  suite.uuid,
+		Email: suite.email,
+	}
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
+	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(true, nil)
+
+	res, err := suite.app.SignUp(ctx, user)
+
+	require.EqualError(ErrUserAlreadyExists, err.Error())
+	require.Nil(res)
+}
+
+func (suite *TestSuite) TestSignUpErrorCreate() {
 	require := require.New(suite.T())
 	ctx := context.Background()
 	user := &domain.User{
@@ -134,6 +140,8 @@ func (suite *TestSuite) TestSignUpError() {
 		Email: suite.email,
 	}
 	errExpected := errors.New("not created")
+	suite.mockUserRepo.On("ExistsByUUID", ctx, suite.uuid).Return(false, nil)
+	suite.mockUserRepo.On("ExistsByEmail", ctx, suite.email).Return(false, nil)
 	suite.mockUserRepo.On("Create", ctx, user).Return(nil, errExpected)
 
 	res, err := suite.app.SignUp(ctx, user)
@@ -243,11 +251,6 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token + "New", expiresAt, nil
 	}
-	newUserToken := &domain.UserToken{
-		Token:     suite.token + "New",
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	newUserTokenExpected := &domain.UserToken{
 		ID:        1000,
 		Token:     suite.token + "New",
@@ -256,12 +259,12 @@ func (suite *TestSuite) TestRefreshTokenSuccess() {
 	}
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
-	suite.mockUserTokenRepo.On("Create", ctx, newUserToken).Return(newUserTokenExpected, nil)
-	suite.mockUserTokenRepo.On("Update", ctx, mock.AnythingOfType("*domain.UserToken")).Return(nil, nil)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(newUserTokenExpected, nil)
+	suite.mockUserTokenRepo.On("Update", ctx, mock.Anything).Return(nil, nil)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 
@@ -367,7 +370,7 @@ func (suite *TestSuite) TestRefreshTokenErrorTransaction() {
 	errExpected := errors.New("Error in transaction")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(errExpected)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(errExpected)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 
@@ -400,7 +403,7 @@ func (suite *TestSuite) TestRefreshTokenErrorCreateNewToken() {
 	errExpected := errors.New("Error in creation")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
@@ -429,11 +432,6 @@ func (suite *TestSuite) TestRefreshTokenErrorUpdateExistsToken() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token + "New", expiresAt, nil
 	}
-	newUserToken := &domain.UserToken{
-		Token:     suite.token + "New",
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	newUserTokenExpected := &domain.UserToken{
 		ID:        1000,
 		Token:     suite.token + "New",
@@ -443,12 +441,12 @@ func (suite *TestSuite) TestRefreshTokenErrorUpdateExistsToken() {
 	errExpected := errors.New("Error updating")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(transaction.Transaction) error")).Return(func(fc func(transaction.Transaction) error) error {
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
-	suite.mockUserTokenRepo.On("Create", ctx, newUserToken).Return(newUserTokenExpected, nil)
-	suite.mockUserTokenRepo.On("Update", ctx, mock.AnythingOfType("*domain.UserToken")).Return(nil, errExpected)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(newUserTokenExpected, nil)
+	suite.mockUserTokenRepo.On("Update", ctx, mock.Anything).Return(nil, errExpected)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 

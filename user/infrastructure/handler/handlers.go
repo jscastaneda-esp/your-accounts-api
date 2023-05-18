@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 
-	"api-your-accounts/shared/domain/validation"
 	"api-your-accounts/shared/infrastructure/db"
-	"api-your-accounts/shared/infrastructure/db/tx"
+	"api-your-accounts/shared/infrastructure/db/persistent"
+	"api-your-accounts/shared/infrastructure/validation"
 	"api-your-accounts/user/application"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/model"
@@ -17,11 +17,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type userController struct {
+type controller struct {
 	app application.IUserApp
 }
 
-// CreateUserHandler godoc
+// UserCreateHandler godoc
 //
 //	@Summary		Create user
 //	@Description	Create user in the system
@@ -29,20 +29,16 @@ type userController struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		model.CreateRequest	true	"User data"
-//	@Success		200		{object}	model.CreateResponse
-//	@Failure		409		{string}	string	"Conflict"
-//	@Failure		422		{string}	string	"Unprocessable Entity"
-//	@Failure		500		{string}	string	"Internal Server Error"
+//	@Success		201		{object}	model.CreateResponse
+//	@Failure		400		{string}	string
+//	@Failure		409		{string}	string
+//	@Failure		422		{string}	string
+//	@Failure		500		{string}	string
 //	@Router			/user	[post]
-func (controller *userController) createUser(c *fiber.Ctx) error {
+func (ctrl *controller) create(c *fiber.Ctx) error {
 	request := new(model.CreateRequest)
-	if err := c.BodyParser(request); err != nil {
-		log.Println("Error request body parser:", err)
-		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
-	}
-
-	if errors := validation.ValidateStruct(request); errors != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
+	if ok := validation.Validate(c, request); !ok {
+		return nil
 	}
 
 	user := &domain.User{
@@ -50,21 +46,17 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 		Email: request.Email,
 	}
 
-	exists, err := controller.app.Exists(c.UserContext(), user.UUID, user.Email)
-	if exists {
-		return fiber.NewError(fiber.StatusConflict, "User already exists")
-	} else if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Println("Error sign up user:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
-	}
-
-	result, err := controller.app.SignUp(c.UserContext(), user)
+	result, err := ctrl.app.SignUp(c.UserContext(), user)
 	if err != nil {
 		log.Println("Error sign up user:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
+		if errors.Is(err, application.ErrUserAlreadyExists) {
+			return fiber.NewError(fiber.StatusConflict, err.Error())
+		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
+		}
 	}
 
-	return c.JSON(model.CreateResponse{
+	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{
 		ID:        result.ID,
 		UUID:      result.UUID,
 		Email:     result.Email,
@@ -73,7 +65,7 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 	})
 }
 
-// AuthHandler godoc
+// UserAuthHandler godoc
 //
 //	@Summary		Authenticate user
 //	@Description	create token for access
@@ -81,23 +73,19 @@ func (controller *userController) createUser(c *fiber.Ctx) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request		body		model.AuthRequest	true	"Authentication data"
-//	@Success		200			{object}	map[string]any
-//	@Failure		401			{string}	string	"Unauthorized"
-//	@Failure		422			{string}	string	"Unprocessable Entity"
-//	@Failure		500			{string}	string	"Internal Server Error"
+//	@Success		200			{object}	model.AuthResponse
+//	@Failure		400			{string}	string
+//	@Failure		401			{string}	string
+//	@Failure		422			{string}	string
+//	@Failure		500			{string}	string
 //	@Router			/user/auth	[post]
-func (controller *userController) auth(c *fiber.Ctx) error {
+func (ctrl *controller) auth(c *fiber.Ctx) error {
 	request := new(model.AuthRequest)
-	if err := c.BodyParser(request); err != nil {
-		log.Println("Error request body parser:", err)
-		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
+	if ok := validation.Validate(c, request); !ok {
+		return nil
 	}
 
-	if errors := validation.ValidateStruct(request); errors != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
-	}
-
-	token, err := controller.app.Auth(c.UserContext(), request.UUID, request.Email)
+	token, err := ctrl.app.Auth(c.UserContext(), request.UUID, request.Email)
 	if err != nil {
 		log.Println("Error authenticate user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -107,12 +95,12 @@ func (controller *userController) auth(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error authenticate user")
 	}
 
-	return c.JSON(fiber.Map{
-		"token": token,
+	return c.JSON(model.AuthResponse{
+		Token: token,
 	})
 }
 
-// RefreshTokenHandler godoc
+// UserRefreshTokenHandler godoc
 //
 //	@Summary		Refresh token of user
 //	@Description	refresh token for access
@@ -120,24 +108,19 @@ func (controller *userController) auth(c *fiber.Ctx) error {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request				body		model.RefreshTokenRequest	true	"Refresh token data"
-//	@Success		200					{object}	map[string]any
-//	@Failure		400					{string}	string	"BadRequest"
-//	@Failure		401					{string}	string	"Unauthorized"
-//	@Failure		422					{string}	string	"Unprocessable Entity"
-//	@Failure		500					{string}	string	"Internal Server Error"
+//	@Success		200					{object}	model.RefreshTokenResponse
+//	@Failure		400					{string}	string
+//	@Failure		401					{string}	string
+//	@Failure		422					{string}	string
+//	@Failure		500					{string}	string
 //	@Router			/user/refresh-token	[put]
-func (controller *userController) refreshToken(c *fiber.Ctx) error {
+func (ctrl *controller) refreshToken(c *fiber.Ctx) error {
 	request := new(model.RefreshTokenRequest)
-	if err := c.BodyParser(request); err != nil {
-		log.Println("Error request body parser:", err)
-		return fiber.NewError(fiber.StatusUnprocessableEntity, err.Error())
+	if ok := validation.Validate(c, request); !ok {
+		return nil
 	}
 
-	if errors := validation.ValidateStruct(request); errors != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
-	}
-
-	token, err := controller.app.RefreshToken(c.UserContext(), request.Token, request.UUID, request.Email)
+	token, err := ctrl.app.RefreshToken(c.UserContext(), request.Token, request.UUID, request.Email)
 	if err != nil {
 		log.Println("Error refresh token user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -149,21 +132,23 @@ func (controller *userController) refreshToken(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error refresh token user")
 	}
 
-	return c.JSON(fiber.Map{
-		"token": token,
+	return c.JSON(model.RefreshTokenResponse{
+		AuthResponse: model.AuthResponse{
+			Token: token,
+		},
 	})
 }
 
-func NewRoute(app *fiber.App) {
-	tm := tx.NewTransactionManager(db.DB)
+func NewRoute(router fiber.Router) {
+	tm := persistent.NewTransactionManager(db.DB)
 	userRepo := user.NewRepository(db.DB)
 	userTokenRepo := user_token.NewRepository(db.DB)
-	controller := &userController{
+	controller := &controller{
 		app: application.NewUserApp(tm, userRepo, userTokenRepo),
 	}
 
-	group := app.Group("/user")
-	group.Post("/", controller.createUser)
+	group := router.Group("/user")
+	group.Post("/", controller.create)
 	group.Post("/auth", controller.auth)
 	group.Put("/refresh-token", controller.refreshToken)
 }

@@ -1,8 +1,8 @@
 package user
 
 import (
+	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
 	"api-your-accounts/shared/domain/test_utils"
-	mocksShared "api-your-accounts/shared/domain/transaction/mocks"
 	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
@@ -48,8 +48,11 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.mockTX = mocksShared.NewTransaction(suite.T())
 	suite.repository = NewRepository(DB)
+}
+
+func (suite *TestSuite) SetupTest() {
+	suite.mockTX = mocksShared.NewTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -70,13 +73,12 @@ func (suite *TestSuite) TestWithTransactionSuccessNew() {
 func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require := require.New(suite.T())
 
-	getMock := suite.mockTX.On("Get").Return(&sql.DB{})
+	suite.mockTX.On("Get").Return(&sql.DB{})
 
 	repo := suite.repository.WithTransaction(suite.mockTX)
 
 	require.NotNil(repo)
 	require.Equal(suite.repository, repo)
-	getMock.Unset()
 }
 
 func (suite *TestSuite) TestFindByUUIDAndEmailSuccess() {

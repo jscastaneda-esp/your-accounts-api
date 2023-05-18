@@ -1,4 +1,4 @@
-package transaction
+package persistent
 
 //go:generate mockery --name Transaction --filename transaction.go
 type Transaction interface {

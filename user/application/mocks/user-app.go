@@ -38,30 +38,6 @@ func (_m *IUserApp) Auth(ctx context.Context, uuid string, email string) (string
 	return r0, r1
 }
 
-// Exists provides a mock function with given fields: ctx, uuid, email
-func (_m *IUserApp) Exists(ctx context.Context, uuid string, email string) (bool, error) {
-	ret := _m.Called(ctx, uuid, email)
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
-		return rf(ctx, uuid, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
-		r0 = rf(ctx, uuid, email)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, uuid, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // RefreshToken provides a mock function with given fields: ctx, token, uuid, email
 func (_m *IUserApp) RefreshToken(ctx context.Context, token string, uuid string, email string) (string, error) {
 	ret := _m.Called(ctx, token, uuid, email)

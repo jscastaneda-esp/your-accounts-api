@@ -34,7 +34,7 @@ jobs:
           go-version-file: "go.mod"
           cache: true
       - run: go get .
-      - run: go test -v -coverprofile=coverage.out ./... > test-results.out
+      - run: go test -v -coverprofile=coverage.out ./... | grep -v "no test files" > test-results.out
       - name: Archive test coverage
         shell: bash
         run: tar -czf coverage.tar.gz coverage.out

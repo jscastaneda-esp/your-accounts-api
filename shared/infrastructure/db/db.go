@@ -3,6 +3,7 @@ package db
 import (
 	"log"
 	"os"
+	"time"
 
 	budget "api-your-accounts/budget/infrastructure/entity"
 	project "api-your-accounts/project/infrastructure/entity"
@@ -26,14 +27,22 @@ func NewDB() {
 		}
 
 		var err error
-		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Warn),
-		})
-		if err != nil {
+		newLogger := logger.New(
+			log.New(os.Stdout, "\r\n", log.Llongfile+log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold:             200 * time.Millisecond,
+				LogLevel:                  logger.Info,
+				IgnoreRecordNotFoundError: false,
+				Colorful:                  true,
+			},
+		)
+		if DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: newLogger,
+		}); err != nil {
 			log.Fatal(err)
 		}
 
-		err = DB.AutoMigrate(
+		if err = DB.AutoMigrate(
 			&user.User{},
 			&user.UserToken{},
 			&project.Project{},
@@ -44,8 +53,7 @@ func NewDB() {
 			&budget.BudgetBill{},
 			&budget.BudgetBillTransaction{},
 			&budget.BudgetBillShared{},
-		)
-		if err != nil {
+		); err != nil {
 			log.Fatal(err)
 		}
 	}

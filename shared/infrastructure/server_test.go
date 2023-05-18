@@ -27,7 +27,7 @@ func (suite *TestSuite) TestAddRouteSuccess() {
 			return nil
 		},
 	})
-	server.AddRoute(Router(func(_ *fiber.App) {
+	server.AddRoute(Router(func(_ fiber.Router) {
 		log.Println("Test")
 	}))
 
@@ -119,7 +119,7 @@ func (suite *TestSuite) TestListenSuccessCustomRoutePost() {
 func (suite *TestSuite) TestListenSuccessCustomRouteRouter() {
 	require := require.New(suite.T())
 	server := NewServer(true)
-	server.AddRoute(Router(func(app *fiber.App) {
+	server.AddRoute(Router(func(app fiber.Router) {
 		app.Get("/router", func(c *fiber.Ctx) error {
 			return c.SendString("Router")
 		})

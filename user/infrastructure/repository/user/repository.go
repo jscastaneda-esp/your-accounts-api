@@ -1,7 +1,8 @@
 package user
 
 import (
-	"api-your-accounts/shared/domain/transaction"
+	"api-your-accounts/shared/domain/persistent"
+	persistentInfra "api-your-accounts/shared/infrastructure/db/persistent"
 	"api-your-accounts/user/domain"
 	"api-your-accounts/user/infrastructure/entity"
 	"context"
@@ -13,12 +14,8 @@ type gormUserRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormUserRepository) WithTransaction(tx transaction.Transaction) domain.UserRepository {
-	if tx, ok := tx.Get().(*gorm.DB); ok {
-		return NewRepository(tx)
-	}
-
-	return r
+func (r *gormUserRepository) WithTransaction(tx persistent.Transaction) domain.UserRepository {
+	return persistentInfra.DefaultWithTransaction[domain.UserRepository](tx, NewRepository, r)
 }
 
 func (r *gormUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {

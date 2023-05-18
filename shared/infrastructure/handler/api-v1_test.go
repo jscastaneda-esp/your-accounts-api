@@ -27,6 +27,12 @@ func (suite *TestSuite) SetupSuite() {
 
 	app := fiber.New()
 	suite.ctx = app.AcquireCtx(suite.fastCtx)
+
+	projectRouter = func(router fiber.Router) {
+		router.Get("/", func(c *fiber.Ctx) error {
+			return c.SendString("Test")
+		})
+	}
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -85,7 +91,7 @@ func (suite *TestSuite) TestNewRouteSuccessRequest() {
 
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
-	require.Equal([]byte("Funciona"), resp)
+	require.Equal([]byte("Test"), resp)
 }
 
 func (suite *TestSuite) TestNewRouteErrorUnauthorized() {
