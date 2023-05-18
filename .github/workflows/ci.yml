@@ -5,6 +5,7 @@ on:
     branches:
       - main
   pull_request:
+    branches: [main]
 
 # cancel in-progress runs on new commits to same PR (gitub.event.number)
 concurrency:
