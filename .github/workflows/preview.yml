@@ -12,6 +12,7 @@ jobs:
 
   deploy:
     name: Deploy in preview
+    needs: test
     runs-on: ubuntu-latest
     environment:
       name: Preview
