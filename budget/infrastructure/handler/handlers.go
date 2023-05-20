@@ -25,7 +25,7 @@ type controller struct {
 //	@Produce		json
 //	@Param			Authorization		header		string	true	"Access token"
 //	@Param			id					path		uint	true	"Budget ID"
-//	@Success		200					{array}		model.ReadResponse
+//	@Success		200					{object}	model.ReadResponse
 //	@Failure		400					{string}	string
 //	@Failure		401					{string}	string
 //	@Failure		404					{string}	string

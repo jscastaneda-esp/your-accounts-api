@@ -77,10 +77,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse"
-                            }
+                            "$ref": "#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse"
                         }
                     },
                     "400": {

@@ -172,9 +172,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse'
-            type: array
+            $ref: '#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse'
         "400":
           description: Bad Request
           schema:
