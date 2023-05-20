@@ -1,0 +1,3 @@
+### Read By ID
+GET http://localhost:8080/api/v1/budget/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIiwiZW1haWwiOiJqY2FhdGFuZWRhZXNwQGdtYWlsLmNvbSIsInN1YiI6IjEiLCJleHAiOjE2ODQ1OTI1MjIsImlhdCI6MTY4NDUwNjEyMn0.pegwkH1D_w3P6-mVbjgHz39k7Hw3c1VLnmAA5xFo3wU

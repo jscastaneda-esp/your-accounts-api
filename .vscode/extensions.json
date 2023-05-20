@@ -1,0 +1,22 @@
+{
+  "recommendations": [
+    "streetsidesoftware.code-spell-checker",
+    "ms-azuretools.vscode-docker",
+    "dotenv.dotenv-vscode",
+    "GitHub.vscode-pull-request-github",
+    "eamodio.gitlens",
+    "golang.go",
+    "r3inbowari.gomodexplorer",
+    "SirTori.indenticator",
+    "Tyriar.lorem-ipsum",
+    "yzhang.markdown-all-in-one",
+    "humao.rest-client",
+    "streetsidesoftware.code-spell-checker-spanish",
+    "rafamel.subtle-brackets",
+    "Gruntfuggly.todo-tree",
+    "cweijan.vscode-postgresql-client2",
+    "github.vscode-github-actions",
+    "ricardoerikson.vscode-go-impl-methods",
+    "esbenp.prettier-vscode"
+  ]
+}

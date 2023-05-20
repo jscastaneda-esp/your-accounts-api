@@ -28,9 +28,19 @@ func (suite *TestSuite) SetupSuite() {
 	app := fiber.New()
 	suite.ctx = app.AcquireCtx(suite.fastCtx)
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Test")
+	})
+
 	projectRouter = func(router fiber.Router) {
-		router.Get("/", func(c *fiber.Ctx) error {
-			return c.SendString("Test")
+		router.Get("/project/", func(c *fiber.Ctx) error {
+			return c.SendString("Project")
+		})
+	}
+
+	budgetRouter = func(router fiber.Router) {
+		router.Get("/budget/", func(c *fiber.Ctx) error {
+			return c.SendString("Budget")
 		})
 	}
 }
@@ -47,17 +57,27 @@ func (suite *TestSuite) TestNewRouteSuccessData() {
 	NewRoute(app)
 
 	routes := app.GetRoutes(true)
-	require.Len(routes, 2)
+	require.Len(routes, 4)
 
 	route1 := routes[0]
 	require.Equal(fiber.MethodGet, route1.Method)
-	require.Equal("/api/v1/", route1.Path)
+	require.Equal("/api/v1/project/", route1.Path)
 	require.Len(route1.Handlers, 1)
 
 	route2 := routes[1]
-	require.Equal(fiber.MethodHead, route2.Method)
-	require.Equal("/api/v1/", route2.Path)
+	require.Equal(fiber.MethodGet, route2.Method)
+	require.Equal("/api/v1/budget/", route2.Path)
 	require.Len(route2.Handlers, 1)
+
+	route3 := routes[2]
+	require.Equal(fiber.MethodHead, route3.Method)
+	require.Equal("/api/v1/project/", route3.Path)
+	require.Len(route3.Handlers, 1)
+
+	route4 := routes[3]
+	require.Equal(fiber.MethodHead, route4.Method)
+	require.Equal("/api/v1/budget/", route4.Path)
+	require.Len(route4.Handlers, 1)
 
 	middleware := app.GetRoutes()
 	useFilter := []fiber.Route{}
@@ -78,7 +98,7 @@ func (suite *TestSuite) TestNewRouteSuccessData() {
 
 func (suite *TestSuite) TestNewRouteSuccessRequest() {
 	require := require.New(suite.T())
-	request := httptest.NewRequest(fiber.MethodGet, "/api/v1", nil)
+	request := httptest.NewRequest(fiber.MethodGet, "/api/v1/project", nil)
 	request.Header.Set(fiber.HeaderAuthorization, fmt.Sprintf("Bearer %s", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.UWfppjZwV_hQ4PU5O9ds7s9jxK4l6u6PDmAHkoVuFpg"))
 	app := fiber.New()
 	os.Setenv("JWT_SECRET", "aSecret")
@@ -91,12 +111,12 @@ func (suite *TestSuite) TestNewRouteSuccessRequest() {
 
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
-	require.Equal([]byte("Test"), resp)
+	require.Equal([]byte("Project"), resp)
 }
 
 func (suite *TestSuite) TestNewRouteErrorUnauthorized() {
 	require := require.New(suite.T())
-	request := httptest.NewRequest(fiber.MethodGet, "/api/v1", nil)
+	request := httptest.NewRequest(fiber.MethodGet, "/api/v1/budget", nil)
 	request.Header.Set(fiber.HeaderAuthorization, fmt.Sprintf("Bearer %s", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.UWfppjZwV_hQ4PU5O9ds7s9jxK4l6u6PDmAHkoVuFpg"))
 	app := fiber.New()
 	os.Setenv("JWT_SECRET", "other")

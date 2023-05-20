@@ -59,7 +59,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 	}
 
 	if err != nil {
-		log.Println("Error creating project:", err)
+		log.Printf("Error creating project: %v\n", err)
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusInternalServerError, "Error creating project")
 		}
@@ -87,13 +87,13 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 func (ctrl *controller) readByUser(c *fiber.Ctx) error {
 	userId, err := c.ParamsInt("user")
 	if err != nil {
-		log.Println("Error getting param 'user':", err)
+		log.Printf("Error getting param 'user': %v\n", err)
 		return fiber.ErrBadRequest
 	}
 
 	projects, err := ctrl.app.FindByUser(c.UserContext(), uint(userId))
 	if err != nil {
-		log.Println("Error reading projects by user:", err)
+		log.Printf("Error reading projects by user: %v\n", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading projects by user")
 	}
 
@@ -126,13 +126,13 @@ func (ctrl *controller) readByUser(c *fiber.Ctx) error {
 func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 	projectId, err := c.ParamsInt("id")
 	if err != nil {
-		log.Println("Error getting param 'id':", err)
+		log.Printf("Error getting param 'id': %v\n", err)
 		return fiber.ErrBadRequest
 	}
 
 	logs, err := ctrl.app.FindLogsByProject(c.UserContext(), uint(projectId))
 	if err != nil {
-		log.Println("Error reading logs by project:", err)
+		log.Printf("Error reading logs by project: %v\n", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by project")
 	}
 
@@ -165,13 +165,13 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 func (ctrl *controller) delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		log.Println("Error getting param 'id':", err)
+		log.Printf("Error getting param 'id': %v\n", err)
 		return fiber.ErrBadRequest
 	}
 
 	err = ctrl.app.Delete(c.UserContext(), uint(id))
 	if err != nil {
-		log.Println("Error deleting project:", err)
+		log.Printf("Error deleting project: %v\n", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, "Project ID not found")
 		}

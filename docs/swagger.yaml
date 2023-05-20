@@ -1,5 +1,28 @@
 basePath: /
 definitions:
+  api-your-accounts_budget_infrastructure_model.ReadResponse:
+    properties:
+      additional_income:
+        type: number
+      estimated_balance:
+        type: number
+      fixed_income:
+        type: number
+      id:
+        type: integer
+      month:
+        type: integer
+      name:
+        type: string
+      project_id:
+        type: integer
+      total:
+        type: number
+      total_balance:
+        type: number
+      year:
+        type: integer
+    type: object
   api-your-accounts_project_infrastructure_model.CreateRequest:
     properties:
       cloneId:
@@ -21,6 +44,15 @@ definitions:
     properties:
       id:
         type: integer
+    type: object
+  api-your-accounts_project_infrastructure_model.ReadResponse:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.ProjectType'
     type: object
   api-your-accounts_user_infrastructure_model.CreateRequest:
     properties:
@@ -75,15 +107,6 @@ definitions:
       id:
         type: integer
     type: object
-  model.ReadResponse:
-    properties:
-      id:
-        type: integer
-      name:
-        type: string
-      type:
-        $ref: '#/definitions/domain.ProjectType'
-    type: object
   model.RefreshTokenRequest:
     properties:
       email:
@@ -129,6 +152,48 @@ paths:
       summary: Show the status of server
       tags:
       - main
+  /api/v1/budget/{id}:
+    get:
+      description: read budget by ID
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Read budget by ID
+      tags:
+      - budget
   /api/v1/project/:
     post:
       consumes:
@@ -237,7 +302,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.ReadResponse'
+              $ref: '#/definitions/api-your-accounts_project_infrastructure_model.ReadResponse'
             type: array
         "400":
           description: Bad Request

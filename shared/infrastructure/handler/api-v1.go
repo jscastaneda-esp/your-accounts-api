@@ -1,6 +1,7 @@
 package handler
 
 import (
+	budget "api-your-accounts/budget/infrastructure/handler"
 	project "api-your-accounts/project/infrastructure/handler"
 	"os"
 
@@ -10,6 +11,7 @@ import (
 
 var (
 	projectRouter = project.NewRoute
+	budgetRouter  = budget.NewRoute
 )
 
 func NewRoute(app fiber.Router) {
@@ -26,5 +28,6 @@ func NewRoute(app fiber.Router) {
 	// Routes
 	{
 		projectRouter(api)
+		budgetRouter(api)
 	}
 }
