@@ -261,13 +261,6 @@ func (suite *TestSuite) TestDeleteSuccess() {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta(`
-		DELETE FROM "budgets"
-		WHERE "budgets"."project_id" = $1
-		`)).
-		WithArgs(projectExpected.ID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta(`
 		DELETE FROM "projects"
 		WHERE "projects"."id" = $1
 		`)).
@@ -304,7 +297,7 @@ func (suite *TestSuite) TestDeleteErrorFind() {
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 }
 
-func (suite *TestSuite) TestUpdateErrorSave() {
+func (suite *TestSuite) TestDeleteErrorDelete() {
 	require := require.New(suite.T())
 	projectExpected := &domain.Project{
 		ID:        999,
@@ -330,13 +323,6 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 		ExpectExec(regexp.QuoteMeta(`
 		DELETE FROM "project_logs"
 		WHERE "project_logs"."project_id" = $1
-		`)).
-		WithArgs(projectExpected.ID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta(`
-		DELETE FROM "budgets"
-		WHERE "budgets"."project_id" = $1
 		`)).
 		WithArgs(projectExpected.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))

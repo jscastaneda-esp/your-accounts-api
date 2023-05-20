@@ -47,6 +47,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/budget/{id}": {
+            "get": {
+                "description": "read budget by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Read budget by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Budget ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/project/": {
             "post": {
                 "description": "create a new project",
@@ -273,7 +333,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.ReadResponse"
+                                "$ref": "#/definitions/api-your-accounts_project_infrastructure_model.ReadResponse"
                             }
                         }
                     },
@@ -480,6 +540,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api-your-accounts_budget_infrastructure_model.ReadResponse": {
+            "type": "object",
+            "properties": {
+                "additional_income": {
+                    "type": "number"
+                },
+                "estimated_balance": {
+                    "type": "number"
+                },
+                "fixed_income": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "month": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "total_balance": {
+                    "type": "number"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
         "api-your-accounts_project_infrastructure_model.CreateRequest": {
             "type": "object",
             "properties": {
@@ -512,6 +607,20 @@ const docTemplate = `{
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "api-your-accounts_project_infrastructure_model.ReadResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/domain.ProjectType"
                 }
             }
         },
@@ -593,20 +702,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
-                }
-            }
-        },
-        "model.ReadResponse": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/domain.ProjectType"
                 }
             }
         },

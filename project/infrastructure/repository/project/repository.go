@@ -81,7 +81,7 @@ func (r *gormProjectRepository) Delete(ctx context.Context, id uint) error {
 		return err
 	}
 
-	if err := r.db.WithContext(ctx).Select("ProjectLogs", "Budget").Delete(model).Error; err != nil {
+	if err := r.db.WithContext(ctx).Select("ProjectLogs").Delete(model).Error; err != nil {
 		return err
 	}
 

@@ -48,7 +48,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	result, err := ctrl.app.SignUp(c.UserContext(), user)
 	if err != nil {
-		log.Println("Error sign up user:", err)
+		log.Printf("Error sign up user: %v\n", err)
 		if errors.Is(err, application.ErrUserAlreadyExists) {
 			return fiber.NewError(fiber.StatusConflict, err.Error())
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -87,7 +87,7 @@ func (ctrl *controller) auth(c *fiber.Ctx) error {
 
 	token, err := ctrl.app.Auth(c.UserContext(), request.UUID, request.Email)
 	if err != nil {
-		log.Println("Error authenticate user:", err)
+		log.Printf("Error authenticate user: %v\n", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 		}
@@ -122,7 +122,7 @@ func (ctrl *controller) refreshToken(c *fiber.Ctx) error {
 
 	token, err := ctrl.app.RefreshToken(c.UserContext(), request.Token, request.UUID, request.Email)
 	if err != nil {
-		log.Println("Error refresh token user:", err)
+		log.Printf("Error refresh token user: %v\n", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid data")
 		} else if errors.Is(err, application.ErrTokenRefreshed) {

@@ -72,7 +72,7 @@ func declareEnums(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.Exec(`
+	if err := db.Exec(`	
 	DO $$ BEGIN
 		CREATE TYPE budget_bill_category AS ENUM (
 			'house',
@@ -81,10 +81,13 @@ func declareEnums(db *gorm.DB) error {
 			'vehicle_transportation',
 			'education',
 			'services',
+			'saving',
 			'others'
 		);
 	EXCEPTION
 		WHEN duplicate_object THEN null;
+
+		ALTER TYPE budget_bill_category ADD VALUE IF NOT EXISTS 'saving' BEFORE 'others';
 	END $$;
 	`).Error; err != nil {
 		return err
