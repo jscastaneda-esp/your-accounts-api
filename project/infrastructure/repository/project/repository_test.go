@@ -29,7 +29,7 @@ type TestSuite struct {
 
 func (suite *TestSuite) SetupSuite() {
 	suite.userId = 1
-	suite.typeBudget = domain.Budget
+	suite.typeBudget = domain.TypeBudget
 
 	require := require.New(suite.T())
 
@@ -94,7 +94,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		WithArgs(test_utils.AnyTime{}, suite.userId, suite.typeBudget).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
-	project := &domain.Project{
+	project := domain.Project{
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
@@ -121,7 +121,7 @@ func (suite *TestSuite) TestCreateError() {
 		WithArgs(test_utils.AnyTime{}, suite.userId, suite.typeBudget).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
-	project := &domain.Project{
+	project := domain.Project{
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
@@ -134,7 +134,7 @@ func (suite *TestSuite) TestCreateError() {
 
 func (suite *TestSuite) TestFinByIdSuccess() {
 	require := require.New(suite.T())
-	projectExpected := &domain.Project{
+	projectExpected := domain.Project{
 		ID:        999,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
@@ -232,7 +232,7 @@ func (suite *TestSuite) TestFindByUserIdError() {
 
 func (suite *TestSuite) TestDeleteSuccess() {
 	require := require.New(suite.T())
-	projectExpected := &domain.Project{
+	projectExpected := domain.Project{
 		ID:        999,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
@@ -275,7 +275,7 @@ func (suite *TestSuite) TestDeleteSuccess() {
 
 func (suite *TestSuite) TestDeleteErrorFind() {
 	require := require.New(suite.T())
-	projectExpected := &domain.Project{
+	projectExpected := domain.Project{
 		ID:        999,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,
@@ -299,7 +299,7 @@ func (suite *TestSuite) TestDeleteErrorFind() {
 
 func (suite *TestSuite) TestDeleteErrorDelete() {
 	require := require.New(suite.T())
-	projectExpected := &domain.Project{
+	projectExpected := domain.Project{
 		ID:        999,
 		UserId:    suite.userId,
 		Type:      suite.typeBudget,

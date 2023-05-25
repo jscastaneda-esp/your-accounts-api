@@ -18,7 +18,7 @@ func (r *gormUserTokenRepository) WithTransaction(tx persistent.Transaction) dom
 	return persistentInfra.DefaultWithTransaction[domain.UserTokenRepository](tx, NewRepository, r)
 }
 
-func (r *gormUserTokenRepository) Create(ctx context.Context, userToken *domain.UserToken) (*domain.UserToken, error) {
+func (r *gormUserTokenRepository) Create(ctx context.Context, userToken domain.UserToken) (*domain.UserToken, error) {
 	model := &entity.UserToken{
 		Token:       userToken.Token,
 		UserId:      userToken.UserId,
@@ -63,7 +63,7 @@ func (r *gormUserTokenRepository) FindByTokenAndUserId(ctx context.Context, toke
 	}, nil
 }
 
-func (r *gormUserTokenRepository) Update(ctx context.Context, userToken *domain.UserToken) (*domain.UserToken, error) {
+func (r *gormUserTokenRepository) Update(ctx context.Context, userToken domain.UserToken) (*domain.UserToken, error) {
 	model := new(entity.UserToken)
 	if err := r.db.WithContext(ctx).First(model, userToken.ID).Error; err != nil {
 		return nil, err

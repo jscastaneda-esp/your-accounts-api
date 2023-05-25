@@ -41,7 +41,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	user := &domain.User{
+	user := domain.User{
 		UUID:  request.UUID,
 		Email: request.Email,
 	}

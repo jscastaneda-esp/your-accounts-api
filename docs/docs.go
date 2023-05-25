@@ -543,13 +543,13 @@ const docTemplate = `{
         "api-your-accounts_budget_infrastructure_model.ReadResponse": {
             "type": "object",
             "properties": {
-                "additional_income": {
+                "additionalIncome": {
                     "type": "number"
                 },
-                "estimated_balance": {
+                "estimatedBalance": {
                     "type": "number"
                 },
-                "fixed_income": {
+                "fixedIncome": {
                     "type": "number"
                 },
                 "id": {
@@ -561,13 +561,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "project_id": {
+                "projectId": {
                     "type": "integer"
                 },
                 "total": {
                     "type": "number"
                 },
-                "total_balance": {
+                "totalBalance": {
                     "type": "number"
                 },
                 "year": {
@@ -613,6 +613,10 @@ const docTemplate = `{
         "api-your-accounts_project_infrastructure_model.ReadResponse": {
             "type": "object",
             "properties": {
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -665,7 +669,7 @@ const docTemplate = `{
                 "budget"
             ],
             "x-enum-varnames": [
-                "Budget"
+                "TypeBudget"
             ]
         },
         "model.AuthRequest": {
@@ -694,7 +698,7 @@ const docTemplate = `{
         "model.ReadLogsResponse": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "createdAt": {
                     "type": "string"
                 },
                 "description": {

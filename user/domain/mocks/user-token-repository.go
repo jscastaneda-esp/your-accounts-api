@@ -17,15 +17,15 @@ type UserTokenRepository struct {
 }
 
 // Create provides a mock function with given fields: ctx, t
-func (_m *UserTokenRepository) Create(ctx context.Context, t *domain.UserToken) (*domain.UserToken, error) {
+func (_m *UserTokenRepository) Create(ctx context.Context, t domain.UserToken) (*domain.UserToken, error) {
 	ret := _m.Called(ctx, t)
 
 	var r0 *domain.UserToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.UserToken) (*domain.UserToken, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) (*domain.UserToken, error)); ok {
 		return rf(ctx, t)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.UserToken) *domain.UserToken); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) *domain.UserToken); ok {
 		r0 = rf(ctx, t)
 	} else {
 		if ret.Get(0) != nil {
@@ -33,7 +33,7 @@ func (_m *UserTokenRepository) Create(ctx context.Context, t *domain.UserToken) 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.UserToken) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.UserToken) error); ok {
 		r1 = rf(ctx, t)
 	} else {
 		r1 = ret.Error(1)
@@ -69,15 +69,15 @@ func (_m *UserTokenRepository) FindByTokenAndUserId(ctx context.Context, token s
 }
 
 // Update provides a mock function with given fields: ctx, userToken
-func (_m *UserTokenRepository) Update(ctx context.Context, userToken *domain.UserToken) (*domain.UserToken, error) {
+func (_m *UserTokenRepository) Update(ctx context.Context, userToken domain.UserToken) (*domain.UserToken, error) {
 	ret := _m.Called(ctx, userToken)
 
 	var r0 *domain.UserToken
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.UserToken) (*domain.UserToken, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) (*domain.UserToken, error)); ok {
 		return rf(ctx, userToken)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.UserToken) *domain.UserToken); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) *domain.UserToken); ok {
 		r0 = rf(ctx, userToken)
 	} else {
 		if ret.Get(0) != nil {
@@ -85,7 +85,7 @@ func (_m *UserTokenRepository) Update(ctx context.Context, userToken *domain.Use
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.UserToken) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.UserToken) error); ok {
 		r1 = rf(ctx, userToken)
 	} else {
 		r1 = ret.Error(1)

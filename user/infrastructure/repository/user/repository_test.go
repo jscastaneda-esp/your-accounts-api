@@ -247,7 +247,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		WithArgs(test_utils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -274,7 +274,7 @@ func (suite *TestSuite) TestCreateError() {
 		WithArgs(test_utils.AnyTime{}, suite.uuid, suite.email).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}

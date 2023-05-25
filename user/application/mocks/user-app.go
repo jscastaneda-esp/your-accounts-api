@@ -63,15 +63,15 @@ func (_m *IUserApp) RefreshToken(ctx context.Context, token string, uuid string,
 }
 
 // SignUp provides a mock function with given fields: ctx, user
-func (_m *IUserApp) SignUp(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (_m *IUserApp) SignUp(ctx context.Context, user domain.User) (*domain.User, error) {
 	ret := _m.Called(ctx, user)
 
 	var r0 *domain.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.User) (*domain.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (*domain.User, error)); ok {
 		return rf(ctx, user)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.User) *domain.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) *domain.User); ok {
 		r0 = rf(ctx, user)
 	} else {
 		if ret.Get(0) != nil {
@@ -79,7 +79,7 @@ func (_m *IUserApp) SignUp(ctx context.Context, user *domain.User) (*domain.User
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.User) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.User) error); ok {
 		r1 = rf(ctx, user)
 	} else {
 		r1 = ret.Error(1)

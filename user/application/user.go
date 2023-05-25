@@ -20,7 +20,7 @@ var (
 
 //go:generate mockery --name IUserApp --filename user-app.go
 type IUserApp interface {
-	SignUp(ctx context.Context, user *domain.User) (*domain.User, error)
+	SignUp(ctx context.Context, user domain.User) (*domain.User, error)
 	Auth(ctx context.Context, uuid, email string) (string, error)
 	RefreshToken(ctx context.Context, token, uuid, email string) (string, error)
 }
@@ -31,7 +31,7 @@ type userApp struct {
 	userTokenRepo domain.UserTokenRepository
 }
 
-func (app *userApp) SignUp(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (app *userApp) SignUp(ctx context.Context, user domain.User) (*domain.User, error) {
 	exists, err := app.userRepo.ExistsByUUID(ctx, user.UUID)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (app *userApp) Auth(ctx context.Context, uuid, email string) (string, error
 		return "", err
 	}
 
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		Token:     token,
 		UserId:    user.ID,
 		ExpiresAt: expiresAt,
@@ -96,20 +96,20 @@ func (app *userApp) RefreshToken(ctx context.Context, token, uuid, email string)
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
 		repo := app.userTokenRepo.WithTransaction(tx)
 
-		newUserToken := &domain.UserToken{
+		newUserToken := domain.UserToken{
 			Token:     token,
 			UserId:    user.ID,
 			ExpiresAt: expiresAt,
 		}
-		newUserToken, err := repo.Create(ctx, newUserToken)
+		newUserTokenRes, err := repo.Create(ctx, newUserToken)
 		if err != nil {
 			return err
 		}
 
 		refreshedAt := time.Now()
-		oldUserToken.RefreshedBy = &newUserToken.ID
+		oldUserToken.RefreshedBy = &newUserTokenRes.ID
 		oldUserToken.RefreshedAt = &refreshedAt
-		_, err = repo.Update(ctx, oldUserToken)
+		_, err = repo.Update(ctx, *oldUserToken)
 		if err != nil {
 			return err
 		}
