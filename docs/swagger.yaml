@@ -2,11 +2,11 @@ basePath: /
 definitions:
   api-your-accounts_budget_infrastructure_model.ReadResponse:
     properties:
-      additional_income:
+      additionalIncome:
         type: number
-      estimated_balance:
+      estimatedBalance:
         type: number
-      fixed_income:
+      fixedIncome:
         type: number
       id:
         type: integer
@@ -14,11 +14,11 @@ definitions:
         type: integer
       name:
         type: string
-      project_id:
+      projectId:
         type: integer
       total:
         type: number
-      total_balance:
+      totalBalance:
         type: number
       year:
         type: integer
@@ -47,6 +47,9 @@ definitions:
     type: object
   api-your-accounts_project_infrastructure_model.ReadResponse:
     properties:
+      data:
+        additionalProperties: {}
+        type: object
       id:
         type: integer
       name:
@@ -82,7 +85,7 @@ definitions:
     - budget
     type: string
     x-enum-varnames:
-    - Budget
+    - TypeBudget
   model.AuthRequest:
     properties:
       email:
@@ -100,7 +103,7 @@ definitions:
     type: object
   model.ReadLogsResponse:
     properties:
-      created_at:
+      createdAt:
         type: string
       description:
         type: string

@@ -20,10 +20,11 @@ type ReadResponse struct {
 	ID   uint               `json:"id,omitempty"`
 	Name string             `json:"name,omitempty"`
 	Type domain.ProjectType `json:"type,omitempty"`
+	Data map[string]any     `json:"data,omitempty"`
 }
 
 type ReadLogsResponse struct {
 	ID          uint      `json:"id,omitempty"`
 	Description string    `json:"description,omitempty"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
+	CreatedAt   time.Time `json:"createdAt,omitempty"`
 }

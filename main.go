@@ -10,6 +10,7 @@ import (
 	user "api-your-accounts/user/infrastructure/handler"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
@@ -19,11 +20,7 @@ import (
 )
 
 var (
-	osStat     = os.Stat
-	dotenvLoad = godotenv.Load
-	newDB      = db.NewDB
-	newServer  = infrastructure.NewServer
-	routers    = []infrastructure.Router{
+	routers = []infrastructure.Router{
 		user.NewRoute,
 		handler.NewRoute,
 	}
@@ -41,19 +38,25 @@ var (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 //	@BasePath		/
 func main() {
+	var err error
+	time.Local, err = time.LoadLocation("America/Bogota")
+	if err != nil {
+		log.Panic("Error setting location for time: ", err)
+	}
+
 	log.SetFlags(log.Llongfile + log.LstdFlags)
-	if _, err := osStat(".env"); err == nil {
+	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Load .env file")
-		err = dotenvLoad()
+		err = godotenv.Load()
 		if err != nil {
 			log.Panic("Error loading .env file: ", err)
 		}
 	}
 
-	newDB()
+	db.NewDB()
 
 	// Init server
-	server := newServer(false)
+	server := infrastructure.NewServer(false)
 	server.
 		AddRoute(infrastructure.Route{
 			Method: fiber.MethodGet,

@@ -18,7 +18,7 @@ func (r *gormProjectLogRepository) WithTransaction(tx persistent.Transaction) do
 	return persistentInfra.DefaultWithTransaction[domain.ProjectLogRepository](tx, NewRepository, r)
 }
 
-func (r *gormProjectLogRepository) Create(ctx context.Context, projectLog *domain.ProjectLog) (*domain.ProjectLog, error) {
+func (r *gormProjectLogRepository) Create(ctx context.Context, projectLog domain.ProjectLog) (*domain.ProjectLog, error) {
 	model := &entity.ProjectLog{
 		Description: projectLog.Description,
 		Detail:      projectLog.Detail,

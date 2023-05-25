@@ -57,7 +57,7 @@ func (r *gormUserRepository) ExistsByEmail(ctx context.Context, email string) (b
 	return count > 0, nil
 }
 
-func (r *gormUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (*domain.User, error) {
 	model := &entity.User{
 		UUID:  user.UUID,
 		Email: user.Email,

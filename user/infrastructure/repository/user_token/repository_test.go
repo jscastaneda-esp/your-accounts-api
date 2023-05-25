@@ -93,7 +93,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		WithArgs(suite.token, suite.userId, nil, suite.expiresAt, nil).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		Token:     suite.token,
 		UserId:    suite.userId,
 		ExpiresAt: suite.expiresAt,
@@ -122,7 +122,7 @@ func (suite *TestSuite) TestCreateError() {
 		WithArgs(suite.token, suite.userId, nil, suite.expiresAt, nil).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		Token:     suite.token,
 		UserId:    suite.userId,
 		ExpiresAt: suite.expiresAt,
@@ -185,7 +185,7 @@ func (suite *TestSuite) TestFindByTokenAndUserIdError() {
 
 func (suite *TestSuite) TestUpdateSuccess() {
 	require := require.New(suite.T())
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		ID:        999,
 		Token:     suite.token,
 		UserId:    suite.userId,
@@ -194,7 +194,7 @@ func (suite *TestSuite) TestUpdateSuccess() {
 	}
 	refreshedBy := uint(1000)
 	refreshedAt := time.Now()
-	userTokenExpected := &domain.UserToken{
+	userTokenExpected := domain.UserToken{
 		ID:          userToken.ID,
 		Token:       userToken.Token,
 		UserId:      userToken.UserId,
@@ -230,12 +230,12 @@ func (suite *TestSuite) TestUpdateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(userTokenExpected, res)
+	require.Equal(&userTokenExpected, res)
 }
 
 func (suite *TestSuite) TestUpdateErrorFind() {
 	require := require.New(suite.T())
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		ID:        999,
 		Token:     suite.token,
 		UserId:    suite.userId,
@@ -244,7 +244,7 @@ func (suite *TestSuite) TestUpdateErrorFind() {
 	}
 	refreshedBy := uint(1000)
 	refreshedAt := time.Now()
-	userTokenExpected := &domain.UserToken{
+	userTokenExpected := domain.UserToken{
 		ID:          userToken.ID,
 		Token:       userToken.Token,
 		UserId:      userToken.UserId,
@@ -271,7 +271,7 @@ func (suite *TestSuite) TestUpdateErrorFind() {
 
 func (suite *TestSuite) TestUpdateErrorSave() {
 	require := require.New(suite.T())
-	userToken := &domain.UserToken{
+	userToken := domain.UserToken{
 		ID:        999,
 		Token:     suite.token,
 		UserId:    suite.userId,
@@ -280,7 +280,7 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 	}
 	refreshedBy := uint(1000)
 	refreshedAt := time.Now()
-	userTokenExpected := &domain.UserToken{
+	userTokenExpected := domain.UserToken{
 		ID:          userToken.ID,
 		Token:       userToken.Token,
 		UserId:      userToken.UserId,

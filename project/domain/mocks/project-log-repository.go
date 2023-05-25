@@ -17,15 +17,15 @@ type ProjectLogRepository struct {
 }
 
 // Create provides a mock function with given fields: ctx, t
-func (_m *ProjectLogRepository) Create(ctx context.Context, t *domain.ProjectLog) (*domain.ProjectLog, error) {
+func (_m *ProjectLogRepository) Create(ctx context.Context, t domain.ProjectLog) (*domain.ProjectLog, error) {
 	ret := _m.Called(ctx, t)
 
 	var r0 *domain.ProjectLog
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.ProjectLog) (*domain.ProjectLog, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.ProjectLog) (*domain.ProjectLog, error)); ok {
 		return rf(ctx, t)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.ProjectLog) *domain.ProjectLog); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.ProjectLog) *domain.ProjectLog); ok {
 		r0 = rf(ctx, t)
 	} else {
 		if ret.Get(0) != nil {
@@ -33,7 +33,7 @@ func (_m *ProjectLogRepository) Create(ctx context.Context, t *domain.ProjectLog
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.ProjectLog) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, domain.ProjectLog) error); ok {
 		r1 = rf(ctx, t)
 	} else {
 		r1 = ret.Error(1)

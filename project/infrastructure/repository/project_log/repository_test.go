@@ -95,7 +95,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 		WithArgs(suite.description, suite.detail, suite.projectId).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
 	suite.mock.ExpectCommit()
-	projectLog := &domain.ProjectLog{
+	projectLog := domain.ProjectLog{
 		Description: suite.description,
 		Detail:      &suite.detail,
 		ProjectId:   suite.projectId,
@@ -124,7 +124,7 @@ func (suite *TestSuite) TestCreateError() {
 		WithArgs(suite.description, nil, suite.projectId).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
-	projectLog := &domain.ProjectLog{
+	projectLog := domain.ProjectLog{
 		Description: suite.description,
 		ProjectId:   suite.projectId,
 	}

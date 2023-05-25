@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"api-your-accounts/budget/infrastructure/repository/budget"
 	"api-your-accounts/project/application"
-	"api-your-accounts/project/domain"
 	"api-your-accounts/project/infrastructure/model"
 	"api-your-accounts/project/infrastructure/repository/project"
 	"api-your-accounts/project/infrastructure/repository/project_log"
@@ -42,16 +42,17 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	var result *domain.Project
+	var projectId uint
 	var err error
 	if request.CloneId == nil {
-		project := &domain.Project{
+		create := application.CreateData{
+			Name:   request.Name,
 			UserId: request.UserId,
 			Type:   request.Type,
 		}
-		result, err = ctrl.app.Create(c.UserContext(), project, nil)
+		projectId, err = ctrl.app.Create(c.UserContext(), create)
 	} else {
-		result, err = ctrl.app.Clone(c.UserContext(), *request.CloneId)
+		projectId, err = ctrl.app.Clone(c.UserContext(), *request.CloneId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Printf("Clone ID %d not found\n", *request.CloneId)
 			return fiber.NewError(fiber.StatusNotFound, "Error creating project. Clone ID not found")
@@ -66,7 +67,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{
-		ID: result.ID,
+		ID: projectId,
 	})
 }
 
@@ -98,11 +99,12 @@ func (ctrl *controller) readByUser(c *fiber.Ctx) error {
 	}
 
 	response := []model.ReadResponse{}
-	for _, project := range projects {
+	for _, record := range projects {
 		response = append(response, model.ReadResponse{
-			ID:   project.ID,
-			Name: "PENDIENTE",
-			Type: project.Type,
+			ID:   record.ID,
+			Name: record.Name,
+			Type: record.Type,
+			Data: record.Data,
 		})
 	}
 
@@ -186,8 +188,9 @@ func NewRoute(router fiber.Router) {
 	tm := persistent.NewTransactionManager(db.DB)
 	projectRepo := project.NewRepository(db.DB)
 	projectLogRepo := project_log.NewRepository(db.DB)
+	budgetRepo := budget.NewRepository(db.DB)
 	controller := &controller{
-		app: application.NewProjectApp(tm, projectRepo, projectLogRepo),
+		app: application.NewProjectApp(tm, projectRepo, projectLogRepo, budgetRepo),
 	}
 
 	group := router.Group("/project")

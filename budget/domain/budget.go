@@ -30,6 +30,6 @@ type BudgetRepository interface {
 	persistent.TransactionRepository[BudgetRepository]
 	persistent.CreateRepository[Budget]
 	persistent.ReadRepository[Budget, uint]
-	FindByProjectId(ctx context.Context, projectId uint) (*Budget, error)
-	persistent.DeleteRepository[uint]
+	FindByProjectIds(ctx context.Context, projectIds []uint) ([]*Budget, error)
+	DeleteByProjectId(ctx context.Context, projectId uint) error
 }

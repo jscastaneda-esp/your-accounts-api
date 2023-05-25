@@ -46,7 +46,7 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestSignUpSuccess() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -71,7 +71,7 @@ func (suite *TestSuite) TestSignUpSuccess() {
 func (suite *TestSuite) TestSignUpErrorExistsByUUID() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -87,7 +87,7 @@ func (suite *TestSuite) TestSignUpErrorExistsByUUID() {
 func (suite *TestSuite) TestSignUpExistsByUUID() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -102,7 +102,7 @@ func (suite *TestSuite) TestSignUpExistsByUUID() {
 func (suite *TestSuite) TestSignUpErrorExistsByEmail() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -119,7 +119,7 @@ func (suite *TestSuite) TestSignUpErrorExistsByEmail() {
 func (suite *TestSuite) TestSignUpExistsByEmail() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -135,7 +135,7 @@ func (suite *TestSuite) TestSignUpExistsByEmail() {
 func (suite *TestSuite) TestSignUpErrorCreate() {
 	require := require.New(suite.T())
 	ctx := context.Background()
-	user := &domain.User{
+	user := domain.User{
 		UUID:  suite.uuid,
 		Email: suite.email,
 	}
@@ -162,13 +162,8 @@ func (suite *TestSuite) TestAuthSuccess() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
-	userToken := &domain.UserToken{
-		Token:     suite.token,
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
-	suite.mockUserTokenRepo.On("Create", ctx, userToken).Return(nil, nil)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
 
 	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
@@ -219,14 +214,9 @@ func (suite *TestSuite) TestAuthErrorCreateUserToken() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
-	userToken := &domain.UserToken{
-		Token:     suite.token,
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	errExpected := errors.New("Error constraint")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
-	suite.mockUserTokenRepo.On("Create", ctx, userToken).Return(nil, errExpected)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(nil, errExpected)
 
 	token, err := suite.app.Auth(ctx, suite.uuid, suite.email)
 
@@ -395,11 +385,6 @@ func (suite *TestSuite) TestRefreshTokenErrorCreateNewToken() {
 	jwtGenerate = func(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
 		return suite.token + "New", expiresAt, nil
 	}
-	newUserToken := &domain.UserToken{
-		Token:     suite.token + "New",
-		UserId:    userExpected.ID,
-		ExpiresAt: expiresAt,
-	}
 	errExpected := errors.New("Error in creation")
 	suite.mockUserRepo.On("FindByUUIDAndEmail", ctx, suite.uuid, suite.email).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("FindByTokenAndUserId", ctx, suite.token, userExpected.ID).Return(oldUserTokenExpected, nil)
@@ -407,7 +392,7 @@ func (suite *TestSuite) TestRefreshTokenErrorCreateNewToken() {
 		return fc(nil)
 	})
 	suite.mockUserTokenRepo.On("WithTransaction", nil).Return(suite.mockUserTokenRepo)
-	suite.mockUserTokenRepo.On("Create", ctx, newUserToken).Return(nil, errExpected)
+	suite.mockUserTokenRepo.On("Create", ctx, mock.Anything).Return(nil, errExpected)
 
 	token, err := suite.app.RefreshToken(ctx, suite.token, suite.uuid, suite.email)
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"api-your-accounts/project/application"
 	"api-your-accounts/project/application/mocks"
 	"api-your-accounts/project/domain"
 	"api-your-accounts/project/infrastructure/model"
@@ -32,7 +33,7 @@ type TestSuite struct {
 
 func (suite *TestSuite) SetupSuite() {
 	suite.userId = 1
-	suite.typeBudget = domain.Budget
+	suite.typeBudget = domain.TypeBudget
 	suite.cloneId = 1
 	suite.projectId = 1
 }
@@ -52,23 +53,16 @@ func (suite *TestSuite) SetupTest() {
 
 func (suite *TestSuite) TestCreate201() {
 	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
+	requestBody := model.CreateRequest{
 		Name:   "Test",
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	result := &domain.Project{
-		ID:        suite.projectId,
-		UserId:    requestBody.UserId,
-		Type:      requestBody.Type,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.On("Create", mock.Anything, mock.Anything, (*uint)(nil)).Return(result, nil)
+	suite.mock.On("Create", mock.Anything, mock.Anything).Return(suite.projectId, nil)
 	expectedBody, err := json.Marshal(model.CreateResponse{
-		ID: result.ID,
+		ID: suite.projectId,
 	})
 	require.NoError(err)
 
@@ -86,21 +80,14 @@ func (suite *TestSuite) TestCreate201() {
 
 func (suite *TestSuite) TestCreateClone201() {
 	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
+	requestBody := model.CreateRequest{
 		CloneId: &suite.cloneId,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	result := &domain.Project{
-		ID:        suite.projectId,
-		UserId:    suite.userId,
-		Type:      suite.typeBudget,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.On("Clone", mock.Anything, *requestBody.CloneId).Return(result, nil)
+	suite.mock.On("Clone", mock.Anything, *requestBody.CloneId).Return(suite.projectId, nil)
 	expectedBody, err := json.Marshal(model.CreateResponse{
-		ID: result.ID,
+		ID: suite.projectId,
 	})
 	require.NoError(err)
 
@@ -130,12 +117,12 @@ func (suite *TestSuite) TestCreate400() {
 
 func (suite *TestSuite) TestCreate404() {
 	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
+	requestBody := model.CreateRequest{
 		CloneId: &suite.cloneId,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Clone", mock.Anything, *requestBody.CloneId).Return(nil, gorm.ErrRecordNotFound)
+	suite.mock.On("Clone", mock.Anything, *requestBody.CloneId).Return(uint(0), gorm.ErrRecordNotFound)
 	expectedErr := []byte("Error creating project. Clone ID not found")
 
 	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
@@ -152,7 +139,7 @@ func (suite *TestSuite) TestCreate404() {
 
 func (suite *TestSuite) TestCreate422() {
 	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
+	requestBody := model.CreateRequest{
 		Name:   "Cupidatat ullamco voluptate non aute consequat fugiat.",
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
@@ -181,14 +168,14 @@ func (suite *TestSuite) TestCreate422() {
 
 func (suite *TestSuite) TestCreate500() {
 	require := require.New(suite.T())
-	requestBody := &model.CreateRequest{
+	requestBody := model.CreateRequest{
 		Name:   "Test",
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Create", mock.Anything, mock.Anything, (*uint)(nil)).Return(nil, gorm.ErrInvalidField)
+	suite.mock.On("Create", mock.Anything, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 	expectedErr := []byte("Error creating project")
 
 	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
@@ -205,19 +192,19 @@ func (suite *TestSuite) TestCreate500() {
 
 func (suite *TestSuite) TestReadByUser200() {
 	require := require.New(suite.T())
-	result := &domain.Project{
-		ID:        suite.projectId,
-		UserId:    suite.userId,
-		Type:      suite.typeBudget,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	result := &application.FindByUserRecord{
+		ID:   suite.projectId,
+		Name: "Test",
+		Type: suite.typeBudget,
+		Data: make(map[string]any),
 	}
-	suite.mock.On("FindByUser", mock.Anything, suite.userId).Return([]*domain.Project{result}, nil)
+	suite.mock.On("FindByUser", mock.Anything, suite.userId).Return([]*application.FindByUserRecord{result}, nil)
 	expectedBody, err := json.Marshal([]model.ReadResponse{
 		{
 			ID:   result.ID,
-			Name: "PENDIENTE",
+			Name: result.Name,
 			Type: result.Type,
+			Data: result.Data,
 		},
 	})
 	require.NoError(err)

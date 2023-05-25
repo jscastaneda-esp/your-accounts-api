@@ -3,8 +3,10 @@
 package mocks
 
 import (
-	domain "api-your-accounts/project/domain"
+	application "api-your-accounts/project/application"
 	context "context"
+
+	domain "api-your-accounts/project/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -15,20 +17,18 @@ type IProjectApp struct {
 }
 
 // Clone provides a mock function with given fields: ctx, baseId
-func (_m *IProjectApp) Clone(ctx context.Context, baseId uint) (*domain.Project, error) {
+func (_m *IProjectApp) Clone(ctx context.Context, baseId uint) (uint, error) {
 	ret := _m.Called(ctx, baseId)
 
-	var r0 *domain.Project
+	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) (*domain.Project, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (uint, error)); ok {
 		return rf(ctx, baseId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) *domain.Project); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) uint); ok {
 		r0 = rf(ctx, baseId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Project)
-		}
+		r0 = ret.Get(0).(uint)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
@@ -40,25 +40,23 @@ func (_m *IProjectApp) Clone(ctx context.Context, baseId uint) (*domain.Project,
 	return r0, r1
 }
 
-// Create provides a mock function with given fields: ctx, project, cloneId
-func (_m *IProjectApp) Create(ctx context.Context, project *domain.Project, cloneId *uint) (*domain.Project, error) {
-	ret := _m.Called(ctx, project, cloneId)
+// Create provides a mock function with given fields: ctx, createData
+func (_m *IProjectApp) Create(ctx context.Context, createData application.CreateData) (uint, error) {
+	ret := _m.Called(ctx, createData)
 
-	var r0 *domain.Project
+	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, *uint) (*domain.Project, error)); ok {
-		return rf(ctx, project, cloneId)
+	if rf, ok := ret.Get(0).(func(context.Context, application.CreateData) (uint, error)); ok {
+		return rf(ctx, createData)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *domain.Project, *uint) *domain.Project); ok {
-		r0 = rf(ctx, project, cloneId)
+	if rf, ok := ret.Get(0).(func(context.Context, application.CreateData) uint); ok {
+		r0 = rf(ctx, createData)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Project)
-		}
+		r0 = ret.Get(0).(uint)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *domain.Project, *uint) error); ok {
-		r1 = rf(ctx, project, cloneId)
+	if rf, ok := ret.Get(1).(func(context.Context, application.CreateData) error); ok {
+		r1 = rf(ctx, createData)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -81,19 +79,19 @@ func (_m *IProjectApp) Delete(ctx context.Context, id uint) error {
 }
 
 // FindByUser provides a mock function with given fields: ctx, userId
-func (_m *IProjectApp) FindByUser(ctx context.Context, userId uint) ([]*domain.Project, error) {
+func (_m *IProjectApp) FindByUser(ctx context.Context, userId uint) ([]*application.FindByUserRecord, error) {
 	ret := _m.Called(ctx, userId)
 
-	var r0 []*domain.Project
+	var r0 []*application.FindByUserRecord
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.Project, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*application.FindByUserRecord, error)); ok {
 		return rf(ctx, userId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.Project); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) []*application.FindByUserRecord); ok {
 		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Project)
+			r0 = ret.Get(0).([]*application.FindByUserRecord)
 		}
 	}
 
