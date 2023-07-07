@@ -1,9 +1,9 @@
 package handler
 
 import (
-	budget "api-your-accounts/budget/infrastructure/handler"
-	project "api-your-accounts/project/infrastructure/handler"
 	"os"
+	budget "your-accounts-api/budget/infrastructure/handler"
+	project "your-accounts-api/project/infrastructure/handler"
 
 	"github.com/gofiber/fiber/v2"
 	jwt "github.com/gofiber/jwt/v3"

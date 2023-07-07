@@ -21,10 +21,11 @@
         "streetsidesoftware.code-spell-checker-spanish",
         "rafamel.subtle-brackets",
         "Gruntfuggly.todo-tree",
-        "cweijan.vscode-postgresql-client2",
         "github.vscode-github-actions",
-        "ricardoerikson.vscode-go-impl-methods",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "whosydd.go-impl",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql"
       ],
       "settings": {
         "dotenv.enableAutocloaking": false,

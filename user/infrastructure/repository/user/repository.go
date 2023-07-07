@@ -1,11 +1,11 @@
 package user
 
 import (
-	"api-your-accounts/shared/domain/persistent"
-	persistentInfra "api-your-accounts/shared/infrastructure/db/persistent"
-	"api-your-accounts/user/domain"
-	"api-your-accounts/user/infrastructure/entity"
 	"context"
+	"your-accounts-api/shared/domain/persistent"
+	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
+	"your-accounts-api/user/domain"
+	"your-accounts-api/user/infrastructure/entity"
 
 	"gorm.io/gorm"
 )

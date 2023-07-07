@@ -1,15 +1,15 @@
 package handler
 
 import (
-	"api-your-accounts/budget/application/mocks"
-	"api-your-accounts/budget/domain"
-	"api-your-accounts/budget/infrastructure/model"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
+	"your-accounts-api/budget/application/mocks"
+	"your-accounts-api/budget/domain"
+	"your-accounts-api/budget/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/mock"

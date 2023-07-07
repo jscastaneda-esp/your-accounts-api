@@ -1,9 +1,9 @@
 package application
 
 import (
-	"api-your-accounts/budget/domain"
-	"api-your-accounts/shared/domain/persistent"
 	"context"
+	"your-accounts-api/budget/domain"
+	"your-accounts-api/shared/domain/persistent"
 )
 
 //go:generate mockery --name IBudgetApp --filename budget-app.go

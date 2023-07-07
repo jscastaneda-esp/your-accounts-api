@@ -1,8 +1,8 @@
 package model
 
 import (
-	"api-your-accounts/project/domain"
 	"time"
+	"your-accounts-api/project/domain"
 )
 
 type CreateRequest struct {

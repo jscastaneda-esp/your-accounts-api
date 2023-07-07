@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     name: Test and lint
-    uses: jscastaneda-esp/api-your-accounts/.github/workflows/ci.yml@main
+    uses: jscastaneda-esp/your-accounts-api/.github/workflows/ci.yml@main
 
   deploy:
     name: Deploy in preview

@@ -3,10 +3,10 @@
 package mocks
 
 import (
-	application "api-your-accounts/project/application"
 	context "context"
+	application "your-accounts-api/project/application"
 
-	domain "api-your-accounts/project/domain"
+	domain "your-accounts-api/project/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )

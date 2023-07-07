@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	domain "api-your-accounts/user/domain"
 	context "context"
+	domain "your-accounts-api/user/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )

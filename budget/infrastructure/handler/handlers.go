@@ -1,13 +1,13 @@
 package handler
 
 import (
-	"api-your-accounts/budget/application"
-	"api-your-accounts/budget/infrastructure/model"
-	"api-your-accounts/budget/infrastructure/repository/budget"
-	"api-your-accounts/shared/infrastructure/db"
-	"api-your-accounts/shared/infrastructure/db/persistent"
 	"errors"
 	"log"
+	"your-accounts-api/budget/application"
+	"your-accounts-api/budget/infrastructure/model"
+	"your-accounts-api/budget/infrastructure/repository/budget"
+	"your-accounts-api/shared/infrastructure/db"
+	"your-accounts-api/shared/infrastructure/db/persistent"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"

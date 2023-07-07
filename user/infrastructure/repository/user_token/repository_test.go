@@ -1,13 +1,13 @@
 package user_token
 
 import (
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
-	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
 	"regexp"
 	"testing"
 	"time"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/user/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"

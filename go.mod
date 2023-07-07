@@ -1,4 +1,4 @@
-module api-your-accounts
+module your-accounts-api
 
 go 1.20
 

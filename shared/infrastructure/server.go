@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"api-your-accounts/shared/domain/jwt"
 	"context"
 	"fmt"
 	"log"
@@ -9,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"your-accounts-api/shared/domain/jwt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"

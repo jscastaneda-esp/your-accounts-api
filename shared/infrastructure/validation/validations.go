@@ -1,8 +1,8 @@
 package validation
 
 import (
-	"api-your-accounts/shared/domain/validation"
 	"log"
+	"your-accounts-api/shared/domain/validation"
 
 	"github.com/gofiber/fiber/v2"
 )

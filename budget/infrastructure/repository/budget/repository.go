@@ -1,11 +1,11 @@
 package budget
 
 import (
-	"api-your-accounts/budget/domain"
-	"api-your-accounts/budget/infrastructure/entity"
-	"api-your-accounts/shared/domain/persistent"
-	persistentInfra "api-your-accounts/shared/infrastructure/db/persistent"
 	"context"
+	"your-accounts-api/budget/domain"
+	"your-accounts-api/budget/infrastructure/entity"
+	"your-accounts-api/shared/domain/persistent"
+	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
 
 	"gorm.io/gorm"
 )

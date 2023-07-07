@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	budget "api-your-accounts/budget/infrastructure/entity"
-	project "api-your-accounts/project/infrastructure/entity"
-	user "api-your-accounts/user/infrastructure/entity"
+	budget "your-accounts-api/budget/infrastructure/entity"
+	project "your-accounts-api/project/infrastructure/entity"
+	user "your-accounts-api/user/infrastructure/entity"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

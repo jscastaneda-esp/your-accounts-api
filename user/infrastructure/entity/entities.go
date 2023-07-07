@@ -1,9 +1,9 @@
 package entity
 
 import (
-	project "api-your-accounts/project/infrastructure/entity"
-	"api-your-accounts/shared/infrastructure/db/entity"
 	"time"
+	project "your-accounts-api/project/infrastructure/entity"
+	"your-accounts-api/shared/infrastructure/db/entity"
 )
 
 type User struct {

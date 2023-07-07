@@ -4,19 +4,19 @@
 package main
 
 import (
-	"api-your-accounts/shared/infrastructure"
-	"api-your-accounts/shared/infrastructure/db"
-	"api-your-accounts/shared/infrastructure/handler"
-	user "api-your-accounts/user/infrastructure/handler"
 	"log"
 	"os"
 	"time"
+	"your-accounts-api/shared/infrastructure"
+	"your-accounts-api/shared/infrastructure/db"
+	"your-accounts-api/shared/infrastructure/handler"
+	user "your-accounts-api/user/infrastructure/handler"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/swagger"
 	"github.com/joho/godotenv"
 
-	_ "api-your-accounts/docs"
+	_ "your-accounts-api/docs"
 )
 
 var (
