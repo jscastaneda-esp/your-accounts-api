@@ -1,15 +1,15 @@
 package application
 
 import (
-	"api-your-accounts/shared/domain/jwt"
-	"api-your-accounts/shared/domain/persistent"
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
-	"api-your-accounts/user/domain"
-	"api-your-accounts/user/domain/mocks"
 	"context"
 	"errors"
 	"testing"
 	"time"
+	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain/persistent"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/user/domain"
+	"your-accounts-api/user/domain/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

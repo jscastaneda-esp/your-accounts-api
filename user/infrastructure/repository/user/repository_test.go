@@ -1,14 +1,14 @@
 package user
 
 import (
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
-	"api-your-accounts/shared/domain/test_utils"
-	"api-your-accounts/user/domain"
 	"context"
 	"database/sql"
 	"regexp"
 	"testing"
 	"time"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/shared/domain/test_utils"
+	"your-accounts-api/user/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ad5d8640-4b15-4132-98cd-f91458574a82" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.devcontainer.json" beforeDir="false" afterPath="$PROJECT_DIR$/.devcontainer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/preview.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/preview.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/production.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/production.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/extensions.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/extensions.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Dockerfile.dev" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile.dev" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/application/budget.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/application/budget.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/application/budget_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/application/budget_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/application/mocks/budget-app.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/application/mocks/budget-app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/domain/budget.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/domain/budget.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/domain/mocks/budget-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/domain/mocks/budget-repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/infrastructure/entity/entities.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/infrastructure/entity/entities.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/infrastructure/handler/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/infrastructure/handler/handlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/infrastructure/handler/handlers_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/infrastructure/handler/handlers_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/infrastructure/repository/budget/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/infrastructure/repository/budget/repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/budget/infrastructure/repository/budget/repository_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/budget/infrastructure/repository/budget/repository_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/application/mocks/project-app.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/application/mocks/project-app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/application/models.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/application/models.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/application/project.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/application/project.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/application/project_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/application/project_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/domain/mocks/project-log-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/domain/mocks/project-log-repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/domain/mocks/project-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/domain/mocks/project-repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/domain/project-log.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/domain/project-log.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/domain/project.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/domain/project.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/entity/entities.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/entity/entities.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/handler/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/handler/handlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/handler/handlers_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/handler/handlers_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/model/models.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/model/models.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/repository/project/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/repository/project/repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/repository/project/repository_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/repository/project/repository_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/repository/project_log/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/repository/project_log/repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/project/infrastructure/repository/project_log/repository_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/project/infrastructure/repository/project_log/repository_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/domain/persistent/mocks/transaction-manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/domain/persistent/mocks/transaction-manager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/db/db.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/db/db.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/db/persistent/transaction-manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/db/persistent/transaction-manager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/db/persistent/transaction-manager_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/db/persistent/transaction-manager_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/handler/api-v1.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/handler/api-v1.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/server.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/validation/validations.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/validation/validations.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/shared/infrastructure/validation/validations_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/shared/infrastructure/validation/validations_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/application/mocks/user-app.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/application/mocks/user-app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/application/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/application/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/application/user_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/application/user_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/domain/mocks/user-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/domain/mocks/user-repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/domain/mocks/user-token-repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/domain/mocks/user-token-repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/domain/user-token.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/domain/user-token.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/domain/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/domain/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/entity/entities.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/entity/entities.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/handler/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/handler/handlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/handler/handlers_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/handler/handlers_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/repository/user/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/repository/user/repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/repository/user/repository_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/repository/user/repository_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/repository/user_token/repository.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/repository/user_token/repository.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/user/infrastructure/repository/user_token/repository_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/user/infrastructure/repository/user_token/repository_test.go" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="GOROOT" url="file:///usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2SDicV66rzx6qd4wrOuOA6jVMps" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/Users/jscastaneda/develop/your-accounts-api",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "settings.editor.selected.configurable": "preferences.lookFeel"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+</project>

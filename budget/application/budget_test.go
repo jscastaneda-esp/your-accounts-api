@@ -1,11 +1,11 @@
 package application
 
 import (
-	"api-your-accounts/budget/domain"
-	"api-your-accounts/budget/domain/mocks"
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
 	"context"
 	"testing"
+	"your-accounts-api/budget/domain"
+	"your-accounts-api/budget/domain/mocks"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"

@@ -1,11 +1,11 @@
 package persistent
 
 import (
-	"api-your-accounts/shared/domain/persistent"
-	"api-your-accounts/shared/domain/persistent/mocks"
 	"database/sql"
 	"regexp"
 	"testing"
+	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"

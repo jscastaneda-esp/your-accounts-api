@@ -1,9 +1,9 @@
 package validation
 
 import (
-	"api-your-accounts/shared/domain/validation"
 	"encoding/json"
 	"testing"
+	"your-accounts-api/shared/domain/validation"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"

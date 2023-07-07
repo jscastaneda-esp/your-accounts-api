@@ -1,14 +1,14 @@
 package application
 
 import (
-	"api-your-accounts/shared/domain/jwt"
-	"api-your-accounts/shared/domain/persistent"
-	"api-your-accounts/user/domain"
 	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
+	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/user/domain"
 )
 
 var (

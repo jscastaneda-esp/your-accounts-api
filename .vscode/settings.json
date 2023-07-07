@@ -17,5 +17,52 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "192.168.1.14",
+      "port": 3306,
+      "driver": "MySQL",
+      "name": "YourAccounts",
+      "group": "Local",
+      "username": "root",
+      "password": "test",
+      "database": "youraccounts"
+    },
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "containers-us-west-186.railway.app",
+      "port": 5977,
+      "driver": "MySQL",
+      "name": "YourAccounts",
+      "group": "Production",
+      "database": "railway",
+      "username": "root",
+      "password": "gT8uFgTrdVEBUz5da7se"
+    },
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "containers-us-west-101.railway.app",
+      "port": 8038,
+      "driver": "MySQL",
+      "name": "YourAccounts",
+      "group": "Preview",
+      "username": "root",
+      "database": "railway",
+      "password": "PlKcYtiXlLbtwxw4GGCp"
+    }
+  ]
 }

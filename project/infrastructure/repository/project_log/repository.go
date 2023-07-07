@@ -1,11 +1,11 @@
 package project_log
 
 import (
-	"api-your-accounts/project/domain"
-	"api-your-accounts/project/infrastructure/entity"
-	"api-your-accounts/shared/domain/persistent"
-	persistentInfra "api-your-accounts/shared/infrastructure/db/persistent"
 	"context"
+	"your-accounts-api/project/domain"
+	"your-accounts-api/project/infrastructure/entity"
+	"your-accounts-api/shared/domain/persistent"
+	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
 
 	"gorm.io/gorm"
 )

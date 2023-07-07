@@ -1,8 +1,8 @@
 package persistent
 
 import (
-	"api-your-accounts/shared/domain/persistent"
 	"errors"
+	"your-accounts-api/shared/domain/persistent"
 
 	"gorm.io/gorm"
 )

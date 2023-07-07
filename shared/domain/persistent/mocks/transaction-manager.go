@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	persistent "api-your-accounts/shared/domain/persistent"
+	persistent "your-accounts-api/shared/domain/persistent"
 
 	mock "github.com/stretchr/testify/mock"
 )

@@ -1,14 +1,14 @@
 package budget
 
 import (
-	"api-your-accounts/budget/domain"
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
-	"api-your-accounts/shared/domain/test_utils"
 	"context"
 	"database/sql"
 	"regexp"
 	"testing"
 	"time"
+	"your-accounts-api/budget/domain"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/shared/domain/test_utils"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"

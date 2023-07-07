@@ -1,15 +1,15 @@
 package application
 
 import (
-	budgetDom "api-your-accounts/budget/domain"
-	mocksBudget "api-your-accounts/budget/domain/mocks"
-	"api-your-accounts/project/domain"
-	"api-your-accounts/project/domain/mocks"
-	"api-your-accounts/shared/domain/persistent"
-	mocksShared "api-your-accounts/shared/domain/persistent/mocks"
 	"context"
 	"errors"
 	"testing"
+	budgetDom "your-accounts-api/budget/domain"
+	mocksBudget "your-accounts-api/budget/domain/mocks"
+	"your-accounts-api/project/domain"
+	"your-accounts-api/project/domain/mocks"
+	"your-accounts-api/shared/domain/persistent"
+	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

@@ -1,17 +1,17 @@
 package handler
 
 import (
-	"api-your-accounts/shared/domain/validation"
-	"api-your-accounts/user/application"
-	"api-your-accounts/user/application/mocks"
-	"api-your-accounts/user/domain"
-	"api-your-accounts/user/infrastructure/model"
 	"bytes"
 	"encoding/json"
 	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
+	"your-accounts-api/shared/domain/validation"
+	"your-accounts-api/user/application"
+	"your-accounts-api/user/application/mocks"
+	"your-accounts-api/user/domain"
+	"your-accounts-api/user/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/mock"

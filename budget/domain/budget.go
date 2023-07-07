@@ -1,9 +1,9 @@
 package domain
 
 import (
-	"api-your-accounts/shared/domain/persistent"
 	"context"
 	"time"
+	"your-accounts-api/shared/domain/persistent"
 )
 
 type Budget struct {

@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: api-your-accounts
-    container_name: api-your-accounts
+    image: your-accounts-api
+    container_name: your-accounts-api
     working_dir: /code
     volumes:
       - .:/code

@@ -1,6 +1,6 @@
 package application
 
-import "api-your-accounts/project/domain"
+import "your-accounts-api/project/domain"
 
 type CreateData struct {
 	Name   string

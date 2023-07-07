@@ -1,13 +1,13 @@
 package application
 
 import (
-	budgetDom "api-your-accounts/budget/domain"
-	"api-your-accounts/project/domain"
-	"api-your-accounts/shared/domain/persistent"
-	"api-your-accounts/shared/domain/utils/slices"
 	"context"
 	"fmt"
 	"time"
+	budgetDom "your-accounts-api/budget/domain"
+	"your-accounts-api/project/domain"
+	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/domain/utils/slices"
 )
 
 //go:generate mockery --name IProjectApp --filename project-app.go

@@ -1,9 +1,9 @@
 package entity
 
 import (
-	budget "api-your-accounts/budget/infrastructure/entity"
-	"api-your-accounts/project/domain"
-	"api-your-accounts/shared/infrastructure/db/entity"
+	budget "your-accounts-api/budget/infrastructure/entity"
+	"your-accounts-api/project/domain"
+	"your-accounts-api/shared/infrastructure/db/entity"
 )
 
 type Project struct {
