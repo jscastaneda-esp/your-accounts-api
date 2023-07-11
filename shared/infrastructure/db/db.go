@@ -9,7 +9,7 @@ import (
 	project "your-accounts-api/project/infrastructure/entity"
 	user "your-accounts-api/user/infrastructure/entity"
 
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -36,15 +36,12 @@ func NewDB() {
 				Colorful:                  true,
 			},
 		)
-		if DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		if DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			Logger: newLogger,
 		}); err != nil {
 			log.Fatal(err)
 		}
 
-		if err = declareEnums(DB); err != nil {
-			log.Fatal(err)
-		}
 		if err = DB.AutoMigrate(
 			&user.User{},
 			&user.UserToken{},
@@ -59,39 +56,4 @@ func NewDB() {
 			log.Fatal(err)
 		}
 	}
-}
-
-func declareEnums(db *gorm.DB) error {
-	if err := db.Exec(`
-	DO $$ BEGIN
-		CREATE TYPE project_type AS ENUM ('budget');
-	EXCEPTION
-		WHEN duplicate_object THEN null;
-	END $$;
-	`).Error; err != nil {
-		return err
-	}
-
-	if err := db.Exec(`	
-	DO $$ BEGIN
-		CREATE TYPE budget_bill_category AS ENUM (
-			'house',
-			'entertainment',
-			'personal',
-			'vehicle_transportation',
-			'education',
-			'services',
-			'saving',
-			'others'
-		);
-	EXCEPTION
-		WHEN duplicate_object THEN null;
-
-		ALTER TYPE budget_bill_category ADD VALUE IF NOT EXISTS 'saving' BEFORE 'others';
-	END $$;
-	`).Error; err != nil {
-		return err
-	}
-
-	return nil
 }

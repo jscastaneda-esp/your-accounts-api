@@ -10,7 +10,7 @@ type Project struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
 	UserId      uint               `gorm:"not null"`
-	Type        domain.ProjectType `gorm:"not null;type:project_type"`
+	Type        domain.ProjectType `gorm:"not null;type:enum('budget')"`
 	ProjectLogs []ProjectLog       `gorm:"foreignKey:ProjectId"`
 	Budget      budget.Budget      `gorm:"foreignKey:ProjectId"`
 }
@@ -18,6 +18,6 @@ type Project struct {
 type ProjectLog struct {
 	entity.BaseModel
 	Description string  `gorm:"not null"`
-	Detail      *string `gorm:"type:jsonb"`
+	Detail      *string `gorm:"type:json"`
 	ProjectId   uint    `gorm:"not null"`
 }

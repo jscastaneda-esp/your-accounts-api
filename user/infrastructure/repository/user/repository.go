@@ -18,9 +18,9 @@ func (r *gormUserRepository) WithTransaction(tx persistent.Transaction) domain.U
 	return persistentInfra.DefaultWithTransaction[domain.UserRepository](tx, NewRepository, r)
 }
 
-func (r *gormUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*domain.User, error) {
+func (r *gormUserRepository) FindByUIDAndEmail(ctx context.Context, uid string, email string) (*domain.User, error) {
 	where := &entity.User{
-		UUID:  uuid,
+		UID:   uid,
 		Email: email,
 	}
 	model := new(entity.User)
@@ -30,16 +30,16 @@ func (r *gormUserRepository) FindByUUIDAndEmail(ctx context.Context, uuid string
 
 	return &domain.User{
 		ID:        model.ID,
-		UUID:      model.UUID,
+		UID:       model.UID,
 		Email:     model.Email,
 		CreatedAt: model.CreatedAt,
 		UpdatedAt: model.UpdatedAt,
 	}, nil
 }
 
-func (r *gormUserRepository) ExistsByUUID(ctx context.Context, uuid string) (bool, error) {
+func (r *gormUserRepository) ExistsByUID(ctx context.Context, uid string) (bool, error) {
 	var count int
-	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE uuid = ?", uuid).Scan(&count).Error
+	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE uid = ?", uid).Scan(&count).Error
 	if err != nil {
 		return false, err
 	}
@@ -59,7 +59,7 @@ func (r *gormUserRepository) ExistsByEmail(ctx context.Context, email string) (b
 
 func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (*domain.User, error) {
 	model := &entity.User{
-		UUID:  user.UUID,
+		UID:   user.UID,
 		Email: user.Email,
 	}
 
@@ -69,7 +69,7 @@ func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (*dom
 
 	return &domain.User{
 		ID:        model.ID,
-		UUID:      model.UUID,
+		UID:       model.UID,
 		Email:     model.Email,
 		CreatedAt: model.CreatedAt,
 		UpdatedAt: model.UpdatedAt,

@@ -20,11 +20,9 @@ func (r *gormUserTokenRepository) WithTransaction(tx persistent.Transaction) dom
 
 func (r *gormUserTokenRepository) Create(ctx context.Context, userToken domain.UserToken) (*domain.UserToken, error) {
 	model := &entity.UserToken{
-		Token:       userToken.Token,
-		UserId:      userToken.UserId,
-		ExpiresAt:   userToken.ExpiresAt,
-		RefreshedAt: userToken.RefreshedAt,
-		RefreshedBy: userToken.RefreshedBy,
+		Token:     userToken.Token,
+		UserId:    userToken.UserId,
+		ExpiresAt: userToken.ExpiresAt,
 	}
 
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
@@ -32,13 +30,11 @@ func (r *gormUserTokenRepository) Create(ctx context.Context, userToken domain.U
 	}
 
 	return &domain.UserToken{
-		ID:          model.ID,
-		Token:       model.Token,
-		UserId:      model.UserId,
-		RefreshedBy: model.RefreshedBy,
-		CreatedAt:   model.CreatedAt,
-		ExpiresAt:   model.ExpiresAt,
-		RefreshedAt: model.RefreshedAt,
+		ID:        model.ID,
+		Token:     model.Token,
+		UserId:    model.UserId,
+		CreatedAt: model.CreatedAt,
+		ExpiresAt: model.ExpiresAt,
 	}, nil
 }
 
@@ -53,13 +49,11 @@ func (r *gormUserTokenRepository) FindByTokenAndUserId(ctx context.Context, toke
 	}
 
 	return &domain.UserToken{
-		ID:          model.ID,
-		Token:       model.Token,
-		UserId:      model.UserId,
-		RefreshedBy: model.RefreshedBy,
-		CreatedAt:   model.CreatedAt,
-		ExpiresAt:   model.ExpiresAt,
-		RefreshedAt: model.RefreshedAt,
+		ID:        model.ID,
+		Token:     model.Token,
+		UserId:    model.UserId,
+		CreatedAt: model.CreatedAt,
+		ExpiresAt: model.ExpiresAt,
 	}, nil
 }
 
@@ -71,21 +65,17 @@ func (r *gormUserTokenRepository) Update(ctx context.Context, userToken domain.U
 
 	model.Token = userToken.Token
 	model.UserId = userToken.UserId
-	model.RefreshedBy = userToken.RefreshedBy
 	model.ExpiresAt = userToken.ExpiresAt
-	model.RefreshedAt = userToken.RefreshedAt
 	if err := r.db.WithContext(ctx).Save(model).Error; err != nil {
 		return nil, err
 	}
 
 	return &domain.UserToken{
-		ID:          model.ID,
-		Token:       model.Token,
-		UserId:      model.UserId,
-		RefreshedBy: model.RefreshedBy,
-		CreatedAt:   model.CreatedAt,
-		ExpiresAt:   model.ExpiresAt,
-		RefreshedAt: model.RefreshedAt,
+		ID:        model.ID,
+		Token:     model.Token,
+		UserId:    model.UserId,
+		CreatedAt: model.CreatedAt,
+		ExpiresAt: model.ExpiresAt,
 	}, nil
 }
 

@@ -15,7 +15,7 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uuid    string
+	uid     string
 	email   string
 	token   string
 	fastCtx *fasthttp.RequestCtx
@@ -122,7 +122,7 @@ func (suite *TestSuite) TestNewRouteErrorUnauthorized() {
 	os.Setenv("JWT_SECRET", "other")
 
 	NewRoute(app)
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request, 10)
 
 	require.NoError(err)
 	require.NotNil(response)
