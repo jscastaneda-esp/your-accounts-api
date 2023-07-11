@@ -8,11 +8,12 @@ import (
 	"time"
 	"your-accounts-api/project/domain"
 	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/shared/domain/test_utils"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -42,8 +43,9 @@ func (suite *TestSuite) SetupSuite() {
 	db, suite.mock, err = sqlmock.New()
 	require.NoError(err)
 
-	DB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
+	DB, err := gorm.Open(mysql.New(mysql.Config{
+		Conn:                      db,
+		SkipInitializeWithVersion: true,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -87,13 +89,9 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "project_logs" ("description","detail","project_id") 
-		VALUES ($1,$2,$3) 
-		RETURNING "id","created_at"
-		`)).
-		WithArgs(suite.description, suite.detail, suite.projectId).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `project_logs` (`created_at`,`description`,`detail`,`project_id`) VALUES (?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, suite.description, suite.detail, suite.projectId).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
 	suite.mock.ExpectCommit()
 	projectLog := domain.ProjectLog{
 		Description: suite.description,
@@ -116,12 +114,8 @@ func (suite *TestSuite) TestCreateError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "project_logs" ("description","detail","project_id") 
-		VALUES ($1,$2,$3) 
-		RETURNING "id","created_at"
-		`)).
-		WithArgs(suite.description, nil, suite.projectId).
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `project_logs` (`created_at`,`description`,`detail`,`project_id`) VALUES (?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, suite.description, nil, suite.projectId).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	projectLog := domain.ProjectLog{
@@ -139,12 +133,7 @@ func (suite *TestSuite) TestFindByProjectIdSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "project_logs"
-		WHERE "project_logs"."project_id" = $1
-		ORDER BY created_at desc LIMIT 20
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `project_logs` WHERE `project_logs`.`project_id` = ? ORDER BY created_at desc LIMIT 20")).
 		WithArgs(suite.projectId).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "description", "detail", "project_id"}).
@@ -171,12 +160,7 @@ func (suite *TestSuite) TestFindByProjectIdError() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "project_logs"
-		WHERE "project_logs"."project_id" = $1
-		ORDER BY created_at desc LIMIT 20
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `project_logs` WHERE `project_logs`.`project_id` = ? ORDER BY created_at desc LIMIT 20")).
 		WithArgs(suite.projectId).
 		WillReturnError(gorm.ErrRecordNotFound)
 

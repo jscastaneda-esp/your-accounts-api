@@ -7,12 +7,13 @@ import (
 	"testing"
 	"time"
 	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/shared/domain/test_utils"
 	"your-accounts-api/user/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -42,8 +43,9 @@ func (suite *TestSuite) SetupSuite() {
 	db, suite.mock, err = sqlmock.New()
 	require.NoError(err)
 
-	DB, err := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
+	DB, err := gorm.Open(mysql.New(mysql.Config{
+		Conn:                      db,
+		SkipInitializeWithVersion: true,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -85,13 +87,9 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "user_tokens" ("token","user_id","refreshed_by","expires_at","refreshed_at") 
-		VALUES ($1,$2,$3,$4,$5) 
-		RETURNING "id","created_at"
-		`)).
-		WithArgs(suite.token, suite.userId, nil, suite.expiresAt, nil).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(999))
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `user_tokens` (`created_at`,`token`,`user_id`,`expires_at`) VALUES (?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, suite.token, suite.userId, suite.expiresAt).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
 	suite.mock.ExpectCommit()
 	userToken := domain.UserToken{
 		Token:     suite.token,
@@ -114,12 +112,8 @@ func (suite *TestSuite) TestCreateError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		INSERT INTO "user_tokens" ("token","user_id","refreshed_by","expires_at","refreshed_at") 
-		VALUES ($1,$2,$3,$4,$5) 
-		RETURNING "id","created_at"
-		`)).
-		WithArgs(suite.token, suite.userId, nil, suite.expiresAt, nil).
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `user_tokens` (`created_at`,`token`,`user_id`,`expires_at`) VALUES (?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, suite.token, suite.userId, suite.expiresAt).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	userToken := domain.UserToken{
@@ -144,17 +138,11 @@ func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
 		ExpiresAt: suite.expiresAt,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "user_tokens"
-		WHERE "user_tokens"."token" = $1
-		AND "user_tokens"."user_id" = $2
-		ORDER BY "user_tokens"."id" LIMIT 1
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`token` = ? AND `user_tokens`.`user_id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(suite.token, suite.userId).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "token", "user_id", "refreshed_by", "created_at", "expires_at", "refreshed_at"}).
-			AddRow(userTokenExpected.ID, userTokenExpected.Token, userTokenExpected.UserId, nil, userTokenExpected.CreatedAt, userTokenExpected.ExpiresAt, nil),
+			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
+			AddRow(userTokenExpected.ID, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.CreatedAt, userTokenExpected.ExpiresAt),
 		)
 
 	res, err := suite.repository.FindByTokenAndUserId(context.Background(), suite.token, suite.userId)
@@ -167,13 +155,7 @@ func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
 func (suite *TestSuite) TestFindByTokenAndUserIdError() {
 	require := require.New(suite.T())
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "user_tokens"
-		WHERE "user_tokens"."token" = $1
-		AND "user_tokens"."user_id" = $2
-		ORDER BY "user_tokens"."id" LIMIT 1
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`token` = ? AND `user_tokens`.`user_id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(suite.token, suite.userId).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -192,37 +174,24 @@ func (suite *TestSuite) TestUpdateSuccess() {
 		CreatedAt: time.Now(),
 		ExpiresAt: suite.expiresAt,
 	}
-	refreshedBy := uint(1000)
-	refreshedAt := time.Now()
 	userTokenExpected := domain.UserToken{
-		ID:          userToken.ID,
-		Token:       userToken.Token,
-		UserId:      userToken.UserId,
-		RefreshedBy: &refreshedBy,
-		CreatedAt:   userToken.CreatedAt,
-		ExpiresAt:   userToken.ExpiresAt,
-		RefreshedAt: &refreshedAt,
+		ID:        userToken.ID,
+		Token:     userToken.Token,
+		UserId:    userToken.UserId,
+		CreatedAt: userToken.CreatedAt,
+		ExpiresAt: userToken.ExpiresAt,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "user_tokens"
-		WHERE "user_tokens"."id" = $1
-		ORDER BY "user_tokens"."id" LIMIT 1
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(userToken.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "token", "user_id", "refreshed_by", "created_at", "expires_at", "refreshed_at"}).
-			AddRow(userToken.ID, userToken.Token, userToken.UserId, nil, userToken.CreatedAt, userToken.ExpiresAt, nil),
+			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
+			AddRow(userToken.ID, userToken.Token, userToken.UserId, userToken.CreatedAt, userToken.ExpiresAt),
 		)
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta(`
-		UPDATE "user_tokens"
-		SET "created_at"=$1,"token"=$2,"user_id"=$3,"refreshed_by"=$4,"expires_at"=$5,"refreshed_at"=$6
-		WHERE "id" = $7
-		`)).
-		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, *userTokenExpected.RefreshedBy, userTokenExpected.ExpiresAt, *userTokenExpected.RefreshedAt, userTokenExpected.ID).
+		ExpectExec(regexp.QuoteMeta("UPDATE `user_tokens` SET `created_at`=?,`token`=?,`user_id`=?,`expires_at`=? WHERE `id` = ?")).
+		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.ExpiresAt, userTokenExpected.ID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
@@ -242,24 +211,15 @@ func (suite *TestSuite) TestUpdateErrorFind() {
 		CreatedAt: time.Now(),
 		ExpiresAt: suite.expiresAt,
 	}
-	refreshedBy := uint(1000)
-	refreshedAt := time.Now()
 	userTokenExpected := domain.UserToken{
-		ID:          userToken.ID,
-		Token:       userToken.Token,
-		UserId:      userToken.UserId,
-		RefreshedBy: &refreshedBy,
-		CreatedAt:   userToken.CreatedAt,
-		ExpiresAt:   userToken.ExpiresAt,
-		RefreshedAt: &refreshedAt,
+		ID:        userToken.ID,
+		Token:     userToken.Token,
+		UserId:    userToken.UserId,
+		CreatedAt: userToken.CreatedAt,
+		ExpiresAt: userToken.ExpiresAt,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "user_tokens"
-		WHERE "user_tokens"."id" = $1
-		ORDER BY "user_tokens"."id" LIMIT 1
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(userToken.ID).
 		WillReturnError(gorm.ErrInvalidField)
 
@@ -278,37 +238,24 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 		CreatedAt: time.Now(),
 		ExpiresAt: suite.expiresAt,
 	}
-	refreshedBy := uint(1000)
-	refreshedAt := time.Now()
 	userTokenExpected := domain.UserToken{
-		ID:          userToken.ID,
-		Token:       userToken.Token,
-		UserId:      userToken.UserId,
-		RefreshedBy: &refreshedBy,
-		CreatedAt:   userToken.CreatedAt,
-		ExpiresAt:   userToken.ExpiresAt,
-		RefreshedAt: &refreshedAt,
+		ID:        userToken.ID,
+		Token:     userToken.Token,
+		UserId:    userToken.UserId,
+		CreatedAt: userToken.CreatedAt,
+		ExpiresAt: userToken.ExpiresAt,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`
-		SELECT *
-		FROM "user_tokens"
-		WHERE "user_tokens"."id" = $1
-		ORDER BY "user_tokens"."id" LIMIT 1
-		`)).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(userToken.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "token", "user_id", "refreshed_by", "created_at", "expires_at", "refreshed_at"}).
-			AddRow(userToken.ID, userToken.Token, userToken.UserId, nil, userToken.CreatedAt, userToken.ExpiresAt, nil),
+			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
+			AddRow(userToken.ID, userToken.Token, userToken.UserId, userToken.CreatedAt, userToken.ExpiresAt),
 		)
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta(`
-		UPDATE "user_tokens"
-		SET "created_at"=$1,"token"=$2,"user_id"=$3,"refreshed_by"=$4,"expires_at"=$5,"refreshed_at"=$6
-		WHERE "id" = $7
-		`)).
-		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, *userTokenExpected.RefreshedBy, userTokenExpected.ExpiresAt, *userTokenExpected.RefreshedAt, userTokenExpected.ID).
+		ExpectExec(regexp.QuoteMeta("UPDATE `user_tokens` SET `created_at`=?,`token`=?,`user_id`=?,`expires_at`=? WHERE `id` = ?")).
+		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.ExpiresAt, userTokenExpected.ID).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 

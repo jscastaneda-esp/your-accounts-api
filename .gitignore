@@ -88,4 +88,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# SQL
+*.session.sql
+
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,go,dotenv

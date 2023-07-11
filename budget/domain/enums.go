@@ -9,6 +9,7 @@ const (
 	Vehicle_Transportation BudgetBillCategory = "vehicle_transportation"
 	Education              BudgetBillCategory = "education"
 	Services               BudgetBillCategory = "services"
+	Financial              BudgetBillCategory = "financial"
 	Saving                 BudgetBillCategory = "saving"
 	Others                 BudgetBillCategory = "others"
 )

@@ -21,15 +21,15 @@ var (
 type jwtKey string
 
 type JwtCustomClaim struct {
-	UUID  string `json:"id,omitempty"`
+	UID   string `json:"id,omitempty"`
 	Email string `json:"email,omitempty"`
 	jwt.RegisteredClaims
 }
 
-func JwtGenerate(ctx context.Context, id string, uuid string, email string) (string, time.Time, error) {
+func JwtGenerate(ctx context.Context, id string, uid string, email string) (string, time.Time, error) {
 	expiresAt := time.Now().Add(24 * time.Hour)
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtCustomClaim{
-		UUID:  uuid,
+		UID:   uid,
 		Email: email,
 
 		RegisteredClaims: jwt.RegisteredClaims{

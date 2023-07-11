@@ -8,7 +8,7 @@ import (
 
 type User struct {
 	ID        uint
-	UUID      string
+	UID       string
 	Email     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -18,7 +18,7 @@ type User struct {
 type UserRepository interface {
 	persistent.TransactionRepository[UserRepository]
 	persistent.CreateRepository[User]
-	FindByUUIDAndEmail(ctx context.Context, uuid string, email string) (*User, error)
-	ExistsByUUID(ctx context.Context, uuid string) (bool, error)
+	FindByUIDAndEmail(ctx context.Context, uid string, email string) (*User, error)
+	ExistsByUID(ctx context.Context, uid string) (bool, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }

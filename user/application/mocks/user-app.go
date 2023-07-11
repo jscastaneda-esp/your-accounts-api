@@ -14,47 +14,23 @@ type IUserApp struct {
 	mock.Mock
 }
 
-// Auth provides a mock function with given fields: ctx, uuid, email
-func (_m *IUserApp) Auth(ctx context.Context, uuid string, email string) (string, error) {
-	ret := _m.Called(ctx, uuid, email)
+// Auth provides a mock function with given fields: ctx, uid, email
+func (_m *IUserApp) Auth(ctx context.Context, uid string, email string) (string, error) {
+	ret := _m.Called(ctx, uid, email)
 
 	var r0 string
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return rf(ctx, uuid, email)
+		return rf(ctx, uid, email)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = rf(ctx, uuid, email)
+		r0 = rf(ctx, uid, email)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, uuid, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// RefreshToken provides a mock function with given fields: ctx, token, uuid, email
-func (_m *IUserApp) RefreshToken(ctx context.Context, token string, uuid string, email string) (string, error) {
-	ret := _m.Called(ctx, token, uuid, email)
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (string, error)); ok {
-		return rf(ctx, token, uuid, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) string); ok {
-		r0 = rf(ctx, token, uuid, email)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, token, uuid, email)
+		r1 = rf(ctx, uid, email)
 	} else {
 		r1 = ret.Error(1)
 	}

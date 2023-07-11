@@ -1,6 +1,36 @@
 basePath: /
 definitions:
-  api-your-accounts_budget_infrastructure_model.ReadResponse:
+  domain.ProjectType:
+    enum:
+    - budget
+    type: string
+    x-enum-varnames:
+    - TypeBudget
+  model.AuthRequest:
+    properties:
+      email:
+        type: string
+      uid:
+        type: string
+    required:
+    - email
+    - uid
+    type: object
+  model.AuthResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  model.ReadLogsResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+    type: object
+  your-accounts-api_budget_infrastructure_model.ReadResponse:
     properties:
       additionalIncome:
         type: number
@@ -23,7 +53,7 @@ definitions:
       year:
         type: integer
     type: object
-  api-your-accounts_project_infrastructure_model.CreateRequest:
+  your-accounts-api_project_infrastructure_model.CreateRequest:
     properties:
       cloneId:
         minimum: 1
@@ -40,12 +70,12 @@ definitions:
         minimum: 1
         type: integer
     type: object
-  api-your-accounts_project_infrastructure_model.CreateResponse:
+  your-accounts-api_project_infrastructure_model.CreateResponse:
     properties:
       id:
         type: integer
     type: object
-  api-your-accounts_project_infrastructure_model.ReadResponse:
+  your-accounts-api_project_infrastructure_model.ReadResponse:
     properties:
       data:
         additionalProperties: {}
@@ -57,17 +87,17 @@ definitions:
       type:
         $ref: '#/definitions/domain.ProjectType'
     type: object
-  api-your-accounts_user_infrastructure_model.CreateRequest:
+  your-accounts-api_user_infrastructure_model.CreateRequest:
     properties:
       email:
         type: string
-      uuid:
+      uid:
         type: string
     required:
     - email
-    - uuid
+    - uid
     type: object
-  api-your-accounts_user_infrastructure_model.CreateResponse:
+  your-accounts-api_user_infrastructure_model.CreateResponse:
     properties:
       createdAt:
         type: string
@@ -75,57 +105,9 @@ definitions:
         type: string
       id:
         type: integer
+      uid:
+        type: string
       updatedAt:
-        type: string
-      uuid:
-        type: string
-    type: object
-  domain.ProjectType:
-    enum:
-    - budget
-    type: string
-    x-enum-varnames:
-    - TypeBudget
-  model.AuthRequest:
-    properties:
-      email:
-        type: string
-      uuid:
-        type: string
-    required:
-    - email
-    - uuid
-    type: object
-  model.AuthResponse:
-    properties:
-      token:
-        type: string
-    type: object
-  model.ReadLogsResponse:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-    type: object
-  model.RefreshTokenRequest:
-    properties:
-      email:
-        type: string
-      token:
-        type: string
-      uuid:
-        type: string
-    required:
-    - email
-    - token
-    - uuid
-    type: object
-  model.RefreshTokenResponse:
-    properties:
-      token:
         type: string
     type: object
 info:
@@ -175,7 +157,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse'
+            $ref: '#/definitions/your-accounts-api_budget_infrastructure_model.ReadResponse'
         "400":
           description: Bad Request
           schema:
@@ -211,14 +193,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api-your-accounts_project_infrastructure_model.CreateRequest'
+          $ref: '#/definitions/your-accounts-api_project_infrastructure_model.CreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api-your-accounts_project_infrastructure_model.CreateResponse'
+            $ref: '#/definitions/your-accounts-api_project_infrastructure_model.CreateResponse'
         "400":
           description: Bad Request
           schema:
@@ -303,7 +285,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/api-your-accounts_project_infrastructure_model.ReadResponse'
+              $ref: '#/definitions/your-accounts-api_project_infrastructure_model.ReadResponse'
             type: array
         "400":
           description: Bad Request
@@ -377,14 +359,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api-your-accounts_user_infrastructure_model.CreateRequest'
+          $ref: '#/definitions/your-accounts-api_user_infrastructure_model.CreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api-your-accounts_user_infrastructure_model.CreateResponse'
+            $ref: '#/definitions/your-accounts-api_user_infrastructure_model.CreateResponse'
         "400":
           description: Bad Request
           schema:
@@ -440,44 +422,6 @@ paths:
           schema:
             type: string
       summary: Authenticate user
-      tags:
-      - user
-  /user/refresh-token:
-    put:
-      consumes:
-      - application/json
-      description: refresh token for access
-      parameters:
-      - description: Refresh token data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.RefreshTokenRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.RefreshTokenResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "422":
-          description: Unprocessable Entity
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Refresh token of user
       tags:
       - user
 swagger: "2.0"

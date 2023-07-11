@@ -69,7 +69,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api-your-accounts_budget_infrastructure_model.ReadResponse"
+                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.ReadResponse"
                         }
                     },
                     "400": {
@@ -126,7 +126,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api-your-accounts_project_infrastructure_model.CreateRequest"
+                            "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.CreateRequest"
                         }
                     }
                 ],
@@ -134,7 +134,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api-your-accounts_project_infrastructure_model.CreateResponse"
+                            "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.CreateResponse"
                         }
                     },
                     "400": {
@@ -325,7 +325,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api-your-accounts_project_infrastructure_model.ReadResponse"
+                                "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.ReadResponse"
                             }
                         }
                     },
@@ -376,7 +376,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api-your-accounts_user_infrastructure_model.CreateRequest"
+                            "$ref": "#/definitions/your-accounts-api_user_infrastructure_model.CreateRequest"
                         }
                     }
                 ],
@@ -384,7 +384,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api-your-accounts_user_infrastructure_model.CreateResponse"
+                            "$ref": "#/definitions/your-accounts-api_user_infrastructure_model.CreateResponse"
                         }
                     },
                     "400": {
@@ -471,68 +471,56 @@
                     }
                 }
             }
-        },
-        "/user/refresh-token": {
-            "put": {
-                "description": "refresh token for access",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Refresh token of user",
-                "parameters": [
-                    {
-                        "description": "Refresh token data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.RefreshTokenRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.RefreshTokenResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "api-your-accounts_budget_infrastructure_model.ReadResponse": {
+        "domain.ProjectType": {
+            "type": "string",
+            "enum": [
+                "budget"
+            ],
+            "x-enum-varnames": [
+                "TypeBudget"
+            ]
+        },
+        "model.AuthRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "uid"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReadLogsResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "your-accounts-api_budget_infrastructure_model.ReadResponse": {
             "type": "object",
             "properties": {
                 "additionalIncome": {
@@ -567,7 +555,7 @@
                 }
             }
         },
-        "api-your-accounts_project_infrastructure_model.CreateRequest": {
+        "your-accounts-api_project_infrastructure_model.CreateRequest": {
             "type": "object",
             "properties": {
                 "cloneId": {
@@ -594,7 +582,7 @@
                 }
             }
         },
-        "api-your-accounts_project_infrastructure_model.CreateResponse": {
+        "your-accounts-api_project_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -602,7 +590,7 @@
                 }
             }
         },
-        "api-your-accounts_project_infrastructure_model.ReadResponse": {
+        "your-accounts-api_project_infrastructure_model.ReadResponse": {
             "type": "object",
             "properties": {
                 "data": {
@@ -620,22 +608,22 @@
                 }
             }
         },
-        "api-your-accounts_user_infrastructure_model.CreateRequest": {
+        "your-accounts-api_user_infrastructure_model.CreateRequest": {
             "type": "object",
             "required": [
                 "email",
-                "uuid"
+                "uid"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "uuid": {
+                "uid": {
                     "type": "string"
                 }
             }
         },
-        "api-your-accounts_user_infrastructure_model.CreateResponse": {
+        "your-accounts-api_user_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
@@ -646,84 +634,11 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "uid": {
+                    "type": "string"
                 },
                 "updatedAt": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "domain.ProjectType": {
-            "type": "string",
-            "enum": [
-                "budget"
-            ],
-            "x-enum-varnames": [
-                "TypeBudget"
-            ]
-        },
-        "model.AuthRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "uuid"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.ReadLogsResponse": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "model.RefreshTokenRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "token",
-                "uuid"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "token": {
-                    "type": "string"
-                },
-                "uuid": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.RefreshTokenResponse": {
-            "type": "object",
-            "properties": {
-                "token": {
                     "type": "string"
                 }
             }

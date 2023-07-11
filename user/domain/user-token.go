@@ -7,13 +7,11 @@ import (
 )
 
 type UserToken struct {
-	ID          uint
-	Token       string
-	UserId      uint
-	RefreshedBy *uint
-	CreatedAt   time.Time
-	ExpiresAt   time.Time
-	RefreshedAt *time.Time
+	ID        uint
+	Token     string
+	UserId    uint
+	CreatedAt time.Time
+	ExpiresAt time.Time
 }
 
 //go:generate mockery --name UserTokenRepository --filename user-token-repository.go
