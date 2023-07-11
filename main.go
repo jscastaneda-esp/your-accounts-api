@@ -6,7 +6,6 @@ package main
 import (
 	"log"
 	"os"
-	"time"
 	"your-accounts-api/shared/infrastructure"
 	"your-accounts-api/shared/infrastructure/db"
 	"your-accounts-api/shared/infrastructure/handler"
@@ -38,12 +37,6 @@ var (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 //	@BasePath		/
 func main() {
-	var err error
-	time.Local, err = time.LoadLocation("America/Bogota")
-	if err != nil {
-		log.Panic("Error setting location for time: ", err)
-	}
-
 	log.SetFlags(log.Llongfile + log.LstdFlags)
 	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Load .env file")
