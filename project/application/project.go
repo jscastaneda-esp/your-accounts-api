@@ -29,19 +29,20 @@ type projectApp struct {
 func (app *projectApp) Create(ctx context.Context, createData CreateData) (uint, error) {
 	var id uint
 	err := app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectCreated, err := app.createProject(ctx, createData.UserId, createData.Type, tx)
+		var err error
+		id, err = app.createProject(ctx, createData.UserId, createData.Type, tx)
 		if err != nil {
 			return err
 		}
 
-		if projectCreated.Type == domain.TypeBudget {
+		if createData.Type == domain.TypeBudget {
 			budgetRepo := app.budgetRepo.WithTransaction(tx)
 			now := time.Now()
 			newBudget := budgetDom.Budget{
 				Name:      createData.Name,
 				Year:      uint16(now.Year()),
 				Month:     uint8(now.Month()),
-				ProjectId: projectCreated.ID,
+				ProjectId: id,
 			}
 			_, err = budgetRepo.Create(ctx, newBudget)
 			if err != nil {
@@ -49,12 +50,11 @@ func (app *projectApp) Create(ctx context.Context, createData CreateData) (uint,
 			}
 		}
 
-		err = app.createLog(ctx, "Creación", projectCreated.ID, nil, tx)
+		err = app.createLog(ctx, "Creación", id, nil, tx)
 		if err != nil {
 			return err
 		}
 
-		id = projectCreated.ID
 		return nil
 	})
 	if err != nil {
@@ -72,13 +72,14 @@ func (app *projectApp) Clone(ctx context.Context, baseId uint) (uint, error) {
 
 	var id uint
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectCreated, err := app.createProject(ctx, baseProject.UserId, baseProject.Type, tx)
+		var err error
+		id, err = app.createProject(ctx, baseProject.UserId, baseProject.Type, tx)
 		if err != nil {
 			return err
 		}
 
 		var name string
-		if projectCreated.Type == domain.TypeBudget {
+		if baseProject.Type == domain.TypeBudget {
 			baseBudgets, err := app.budgetRepo.FindByProjectIds(ctx, []uint{baseProject.ID})
 			if err != nil {
 				return err
@@ -95,7 +96,7 @@ func (app *projectApp) Clone(ctx context.Context, baseId uint) (uint, error) {
 					AdditionalIncome: baseBudgets[0].AdditionalIncome,
 					Total:            baseBudgets[0].Total,
 					EstimatedBalance: baseBudgets[0].EstimatedBalance,
-					ProjectId:        projectCreated.ID,
+					ProjectId:        id,
 				}
 				_, err = budgetRepo.Create(ctx, newBudget)
 				if err != nil {
@@ -105,12 +106,11 @@ func (app *projectApp) Clone(ctx context.Context, baseId uint) (uint, error) {
 		}
 
 		detail := fmt.Sprintf(`{"cloneId": %d, "cloneName": "%s"}`, baseId, name)
-		err = app.createLog(ctx, fmt.Sprintf("Creación a partir de %s(%d)", name, baseId), projectCreated.ID, &detail, tx)
+		err = app.createLog(ctx, fmt.Sprintf("Creación a partir de %s(%d)", name, baseId), id, &detail, tx)
 		if err != nil {
 			return err
 		}
 
-		id = projectCreated.ID
 		return nil
 	})
 	if err != nil {
@@ -192,18 +192,18 @@ func (app *projectApp) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func (app *projectApp) createProject(ctx context.Context, userId uint, typeProject domain.ProjectType, tx persistent.Transaction) (*domain.Project, error) {
+func (app *projectApp) createProject(ctx context.Context, userId uint, typeProject domain.ProjectType, tx persistent.Transaction) (uint, error) {
 	projectRepo := app.projectRepo.WithTransaction(tx)
 	newProject := domain.Project{
 		UserId: userId,
 		Type:   typeProject,
 	}
-	projectCreated, err := projectRepo.Create(ctx, newProject)
+	id, err := projectRepo.Create(ctx, newProject)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return projectCreated, nil
+	return id, nil
 }
 
 func (app *projectApp) createLog(ctx context.Context, description string, projectId uint, detail *string, tx persistent.Transaction) error {

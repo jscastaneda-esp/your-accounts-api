@@ -100,9 +100,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(uint(999), res.ID)
-	require.Equal(project.UserId, res.UserId)
-	require.Equal(project.Type, res.Type)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateError() {
@@ -122,7 +120,7 @@ func (suite *TestSuite) TestCreateError() {
 	res, err := suite.repository.Create(context.Background(), project)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+	require.Zero(res)
 }
 
 func (suite *TestSuite) TestFindByIdSuccess() {

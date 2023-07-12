@@ -53,26 +53,20 @@ func (suite *TestSuite) TestCreateSuccess() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     999,
-		UserId: createData.UserId,
-		Type:   createData.Type,
-	}
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(999), nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 	suite.mockProjectLogRepo.On("WithTransaction", nil).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 
 	res, err := suite.app.Create(ctx, createData)
 
 	require.NoError(err)
-	require.NotZero(res)
-	require.Equal(projectExpected.ID, res)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateErrorTransaction() {
@@ -105,7 +99,7 @@ func (suite *TestSuite) TestCreateErrorCreateProject() {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(nil, errExpected)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(0), errExpected)
 
 	res, err := suite.app.Create(ctx, createData)
 
@@ -121,19 +115,14 @@ func (suite *TestSuite) TestCreateErrorCreateBudget() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     999,
-		UserId: createData.UserId,
-		Type:   createData.Type,
-	}
 	errExpected := errors.New("Error in creation project")
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(1000), nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, errExpected)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), errExpected)
 
 	res, err := suite.app.Create(ctx, createData)
 
@@ -149,21 +138,16 @@ func (suite *TestSuite) TestCreateErrorCreateLog() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     999,
-		UserId: createData.UserId,
-		Type:   createData.Type,
-	}
 	errExpected := errors.New("Error in creation project")
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(999), nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 	suite.mockProjectLogRepo.On("WithTransaction", nil).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(nil, errExpected)
+	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(uint(0), errExpected)
 
 	res, err := suite.app.Create(ctx, createData)
 
@@ -179,11 +163,6 @@ func (suite *TestSuite) TestCloneSuccess() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     1000,
-		UserId: baseProject.UserId,
-		Type:   baseProject.Type,
-	}
 	budgetsExpected := []*budgetDom.Budget{
 		{
 			ID:        999,
@@ -198,18 +177,17 @@ func (suite *TestSuite) TestCloneSuccess() {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(1000), nil)
 	suite.mockBudgetRepo.On("FindByProjectIds", ctx, []uint{baseProject.ID}).Return(budgetsExpected, nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 	suite.mockProjectLogRepo.On("WithTransaction", nil).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 
 	res, err := suite.app.Clone(ctx, suite.cloneId)
 
 	require.NoError(err)
-	require.NotZero(res)
-	require.Equal(projectExpected.ID, res)
+	require.Equal(uint(1000), res)
 }
 
 func (suite *TestSuite) TestCloneErrorFind() {
@@ -236,7 +214,7 @@ func (suite *TestSuite) TestCloneErrorCreateProject() {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(nil, gorm.ErrInvalidField)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 
 	res, err := suite.app.Clone(ctx, suite.cloneId)
 
@@ -252,17 +230,12 @@ func (suite *TestSuite) TestCloneErrorFindBudget() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     1000,
-		UserId: baseProject.UserId,
-		Type:   baseProject.Type,
-	}
 	suite.mockProjectRepo.On("FindById", ctx, baseProject.ID).Return(baseProject, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(1000), nil)
 	suite.mockBudgetRepo.On("FindByProjectIds", ctx, []uint{baseProject.ID}).Return(nil, gorm.ErrRecordNotFound)
 
 	res, err := suite.app.Clone(ctx, suite.cloneId)
@@ -279,11 +252,6 @@ func (suite *TestSuite) TestCloneErrorCreateBudget() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     1000,
-		UserId: baseProject.UserId,
-		Type:   baseProject.Type,
-	}
 	budgetsExpected := []*budgetDom.Budget{
 		{
 			ID:        999,
@@ -298,10 +266,10 @@ func (suite *TestSuite) TestCloneErrorCreateBudget() {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(1000), nil)
 	suite.mockBudgetRepo.On("FindByProjectIds", ctx, []uint{baseProject.ID}).Return(budgetsExpected, nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, gorm.ErrInvalidField)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 
 	res, err := suite.app.Clone(ctx, suite.cloneId)
 
@@ -317,11 +285,6 @@ func (suite *TestSuite) TestCloneErrorCreateLog() {
 		UserId: suite.userId,
 		Type:   suite.typeBudget,
 	}
-	projectExpected := &domain.Project{
-		ID:     1000,
-		UserId: baseProject.UserId,
-		Type:   baseProject.Type,
-	}
 	budgetsExpected := []*budgetDom.Budget{
 		{
 			ID:        999,
@@ -336,12 +299,12 @@ func (suite *TestSuite) TestCloneErrorCreateLog() {
 		return fc(nil)
 	})
 	suite.mockProjectRepo.On("WithTransaction", nil).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(projectExpected, nil)
+	suite.mockProjectRepo.On("Create", ctx, mock.Anything).Return(uint(1000), nil)
 	suite.mockBudgetRepo.On("FindByProjectIds", ctx, []uint{baseProject.ID}).Return(budgetsExpected, nil)
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
-	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(nil, nil)
+	suite.mockBudgetRepo.On("Create", ctx, mock.Anything).Return(uint(0), nil)
 	suite.mockProjectLogRepo.On("WithTransaction", nil).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(nil, gorm.ErrInvalidField)
+	suite.mockProjectLogRepo.On("Create", ctx, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 
 	res, err := suite.app.Clone(ctx, suite.cloneId)
 

@@ -18,23 +18,17 @@ func (r *gormProjectRepository) WithTransaction(tx persistent.Transaction) domai
 	return persistentInfra.DefaultWithTransaction[domain.ProjectRepository](tx, NewRepository, r)
 }
 
-func (r *gormProjectRepository) Create(ctx context.Context, project domain.Project) (*domain.Project, error) {
+func (r *gormProjectRepository) Create(ctx context.Context, project domain.Project) (uint, error) {
 	model := &entity.Project{
 		UserId: project.UserId,
 		Type:   project.Type,
 	}
 
 	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &domain.Project{
-		ID:        model.ID,
-		UserId:    model.UserId,
-		Type:      model.Type,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
-	}, nil
+	return model.ID, nil
 }
 
 func (r *gormProjectRepository) FindById(ctx context.Context, id uint) (*domain.Project, error) {
