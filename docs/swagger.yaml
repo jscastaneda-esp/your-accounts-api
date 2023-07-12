@@ -6,17 +6,19 @@ definitions:
     type: string
     x-enum-varnames:
     - TypeBudget
-  model.AuthRequest:
+  model.LoginRequest:
     properties:
       email:
         type: string
       uid:
+        maxLength: 32
+        minLength: 28
         type: string
     required:
     - email
     - uid
     type: object
-  model.AuthResponse:
+  model.LoginResponse:
     properties:
       token:
         type: string
@@ -92,6 +94,8 @@ definitions:
       email:
         type: string
       uid:
+        maxLength: 32
+        minLength: 28
         type: string
     required:
     - email
@@ -99,16 +103,8 @@ definitions:
     type: object
   your-accounts-api_user_infrastructure_model.CreateResponse:
     properties:
-      createdAt:
-        type: string
-      email:
-        type: string
       id:
         type: integer
-      uid:
-        type: string
-      updatedAt:
-        type: string
     type: object
 info:
   contact:
@@ -348,6 +344,44 @@ paths:
       summary: Read logs by project
       tags:
       - project
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: create token for access
+      parameters:
+      - description: Authentication data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Authenticate user
+      tags:
+      - user
   /user:
     post:
       consumes:
@@ -384,44 +418,6 @@ paths:
           schema:
             type: string
       summary: Create user
-      tags:
-      - user
-  /user/auth:
-    post:
-      consumes:
-      - application/json
-      description: create token for access
-      parameters:
-      - description: Authentication data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.AuthRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "422":
-          description: Unprocessable Entity
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Authenticate user
       tags:
       - user
 swagger: "2.0"

@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"os"
 	budget "your-accounts-api/budget/infrastructure/handler"
 	project "your-accounts-api/project/infrastructure/handler"
+	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/infrastructure/config"
 
+	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
-	jwt "github.com/gofiber/jwt/v3"
 )
 
 var (
@@ -15,13 +16,12 @@ var (
 )
 
 func NewRoute(app fiber.Router) {
-	jwtSecret := os.Getenv("JWT_SECRET")
-
 	api := app.Group("/api/v1")
 	// Middleware
 	{
-		api.Use(jwt.New(jwt.Config{
-			SigningKey: []byte(jwtSecret),
+		api.Use(jwtware.New(jwtware.Config{
+			SigningKey: jwtware.SigningKey{Key: []byte(config.JWT_SECRET)},
+			Claims:     &jwt.JwtCustomClaim{},
 		}))
 	}
 

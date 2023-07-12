@@ -6,11 +6,9 @@ import (
 	"io"
 	"net/http/httptest"
 	"testing"
-	"time"
 	"your-accounts-api/shared/domain/validation"
 	"your-accounts-api/user/application"
 	"your-accounts-api/user/application/mocks"
-	"your-accounts-api/user/domain"
 	"your-accounts-api/user/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2"
@@ -42,8 +40,8 @@ func (suite *TestSuite) SetupTest() {
 	}
 
 	suite.app = fiber.New()
-	suite.app.Post("/", ctrl.create)
-	suite.app.Post("/auth", ctrl.auth)
+	suite.app.Post("/user", ctrl.create)
+	suite.app.Post("/login", ctrl.login)
 }
 
 func (suite *TestSuite) TestCreate201() {
@@ -54,24 +52,11 @@ func (suite *TestSuite) TestCreate201() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	result := &domain.User{
-		ID:        1,
-		UID:       requestBody.UID,
-		Email:     requestBody.Email,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(result, nil)
-	expectedBody, err := json.Marshal(model.CreateResponse{
-		ID:        result.ID,
-		UID:       result.UID,
-		Email:     result.Email,
-		CreatedAt: result.CreatedAt,
-		UpdatedAt: result.UpdatedAt,
-	})
+	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(1), nil)
+	expectedBody, err := json.Marshal(model.NewCreateResponse(uint(1)))
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -86,7 +71,7 @@ func (suite *TestSuite) TestCreate201() {
 func (suite *TestSuite) TestCreate400() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", nil)
+	request := httptest.NewRequest(fiber.MethodPost, "/user", nil)
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -103,10 +88,10 @@ func (suite *TestSuite) TestCreate409() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(nil, application.ErrUserAlreadyExists)
+	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(0), application.ErrUserAlreadyExists)
 	expectedErr := []byte(application.ErrUserAlreadyExists.Error())
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -134,7 +119,7 @@ func (suite *TestSuite) TestCreate422() {
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -154,10 +139,10 @@ func (suite *TestSuite) TestCreate500() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("SignUp", mock.Anything, mock.Anything).Return(nil, gorm.ErrInvalidField)
+	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(0), gorm.ErrInvalidField)
 	expectedErr := []byte("Error sign up user")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -169,9 +154,9 @@ func (suite *TestSuite) TestCreate500() {
 	require.Equal(expectedErr, resp)
 }
 
-func (suite *TestSuite) TestAuth200() {
+func (suite *TestSuite) TestLogin200() {
 	require := require.New(suite.T())
-	requestBody := &model.AuthRequest{
+	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
 			UID:   suite.uid,
 			Email: suite.email,
@@ -179,13 +164,11 @@ func (suite *TestSuite) TestAuth200() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Auth", mock.Anything, suite.uid, suite.email).Return(suite.token, nil)
-	expectedBody, err := json.Marshal(model.AuthResponse{
-		Token: suite.token,
-	})
+	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return(suite.token, nil)
+	expectedBody, err := json.Marshal(model.NewLoginResponse(suite.token))
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/auth", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -197,10 +180,10 @@ func (suite *TestSuite) TestAuth200() {
 	require.Equal(expectedBody, resp)
 }
 
-func (suite *TestSuite) TestAuth400() {
+func (suite *TestSuite) TestLogin400() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", nil)
+	request := httptest.NewRequest(fiber.MethodPost, "/login", nil)
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -209,9 +192,9 @@ func (suite *TestSuite) TestAuth400() {
 	require.Equal(fiber.StatusBadRequest, response.StatusCode)
 }
 
-func (suite *TestSuite) TestAuth401() {
+func (suite *TestSuite) TestLogin401() {
 	require := require.New(suite.T())
-	requestBody := &model.AuthRequest{
+	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
 			UID:   suite.uid,
 			Email: suite.email,
@@ -219,10 +202,10 @@ func (suite *TestSuite) TestAuth401() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Auth", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrRecordNotFound)
+	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrRecordNotFound)
 	expectedErr := []byte("Invalid credentials")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/auth", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -234,9 +217,9 @@ func (suite *TestSuite) TestAuth401() {
 	require.Equal(expectedErr, resp)
 }
 
-func (suite *TestSuite) TestAuth422() {
+func (suite *TestSuite) TestLogin422() {
 	require := require.New(suite.T())
-	requestBody := &model.AuthRequest{
+	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
 			UID:   "invalid",
 			Email: suite.email,
@@ -252,7 +235,7 @@ func (suite *TestSuite) TestAuth422() {
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/auth", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -264,9 +247,9 @@ func (suite *TestSuite) TestAuth422() {
 	require.Equal(expectedBody, resp)
 }
 
-func (suite *TestSuite) TestAuth500() {
+func (suite *TestSuite) TestLogin500() {
 	require := require.New(suite.T())
-	requestBody := &model.AuthRequest{
+	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
 			UID:   suite.uid,
 			Email: suite.email,
@@ -274,10 +257,10 @@ func (suite *TestSuite) TestAuth500() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Auth", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrInvalidField)
+	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrInvalidField)
 	expectedErr := []byte("Error authenticate user")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/auth", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -300,12 +283,12 @@ func (suite *TestSuite) TestNewRoute() {
 
 	route1 := routes[0]
 	require.Equal(fiber.MethodPost, route1.Method)
-	require.Equal("/user/", route1.Path)
+	require.Equal("/user", route1.Path)
 	require.Len(route1.Handlers, 1)
 
 	route2 := routes[1]
 	require.Equal(fiber.MethodPost, route2.Method)
-	require.Equal("/user/auth", route2.Path)
+	require.Equal("/login", route2.Path)
 	require.Len(route2.Handlers, 1)
 }
 

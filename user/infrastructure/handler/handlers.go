@@ -5,10 +5,8 @@ import (
 	"log"
 
 	"your-accounts-api/shared/infrastructure/db"
-	"your-accounts-api/shared/infrastructure/db/persistent"
 	"your-accounts-api/shared/infrastructure/validation"
 	"your-accounts-api/user/application"
-	"your-accounts-api/user/domain"
 	"your-accounts-api/user/infrastructure/model"
 	"your-accounts-api/user/infrastructure/repository/user"
 	"your-accounts-api/user/infrastructure/repository/user_token"
@@ -41,12 +39,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	user := domain.User{
-		UID:   request.UID,
-		Email: request.Email,
-	}
-
-	result, err := ctrl.app.SignUp(c.UserContext(), user)
+	id, err := ctrl.app.Create(c.UserContext(), request.UID, request.Email)
 	if err != nil {
 		log.Printf("Error sign up user: %v\n", err)
 		if errors.Is(err, application.ErrUserAlreadyExists) {
@@ -56,36 +49,30 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.CreateResponse{
-		ID:        result.ID,
-		UID:       result.UID,
-		Email:     result.Email,
-		CreatedAt: result.CreatedAt,
-		UpdatedAt: result.UpdatedAt,
-	})
+	return c.Status(fiber.StatusCreated).JSON(model.NewCreateResponse(id))
 }
 
-// UserAuthHandler godoc
+// UserLoginHandler godoc
 //
 //	@Summary		Authenticate user
 //	@Description	create token for access
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request		body		model.AuthRequest	true	"Authentication data"
-//	@Success		200			{object}	model.AuthResponse
-//	@Failure		400			{string}	string
-//	@Failure		401			{string}	string
-//	@Failure		422			{string}	string
-//	@Failure		500			{string}	string
-//	@Router			/user/auth	[post]
-func (ctrl *controller) auth(c *fiber.Ctx) error {
-	request := new(model.AuthRequest)
+//	@Param			request	body		model.LoginRequest	true	"Authentication data"
+//	@Success		200		{object}	model.LoginResponse
+//	@Failure		400		{string}	string
+//	@Failure		401		{string}	string
+//	@Failure		422		{string}	string
+//	@Failure		500		{string}	string
+//	@Router			/login	[post]
+func (ctrl *controller) login(c *fiber.Ctx) error {
+	request := new(model.LoginRequest)
 	if ok := validation.Validate(c, request); !ok {
 		return nil
 	}
 
-	token, err := ctrl.app.Auth(c.UserContext(), request.UID, request.Email)
+	token, err := ctrl.app.Login(c.UserContext(), request.UID, request.Email)
 	if err != nil {
 		log.Printf("Error authenticate user: %v\n", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -95,20 +82,16 @@ func (ctrl *controller) auth(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error authenticate user")
 	}
 
-	return c.JSON(model.AuthResponse{
-		Token: token,
-	})
+	return c.JSON(model.NewLoginResponse(token))
 }
 
 func NewRoute(router fiber.Router) {
-	tm := persistent.NewTransactionManager(db.DB)
 	userRepo := user.NewRepository(db.DB)
 	userTokenRepo := user_token.NewRepository(db.DB)
 	controller := &controller{
-		app: application.NewUserApp(tm, userRepo, userTokenRepo),
+		app: application.NewUserApp(db.Tm, userRepo, userTokenRepo),
 	}
 
-	group := router.Group("/user")
-	group.Post("/", controller.create)
-	group.Post("/auth", controller.auth)
+	router.Post("/user", controller.create)
+	router.Post("/login", controller.login)
 }

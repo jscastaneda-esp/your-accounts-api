@@ -16,25 +16,23 @@ type UserTokenRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, t
-func (_m *UserTokenRepository) Create(ctx context.Context, t domain.UserToken) (*domain.UserToken, error) {
-	ret := _m.Called(ctx, t)
+// Create provides a mock function with given fields: ctx, _a1
+func (_m *UserTokenRepository) Create(ctx context.Context, _a1 domain.UserToken) (uint, error) {
+	ret := _m.Called(ctx, _a1)
 
-	var r0 *domain.UserToken
+	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) (*domain.UserToken, error)); ok {
-		return rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) (uint, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) *domain.UserToken); ok {
-		r0 = rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) uint); ok {
+		r0 = rf(ctx, _a1)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.UserToken)
-		}
+		r0 = ret.Get(0).(uint)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.UserToken) error); ok {
-		r1 = rf(ctx, t)
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -68,30 +66,18 @@ func (_m *UserTokenRepository) FindByTokenAndUserId(ctx context.Context, token s
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: ctx, userToken
-func (_m *UserTokenRepository) Update(ctx context.Context, userToken domain.UserToken) (*domain.UserToken, error) {
-	ret := _m.Called(ctx, userToken)
+// Update provides a mock function with given fields: ctx, _a1
+func (_m *UserTokenRepository) Update(ctx context.Context, _a1 domain.UserToken) error {
+	ret := _m.Called(ctx, _a1)
 
-	var r0 *domain.UserToken
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) (*domain.UserToken, error)); ok {
-		return rf(ctx, userToken)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) *domain.UserToken); ok {
-		r0 = rf(ctx, userToken)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.UserToken) error); ok {
+		r0 = rf(ctx, _a1)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.UserToken)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, domain.UserToken) error); ok {
-		r1 = rf(ctx, userToken)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // WithTransaction provides a mock function with given fields: tx

@@ -101,10 +101,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(uint(999), res.ID)
-	require.Equal(userToken.Token, res.Token)
-	require.Equal(userToken.UserId, res.UserId)
-	require.Equal(userToken.ExpiresAt, res.ExpiresAt)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateError() {
@@ -125,7 +122,7 @@ func (suite *TestSuite) TestCreateError() {
 	res, err := suite.repository.Create(context.Background(), userToken)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+	require.Zero(res)
 }
 
 func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
@@ -195,11 +192,9 @@ func (suite *TestSuite) TestUpdateSuccess() {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.NoError(err)
-	require.NotNil(res)
-	require.Equal(&userTokenExpected, res)
 }
 
 func (suite *TestSuite) TestUpdateErrorFind() {
@@ -223,10 +218,9 @@ func (suite *TestSuite) TestUpdateErrorFind() {
 		WithArgs(userToken.ID).
 		WillReturnError(gorm.ErrInvalidField)
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
 }
 
 func (suite *TestSuite) TestUpdateErrorSave() {
@@ -259,10 +253,9 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
 }
 
 func TestTestSuite(t *testing.T) {
