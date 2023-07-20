@@ -8,8 +8,8 @@ import (
 
 type ReadLogsResponse struct {
 	model.IDResponse
-	Description string    `json:"description,omitempty"`
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 func NewReadLogsResponse(log *domain.ProjectLog) *ReadLogsResponse {

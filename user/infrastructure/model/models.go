@@ -3,8 +3,8 @@ package model
 import "your-accounts-api/shared/infrastructure/model"
 
 type CreateRequest struct {
-	UID   string `json:"uid,omitempty" validate:"required,min=28,max=32"`
-	Email string `json:"email,omitempty" validate:"required,email"`
+	UID   string `json:"uid" validate:"required,min=28,max=32"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type CreateResponse struct {
@@ -16,7 +16,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token,omitempty"`
+	Token string `json:"token"`
 }
 
 func NewCreateResponse(id uint) *CreateResponse {

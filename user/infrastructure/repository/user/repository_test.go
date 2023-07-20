@@ -20,11 +20,12 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uid        string
-	email      string
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.UserRepository
+	uid                string
+	email              string
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.UserRepository
+	repositoryInstance domain.UserRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -49,7 +50,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -238,6 +240,14 @@ func (suite *TestSuite) TestCreateError() {
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
+}
+
+func (suite *TestSuite) TestSingleton() {
+	require := require.New(suite.T())
+
+	repository := DefaultRepository()
+
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

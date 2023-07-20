@@ -20,12 +20,13 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	token      string
-	userId     uint
-	expiresAt  time.Time
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.UserTokenRepository
+	token              string
+	userId             uint
+	expiresAt          time.Time
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.UserTokenRepository
+	repositoryInstance domain.UserTokenRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -52,7 +53,8 @@ func (suite *TestSuite) SetupSuite() {
 	require.NoError(err)
 
 	suite.mockTX = mocksShared.NewTransaction(suite.T())
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -256,6 +258,14 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
+}
+
+func (suite *TestSuite) TestSingleton() {
+	require := require.New(suite.T())
+
+	repository := DefaultRepository()
+
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

@@ -2,13 +2,11 @@ package handler
 
 import (
 	"log"
-	"your-accounts-api/budget/infrastructure/repository/budget"
 	"your-accounts-api/project/application"
 	"your-accounts-api/project/infrastructure/model"
 	"your-accounts-api/project/infrastructure/repository/project"
 	"your-accounts-api/project/infrastructure/repository/project_log"
 	"your-accounts-api/shared/infrastructure/db"
-	"your-accounts-api/shared/infrastructure/db/persistent"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -53,13 +51,11 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	tm := persistent.NewTransactionManager(db.DB)
-	projectRepo := project.NewRepository(db.DB)
-	projectLogRepo := project_log.NewRepository(db.DB)
-	budgetRepo := budget.NewRepository(db.DB)
-	controller := &controller{
-		app: application.NewProjectApp(tm, projectRepo, projectLogRepo, budgetRepo),
-	}
+	projectRepo := project.DefaultRepository()
+	projectLogRepo := project_log.DefaultRepository()
+	app := application.NewProjectApp(db.Tm, projectRepo, projectLogRepo)
+
+	controller := &controller{app}
 
 	group := router.Group("/project")
 	group.Get("/logs/:id<min(1)>", controller.readLogs)

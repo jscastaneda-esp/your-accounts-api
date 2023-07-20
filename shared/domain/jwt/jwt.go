@@ -17,16 +17,16 @@ var (
 
 type jwtKey string
 
-type JwtCustomClaim struct {
-	ID    uint   `json:"id,omitempty"`
-	UID   string `json:"uid,omitempty"`
-	Email string `json:"email,omitempty"`
+type JwtUserClaims struct {
+	ID    uint   `json:"id"`
+	UID   string `json:"uid"`
+	Email string `json:"email"`
 	jwt.RegisteredClaims
 }
 
 func JwtGenerate(id uint, uid string, email string) (string, time.Time, error) {
 	expiresAt := time.Now().Add(24 * time.Hour)
-	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtCustomClaim{
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtUserClaims{
 		ID:    id,
 		UID:   uid,
 		Email: email,

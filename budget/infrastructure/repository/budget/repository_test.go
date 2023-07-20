@@ -20,13 +20,14 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	name       string
-	year       uint16
-	month      uint8
-	projectId  uint
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.BudgetRepository
+	name               string
+	year               uint16
+	month              uint8
+	projectId          uint
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.BudgetRepository
+	repositoryInstance domain.BudgetRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -53,7 +54,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -106,11 +108,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(uint(999), res.ID)
-	require.Equal(budget.Name, res.Name)
-	require.Equal(budget.Year, res.Year)
-	require.Equal(budget.Month, res.Month)
-	require.Equal(budget.ProjectId, res.ProjectId)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateError() {
@@ -132,7 +130,7 @@ func (suite *TestSuite) TestCreateError() {
 	res, err := suite.repository.Create(context.Background(), budget)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+	require.Zero(res)
 }
 
 func (suite *TestSuite) TestFinByIdSuccess() {
@@ -215,85 +213,58 @@ func (suite *TestSuite) TestFindByProjectIdsError() {
 	require.Empty(projects)
 }
 
-func (suite *TestSuite) TestDeleteByProjectIdSuccess() {
+func (suite *TestSuite) TestDeleteSuccess() {
 	require := require.New(suite.T())
-	budgetExpected := domain.Budget{
-		ID:        999,
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE project_id = ? ORDER BY `budgets`.`id` LIMIT 1")).
-		WithArgs(budgetExpected.ProjectId).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "total", "estimated_balance", "total_payment", "project_id"}).
-			AddRow(budgetExpected.ID, budgetExpected.CreatedAt, budgetExpected.UpdatedAt, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPendingPayment, budgetExpected.TotalAvailableBalance, budgetExpected.PendingBills, budgetExpected.TotalBalance, budgetExpected.Total, budgetExpected.EstimatedBalance, budgetExpected.TotalPayment, budgetExpected.ProjectId),
-		)
+	id := uint(999)
 	suite.mock.ExpectBegin()
 	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_available_balances` WHERE `budget_available_balances`.`budget_id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_bills` WHERE `budget_bills`.`budget_id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
 		ExpectExec(regexp.QuoteMeta("DELETE FROM `budgets` WHERE `budgets`.`id` = ?")).
-		WithArgs(budgetExpected.ID).
+		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
-	err := suite.repository.DeleteByProjectId(context.Background(), budgetExpected.ProjectId)
+	err := suite.repository.Delete(context.Background(), id)
 
 	require.NoError(err)
 }
 
-func (suite *TestSuite) TestDeleteErrorFind() {
+func (suite *TestSuite) TestDeleteErrorDelete() {
 	require := require.New(suite.T())
-	budgetExpected := domain.Budget{
-		ID:        999,
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	id := uint(999)
+	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE project_id = ? ORDER BY `budgets`.`id` LIMIT 1")).
-		WithArgs(budgetExpected.ProjectId).
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_available_balances` WHERE `budget_available_balances`.`budget_id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_bills` WHERE `budget_bills`.`budget_id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budgets` WHERE `budgets`.`id` = ?")).
+		WithArgs(id).
 		WillReturnError(gorm.ErrInvalidField)
+	suite.mock.ExpectRollback()
 
-	err := suite.repository.DeleteByProjectId(context.Background(), budgetExpected.ProjectId)
+	err := suite.repository.Delete(context.Background(), id)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 }
 
-func (suite *TestSuite) TestDeleteErrorDelete() {
+func (suite *TestSuite) TestSingleton() {
 	require := require.New(suite.T())
-	budgetExpected := domain.Budget{
-		ID:        999,
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE project_id = ? ORDER BY `budgets`.`id` LIMIT 1")).
-		WithArgs(budgetExpected.ProjectId).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "total", "estimated_balance", "total_payment", "project_id"}).
-			AddRow(budgetExpected.ID, budgetExpected.CreatedAt, budgetExpected.UpdatedAt, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPendingPayment, budgetExpected.TotalAvailableBalance, budgetExpected.PendingBills, budgetExpected.TotalBalance, budgetExpected.Total, budgetExpected.EstimatedBalance, budgetExpected.TotalPayment, budgetExpected.ProjectId),
-		)
-	suite.mock.ExpectBegin()
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("DELETE FROM `budgets` WHERE `budgets`.`id` = ?")).
-		WithArgs(budgetExpected.ID).
-		WillReturnError(gorm.ErrInvalidField)
-	suite.mock.ExpectRollback()
 
-	err := suite.repository.DeleteByProjectId(context.Background(), budgetExpected.ProjectId)
+	repository := DefaultRepository()
 
-	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

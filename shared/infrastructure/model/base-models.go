@@ -1,5 +1,5 @@
 package model
 
 type IDResponse struct {
-	ID uint `json:"id,omitempty"`
+	ID uint `json:"id"`
 }

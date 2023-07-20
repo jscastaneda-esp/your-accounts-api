@@ -5,6 +5,7 @@ import (
 	"your-accounts-api/project/domain"
 	"your-accounts-api/project/infrastructure/entity"
 	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/infrastructure/db"
 	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
 
 	"gorm.io/gorm"
@@ -15,7 +16,7 @@ type gormProjectLogRepository struct {
 }
 
 func (r *gormProjectLogRepository) WithTransaction(tx persistent.Transaction) domain.ProjectLogRepository {
-	return persistentInfra.DefaultWithTransaction[domain.ProjectLogRepository](tx, NewRepository, r)
+	return persistentInfra.DefaultWithTransaction[domain.ProjectLogRepository](tx, newRepository, r)
 }
 
 func (r *gormProjectLogRepository) Create(ctx context.Context, projectLog domain.ProjectLog) (uint, error) {
@@ -55,6 +56,16 @@ func (r *gormProjectLogRepository) FindByProjectId(ctx context.Context, projectI
 	return projects, nil
 }
 
-func NewRepository(db *gorm.DB) domain.ProjectLogRepository {
+func newRepository(db *gorm.DB) domain.ProjectLogRepository {
 	return &gormProjectLogRepository{db}
+}
+
+var instance domain.ProjectLogRepository
+
+func DefaultRepository() domain.ProjectLogRepository {
+	if instance == nil {
+		instance = newRepository(db.DB)
+	}
+
+	return instance
 }

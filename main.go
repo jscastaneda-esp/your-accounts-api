@@ -5,6 +5,7 @@ package main
 
 import (
 	"your-accounts-api/shared/infrastructure"
+	"your-accounts-api/shared/infrastructure/config"
 	"your-accounts-api/shared/infrastructure/db"
 	"your-accounts-api/shared/infrastructure/handler"
 	user "your-accounts-api/user/infrastructure/handler"
@@ -29,6 +30,8 @@ var (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 //	@BasePath		/
 func main() {
+	config.Load()
+
 	db.NewDB()
 
 	// Init server

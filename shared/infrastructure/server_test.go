@@ -4,8 +4,8 @@ import (
 	"io"
 	"log"
 	"net/http/httptest"
-	"os"
 	"testing"
+	"your-accounts-api/shared/infrastructure/config"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func (suite *TestSuite) TestListenSuccessCustomPort() {
 	require := require.New(suite.T())
 	server := NewServer(true)
 	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
-	os.Setenv("PORT", "999")
+	config.PORT = "999"
 
 	app := server.Listen()
 	response, err := app.Test(request, 1)
@@ -150,7 +150,7 @@ func (suite *TestSuite) TestListenErrorCustomRoutePanic() {
 func (suite *TestSuite) TestListenErrorPanic() {
 	require := require.New(suite.T())
 	server := NewServer(false)
-	os.Setenv("PORT", "9999999")
+	config.PORT = "9999999"
 
 	require.Panics(func() {
 		server.Listen()

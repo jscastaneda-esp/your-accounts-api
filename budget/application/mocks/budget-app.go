@@ -14,6 +14,68 @@ type IBudgetApp struct {
 	mock.Mock
 }
 
+// Clone provides a mock function with given fields: ctx, userId, baseId
+func (_m *IBudgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint, error) {
+	ret := _m.Called(ctx, userId, baseId)
+
+	var r0 uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint) (uint, error)); ok {
+		return rf(ctx, userId, baseId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint, uint) uint); ok {
+		r0 = rf(ctx, userId, baseId)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint, uint) error); ok {
+		r1 = rf(ctx, userId, baseId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Create provides a mock function with given fields: ctx, userId, name
+func (_m *IBudgetApp) Create(ctx context.Context, userId uint, name string) (uint, error) {
+	ret := _m.Called(ctx, userId, name)
+
+	var r0 uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string) (uint, error)); ok {
+		return rf(ctx, userId, name)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint, string) uint); ok {
+		r0 = rf(ctx, userId, name)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint, string) error); ok {
+		r1 = rf(ctx, userId, name)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Delete provides a mock function with given fields: ctx, id
+func (_m *IBudgetApp) Delete(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // FindById provides a mock function with given fields: ctx, id
 func (_m *IBudgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
 	ret := _m.Called(ctx, id)
@@ -33,6 +95,32 @@ func (_m *IBudgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, er
 
 	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
 		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// FindByUserId provides a mock function with given fields: ctx, userId
+func (_m *IBudgetApp) FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
+	ret := _m.Called(ctx, userId)
+
+	var r0 []*domain.Budget
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.Budget, error)); ok {
+		return rf(ctx, userId)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.Budget); ok {
+		r0 = rf(ctx, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.Budget)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, userId)
 	} else {
 		r1 = ret.Error(1)
 	}

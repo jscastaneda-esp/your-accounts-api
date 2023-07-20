@@ -80,25 +80,25 @@ func (_m *ProjectRepository) FindById(ctx context.Context, id uint) (*domain.Pro
 	return r0, r1
 }
 
-// FindByUserId provides a mock function with given fields: ctx, userId
-func (_m *ProjectRepository) FindByUserId(ctx context.Context, userId uint) ([]*domain.Project, error) {
-	ret := _m.Called(ctx, userId)
+// FindByUserIdAndType provides a mock function with given fields: ctx, userId, typeProject
+func (_m *ProjectRepository) FindByUserIdAndType(ctx context.Context, userId uint, typeProject domain.ProjectType) ([]*domain.Project, error) {
+	ret := _m.Called(ctx, userId, typeProject)
 
 	var r0 []*domain.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.Project, error)); ok {
-		return rf(ctx, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) ([]*domain.Project, error)); ok {
+		return rf(ctx, userId, typeProject)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.Project); ok {
-		r0 = rf(ctx, userId)
+	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) []*domain.Project); ok {
+		r0 = rf(ctx, userId, typeProject)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = rf(ctx, userId)
+	if rf, ok := ret.Get(1).(func(context.Context, uint, domain.ProjectType) error); ok {
+		r1 = rf(ctx, userId, typeProject)
 	} else {
 		r1 = ret.Error(1)
 	}

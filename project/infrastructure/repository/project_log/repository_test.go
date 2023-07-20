@@ -20,12 +20,13 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	description string
-	detail      string
-	projectId   uint
-	mock        sqlmock.Sqlmock
-	mockTX      *mocksShared.Transaction
-	repository  domain.ProjectLogRepository
+	description        string
+	detail             string
+	projectId          uint
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.ProjectLogRepository
+	repositoryInstance domain.ProjectLogRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -51,7 +52,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -165,6 +167,14 @@ func (suite *TestSuite) TestFindByProjectIdError() {
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Empty(projects)
+}
+
+func (suite *TestSuite) TestSingleton() {
+	require := require.New(suite.T())
+
+	repository := DefaultRepository()
+
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

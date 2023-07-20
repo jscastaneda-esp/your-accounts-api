@@ -1,4 +1,4 @@
-### Create User
+### Create
 POST http://localhost:8080/user
 Content-Type: application/json
 

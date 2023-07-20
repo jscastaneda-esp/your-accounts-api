@@ -19,6 +19,6 @@ type ProjectRepository interface {
 	persistent.TransactionRepository[ProjectRepository]
 	persistent.CreateRepository[Project]
 	persistent.ReadRepository[Project]
-	FindByUserId(ctx context.Context, userId uint) ([]*Project, error)
+	FindByUserIdAndType(ctx context.Context, userId uint, typeProject ProjectType) ([]*Project, error)
 	persistent.DeleteRepository
 }

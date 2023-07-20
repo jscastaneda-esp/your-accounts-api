@@ -16,25 +16,23 @@ type BudgetRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, t
-func (_m *BudgetRepository) Create(ctx context.Context, t domain.Budget) (*domain.Budget, error) {
-	ret := _m.Called(ctx, t)
+// Create provides a mock function with given fields: ctx, _a1
+func (_m *BudgetRepository) Create(ctx context.Context, _a1 domain.Budget) (uint, error) {
+	ret := _m.Called(ctx, _a1)
 
-	var r0 *domain.Budget
+	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) (*domain.Budget, error)); ok {
-		return rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) (uint, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) *domain.Budget); ok {
-		r0 = rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) uint); ok {
+		r0 = rf(ctx, _a1)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Budget)
-		}
+		r0 = ret.Get(0).(uint)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.Budget) error); ok {
-		r1 = rf(ctx, t)
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -42,13 +40,13 @@ func (_m *BudgetRepository) Create(ctx context.Context, t domain.Budget) (*domai
 	return r0, r1
 }
 
-// DeleteByProjectId provides a mock function with given fields: ctx, projectId
-func (_m *BudgetRepository) DeleteByProjectId(ctx context.Context, projectId uint) error {
-	ret := _m.Called(ctx, projectId)
+// Delete provides a mock function with given fields: ctx, id
+func (_m *BudgetRepository) Delete(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
-		r0 = rf(ctx, projectId)
+		r0 = rf(ctx, id)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -20,11 +20,12 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	userId     uint
-	typeBudget domain.ProjectType
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.ProjectRepository
+	userId             uint
+	typeBudget         domain.ProjectType
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.ProjectRepository
+	repositoryInstance domain.ProjectRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -49,7 +50,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -162,19 +164,19 @@ func (suite *TestSuite) TestFindByIdError() {
 	require.Nil(project)
 }
 
-func (suite *TestSuite) TestFindByUserIdSuccess() {
+func (suite *TestSuite) TestFindByUserIdAndTypeSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`user_id` = ? ORDER BY created_at desc LIMIT 10")).
-		WithArgs(suite.userId).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`user_id` = ? AND `projects`.`type` = ? ORDER BY created_at desc LIMIT 10")).
+		WithArgs(suite.userId, suite.typeBudget).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
 			AddRow(999, time.Now(), time.Now(), suite.userId, suite.typeBudget).
 			AddRow(1000, time.Now(), time.Now(), suite.userId, suite.typeBudget),
 		)
 
-	projects, err := suite.repository.FindByUserId(context.Background(), suite.userId)
+	projects, err := suite.repository.FindByUserIdAndType(context.Background(), suite.userId, suite.typeBudget)
 
 	require.NoError(err)
 	require.NotNil(projects)
@@ -191,11 +193,11 @@ func (suite *TestSuite) TestFindByUserIdError() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`user_id` = ? ORDER BY created_at desc LIMIT 10")).
-		WithArgs(suite.userId).
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`user_id` = ? AND `projects`.`type` = ? ORDER BY created_at desc LIMIT 10")).
+		WithArgs(suite.userId, suite.typeBudget).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	projects, err := suite.repository.FindByUserId(context.Background(), suite.userId)
+	projects, err := suite.repository.FindByUserIdAndType(context.Background(), suite.userId, suite.typeBudget)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Empty(projects)
@@ -203,85 +205,48 @@ func (suite *TestSuite) TestFindByUserIdError() {
 
 func (suite *TestSuite) TestDeleteSuccess() {
 	require := require.New(suite.T())
-	projectExpected := domain.Project{
-		ID:        999,
-		UserId:    suite.userId,
-		Type:      suite.typeBudget,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`id` = ? ORDER BY `projects`.`id` LIMIT 1")).
-		WithArgs(projectExpected.ID).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
-			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.UserId, projectExpected.Type),
-		)
+	id := uint(999)
 	suite.mock.ExpectBegin()
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta("DELETE FROM `project_logs` WHERE `project_logs`.`project_id` = ?")).
-		WithArgs(projectExpected.ID).
+		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta("DELETE FROM `projects` WHERE `projects`.`id` = ?")).
-		WithArgs(projectExpected.ID).
+		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
-	err := suite.repository.Delete(context.Background(), projectExpected.ID)
+	err := suite.repository.Delete(context.Background(), id)
 
 	require.NoError(err)
 }
 
-func (suite *TestSuite) TestDeleteErrorFind() {
+func (suite *TestSuite) TestDeleteErrorDelete() {
 	require := require.New(suite.T())
-	projectExpected := domain.Project{
-		ID:        999,
-		UserId:    suite.userId,
-		Type:      suite.typeBudget,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	id := uint(999)
+	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`id` = ? ORDER BY `projects`.`id` LIMIT 1")).
-		WithArgs(projectExpected.ID).
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `project_logs` WHERE `project_logs`.`project_id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `projects` WHERE `projects`.`id` = ?")).
+		WithArgs(id).
 		WillReturnError(gorm.ErrInvalidField)
+	suite.mock.ExpectRollback()
 
-	err := suite.repository.Delete(context.Background(), projectExpected.ID)
+	err := suite.repository.Delete(context.Background(), id)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 }
 
-func (suite *TestSuite) TestDeleteErrorDelete() {
+func (suite *TestSuite) TestSingleton() {
 	require := require.New(suite.T())
-	projectExpected := domain.Project{
-		ID:        999,
-		UserId:    suite.userId,
-		Type:      suite.typeBudget,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `projects` WHERE `projects`.`id` = ? ORDER BY `projects`.`id` LIMIT 1")).
-		WithArgs(projectExpected.ID).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "user_id", "type"}).
-			AddRow(projectExpected.ID, projectExpected.CreatedAt, projectExpected.UpdatedAt, projectExpected.UserId, projectExpected.Type),
-		)
-	suite.mock.ExpectBegin()
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("DELETE FROM `project_logs` WHERE `project_logs`.`project_id` = ?")).
-		WithArgs(projectExpected.ID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("DELETE FROM `projects` WHERE `projects`.`id` = ?")).
-		WithArgs(projectExpected.ID).
-		WillReturnError(gorm.ErrInvalidField)
-	suite.mock.ExpectRollback()
 
-	err := suite.repository.Delete(context.Background(), projectExpected.ID)
+	repository := DefaultRepository()
 
-	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

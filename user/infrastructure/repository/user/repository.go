@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/infrastructure/db"
 	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
 	"your-accounts-api/user/domain"
 	"your-accounts-api/user/infrastructure/entity"
@@ -15,7 +16,7 @@ type gormUserRepository struct {
 }
 
 func (r *gormUserRepository) WithTransaction(tx persistent.Transaction) domain.UserRepository {
-	return persistentInfra.DefaultWithTransaction[domain.UserRepository](tx, NewRepository, r)
+	return persistentInfra.DefaultWithTransaction[domain.UserRepository](tx, newRepository, r)
 }
 
 func (r *gormUserRepository) FindByUIDAndEmail(ctx context.Context, uid string, email string) (*domain.User, error) {
@@ -70,6 +71,16 @@ func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (uint
 	return model.ID, nil
 }
 
-func NewRepository(db *gorm.DB) domain.UserRepository {
+func newRepository(db *gorm.DB) domain.UserRepository {
 	return &gormUserRepository{db}
+}
+
+var instance domain.UserRepository
+
+func DefaultRepository() domain.UserRepository {
+	if instance == nil {
+		instance = newRepository(db.DB)
+	}
+
+	return instance
 }

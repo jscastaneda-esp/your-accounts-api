@@ -86,11 +86,11 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	userRepo := user.NewRepository(db.DB)
-	userTokenRepo := user_token.NewRepository(db.DB)
-	controller := &controller{
-		app: application.NewUserApp(db.Tm, userRepo, userTokenRepo),
-	}
+	userRepo := user.DefaultRepository()
+	userTokenRepo := user_token.DefaultRepository()
+	app := application.NewUserApp(db.Tm, userRepo, userTokenRepo)
+
+	controller := &controller{app}
 
 	router.Post("/user", controller.create)
 	router.Post("/login", controller.login)
