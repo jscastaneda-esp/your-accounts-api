@@ -20,11 +20,12 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uid        string
-	email      string
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.UserRepository
+	uid                string
+	email              string
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.UserRepository
+	repositoryInstance domain.UserRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -49,7 +50,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) SetupTest() {
@@ -217,9 +219,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(uint(999), res.ID)
-	require.Equal(user.UID, res.UID)
-	require.Equal(user.Email, res.Email)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateError() {
@@ -239,7 +239,15 @@ func (suite *TestSuite) TestCreateError() {
 	res, err := suite.repository.Create(context.Background(), user)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+	require.Zero(res)
+}
+
+func (suite *TestSuite) TestSingleton() {
+	require := require.New(suite.T())
+
+	repository := DefaultRepository()
+
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

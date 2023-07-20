@@ -47,6 +47,138 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/budget/": {
+            "get": {
+                "description": "read budgets associated to an user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Read budgets by user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ReadResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "create a new budget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Create budget",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Budget data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.CreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/budget/{id}": {
             "get": {
                 "description": "read budget by ID",
@@ -77,7 +209,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.ReadResponse"
+                            "$ref": "#/definitions/model.ReadByIDResponse"
                         }
                     },
                     "400": {
@@ -105,21 +237,16 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/api/v1/project/": {
-            "post": {
-                "description": "create a new project",
-                "consumes": [
-                    "application/json"
-                ],
+            },
+            "delete": {
+                "description": "Delete an budget by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "project"
+                    "budget"
                 ],
-                "summary": "Create project",
+                "summary": "Delete budget",
                 "parameters": [
                     {
                         "type": "string",
@@ -129,20 +256,18 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Project data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.CreateRequest"
-                        }
+                        "type": "integer",
+                        "description": "Budget ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.CreateResponse"
+                            "type": "string"
                         }
                     },
                     "400": {
@@ -159,12 +284,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
                         "schema": {
                             "type": "string"
                         }
@@ -241,37 +360,35 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/project/{id}": {
-            "delete": {
-                "description": "Delete an project by ID",
+        "/login": {
+            "post": {
+                "description": "create token for access",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "project"
+                    "user"
                 ],
-                "summary": "Delete project",
+                "summary": "Authenticate user",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
+                        "description": "Authentication data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.LoginRequest"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/model.LoginResponse"
                         }
                     },
                     "400": {
@@ -286,71 +403,8 @@ const docTemplate = `{
                             "type": "string"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/project/{user}": {
-            "get": {
-                "description": "read projects associated to an user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "project"
-                ],
-                "summary": "Read projects by user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Access token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "User ID",
-                        "name": "user",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/your-accounts-api_project_infrastructure_model.ReadResponse"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {
                             "type": "string"
                         }
@@ -421,77 +475,10 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/user/auth": {
-            "post": {
-                "description": "create token for access",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Authenticate user",
-                "parameters": [
-                    {
-                        "description": "Authentication data",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/model.AuthRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/model.AuthResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
-        "domain.ProjectType": {
-            "type": "string",
-            "enum": [
-                "budget"
-            ],
-            "x-enum-varnames": [
-                "TypeBudget"
-            ]
-        },
-        "model.AuthRequest": {
+        "model.LoginRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -502,11 +489,13 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uid": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 28
                 }
             }
         },
-        "model.AuthResponse": {
+        "model.LoginResponse": {
             "type": "object",
             "properties": {
                 "token": {
@@ -514,21 +503,7 @@ const docTemplate = `{
                 }
             }
         },
-        "model.ReadLogsResponse": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "your-accounts-api_budget_infrastructure_model.ReadResponse": {
+        "model.ReadByIDResponse": {
             "type": "object",
             "properties": {
                 "additionalIncome": {
@@ -563,7 +538,50 @@ const docTemplate = `{
                 }
             }
         },
-        "your-accounts-api_project_infrastructure_model.CreateRequest": {
+        "model.ReadLogsResponse": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ReadResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "month": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "pendingBills": {
+                    "type": "integer"
+                },
+                "totalAvailableBalance": {
+                    "type": "number"
+                },
+                "totalBalance": {
+                    "type": "number"
+                },
+                "totalPendingPayment": {
+                    "type": "number"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "your-accounts-api_budget_infrastructure_model.CreateRequest": {
             "type": "object",
             "properties": {
                 "cloneId": {
@@ -573,46 +591,14 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "maxLength": 40
-                },
-                "type": {
-                    "enum": [
-                        "budget"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/domain.ProjectType"
-                        }
-                    ]
-                },
-                "userId": {
-                    "type": "integer",
-                    "minimum": 1
                 }
             }
         },
-        "your-accounts-api_project_infrastructure_model.CreateResponse": {
+        "your-accounts-api_budget_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
                     "type": "integer"
-                }
-            }
-        },
-        "your-accounts-api_project_infrastructure_model.ReadResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {}
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "$ref": "#/definitions/domain.ProjectType"
                 }
             }
         },
@@ -627,27 +613,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "uid": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 28
                 }
             }
         },
         "your-accounts-api_user_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "integer"
-                },
-                "uid": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
                 }
             }
         }

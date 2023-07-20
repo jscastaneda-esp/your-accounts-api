@@ -20,12 +20,13 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	token      string
-	userId     uint
-	expiresAt  time.Time
-	mock       sqlmock.Sqlmock
-	mockTX     *mocksShared.Transaction
-	repository domain.UserTokenRepository
+	token              string
+	userId             uint
+	expiresAt          time.Time
+	mock               sqlmock.Sqlmock
+	mockTX             *mocksShared.Transaction
+	repository         domain.UserTokenRepository
+	repositoryInstance domain.UserTokenRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -52,7 +53,8 @@ func (suite *TestSuite) SetupSuite() {
 	require.NoError(err)
 
 	suite.mockTX = mocksShared.NewTransaction(suite.T())
-	suite.repository = NewRepository(DB)
+	suite.repository = newRepository(DB)
+	suite.repositoryInstance = DefaultRepository()
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -101,10 +103,7 @@ func (suite *TestSuite) TestCreateSuccess() {
 
 	require.NoError(err)
 	require.NotNil(res)
-	require.Equal(uint(999), res.ID)
-	require.Equal(userToken.Token, res.Token)
-	require.Equal(userToken.UserId, res.UserId)
-	require.Equal(userToken.ExpiresAt, res.ExpiresAt)
+	require.Equal(uint(999), res)
 }
 
 func (suite *TestSuite) TestCreateError() {
@@ -125,7 +124,7 @@ func (suite *TestSuite) TestCreateError() {
 	res, err := suite.repository.Create(context.Background(), userToken)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+	require.Zero(res)
 }
 
 func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
@@ -195,11 +194,9 @@ func (suite *TestSuite) TestUpdateSuccess() {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.ExpectCommit()
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.NoError(err)
-	require.NotNil(res)
-	require.Equal(&userTokenExpected, res)
 }
 
 func (suite *TestSuite) TestUpdateErrorFind() {
@@ -223,10 +220,9 @@ func (suite *TestSuite) TestUpdateErrorFind() {
 		WithArgs(userToken.ID).
 		WillReturnError(gorm.ErrInvalidField)
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
 }
 
 func (suite *TestSuite) TestUpdateErrorSave() {
@@ -259,10 +255,17 @@ func (suite *TestSuite) TestUpdateErrorSave() {
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 
-	res, err := suite.repository.Update(context.Background(), userTokenExpected)
+	err := suite.repository.Update(context.Background(), userTokenExpected)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
+}
+
+func (suite *TestSuite) TestSingleton() {
+	require := require.New(suite.T())
+
+	repository := DefaultRepository()
+
+	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

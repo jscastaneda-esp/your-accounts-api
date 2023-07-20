@@ -7,6 +7,9 @@ import (
 
 	budget "your-accounts-api/budget/infrastructure/entity"
 	project "your-accounts-api/project/infrastructure/entity"
+	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/infrastructure/config"
+	infra "your-accounts-api/shared/infrastructure/db/persistent"
 	user "your-accounts-api/user/infrastructure/entity"
 
 	"gorm.io/driver/mysql"
@@ -16,15 +19,11 @@ import (
 
 // Postgres DB
 var DB *gorm.DB
+var Tm persistent.TransactionManager
 
 func NewDB() {
 	if DB == nil {
 		log.Println("Init connection to database")
-
-		dsn := os.Getenv("DATABASE_DSN")
-		if dsn == "" {
-			log.Fatal("Environment variable DATABASE_DSN is mandatory")
-		}
 
 		var err error
 		newLogger := logger.New(
@@ -36,7 +35,7 @@ func NewDB() {
 				Colorful:                  true,
 			},
 		)
-		if DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		if DB, err = gorm.Open(mysql.Open(config.DATABASE_DSN), &gorm.Config{
 			Logger: newLogger,
 		}); err != nil {
 			log.Fatal(err)
@@ -55,5 +54,7 @@ func NewDB() {
 		); err != nil {
 			log.Fatal(err)
 		}
+
+		Tm = infra.NewTransactionManager(DB)
 	}
 }

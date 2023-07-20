@@ -29,7 +29,7 @@ type Budget struct {
 type BudgetRepository interface {
 	persistent.TransactionRepository[BudgetRepository]
 	persistent.CreateRepository[Budget]
-	persistent.ReadRepository[Budget, uint]
+	persistent.ReadRepository[Budget]
+	persistent.DeleteRepository
 	FindByProjectIds(ctx context.Context, projectIds []uint) ([]*Budget, error)
-	DeleteByProjectId(ctx context.Context, projectId uint) error
 }

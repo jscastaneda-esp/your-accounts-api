@@ -4,7 +4,6 @@ package mocks
 
 import (
 	context "context"
-	domain "your-accounts-api/user/domain"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,8 +13,32 @@ type IUserApp struct {
 	mock.Mock
 }
 
-// Auth provides a mock function with given fields: ctx, uid, email
-func (_m *IUserApp) Auth(ctx context.Context, uid string, email string) (string, error) {
+// Create provides a mock function with given fields: ctx, uid, email
+func (_m *IUserApp) Create(ctx context.Context, uid string, email string) (uint, error) {
+	ret := _m.Called(ctx, uid, email)
+
+	var r0 uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (uint, error)); ok {
+		return rf(ctx, uid, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) uint); ok {
+		r0 = rf(ctx, uid, email)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, uid, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Login provides a mock function with given fields: ctx, uid, email
+func (_m *IUserApp) Login(ctx context.Context, uid string, email string) (string, error) {
 	ret := _m.Called(ctx, uid, email)
 
 	var r0 string
@@ -31,32 +54,6 @@ func (_m *IUserApp) Auth(ctx context.Context, uid string, email string) (string,
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
 		r1 = rf(ctx, uid, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SignUp provides a mock function with given fields: ctx, user
-func (_m *IUserApp) SignUp(ctx context.Context, user domain.User) (*domain.User, error) {
-	ret := _m.Called(ctx, user)
-
-	var r0 *domain.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (*domain.User, error)); ok {
-		return rf(ctx, user)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.User) *domain.User); ok {
-		r0 = rf(ctx, user)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, domain.User) error); ok {
-		r1 = rf(ctx, user)
 	} else {
 		r1 = ret.Error(1)
 	}

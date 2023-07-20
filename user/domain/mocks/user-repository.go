@@ -16,25 +16,23 @@ type UserRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, t
-func (_m *UserRepository) Create(ctx context.Context, t domain.User) (*domain.User, error) {
-	ret := _m.Called(ctx, t)
+// Create provides a mock function with given fields: ctx, _a1
+func (_m *UserRepository) Create(ctx context.Context, _a1 domain.User) (uint, error) {
+	ret := _m.Called(ctx, _a1)
 
-	var r0 *domain.User
+	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (*domain.User, error)); ok {
-		return rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (uint, error)); ok {
+		return rf(ctx, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.User) *domain.User); ok {
-		r0 = rf(ctx, t)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) uint); ok {
+		r0 = rf(ctx, _a1)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.User)
-		}
+		r0 = ret.Get(0).(uint)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.User) error); ok {
-		r1 = rf(ctx, t)
+		r1 = rf(ctx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}

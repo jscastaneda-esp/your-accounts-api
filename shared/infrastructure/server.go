@@ -1,25 +1,21 @@
 package infrastructure
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"os"
 	"reflect"
 	"strings"
 	"time"
-	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/infrastructure/config"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-)
+	"github.com/gofiber/swagger"
 
-const (
-	defaultPort      = "8080"
-	defaultJwtSecret = "aSecret"
+	_ "your-accounts-api/docs"
 )
 
 type Route struct {
@@ -41,17 +37,6 @@ func (s *Server) AddRoute(route any) {
 
 func (s *Server) Listen() *fiber.App {
 	log.Println("Listening server")
-
-	// Environment Variables
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = defaultJwtSecret
-		os.Setenv("JWT_SECRET", jwtSecret)
-	}
 
 	app := fiber.New()
 
@@ -78,17 +63,13 @@ Response: ${%s}
 		}))
 		app.Use(recover.New())
 		app.Use(requestid.New())
-		app.Use(func(c *fiber.Ctx) error {
-			ctx := context.WithValue(c.UserContext(), jwt.CtxJWTSecret, jwtSecret)
-			c.SetUserContext(ctx)
-			return c.Next()
-		})
 	}
 
 	// Routes
 	{
 		//# Root
 		app.Get("/", healthCheck)
+		app.Get("/swagger/*", swagger.HandlerDefault)
 
 		// # Additional
 		for _, route := range s.routes {
@@ -108,12 +89,12 @@ Response: ${%s}
 	}
 
 	if s.testing {
-		log.Printf("Listen server on port %s\n", port)
+		log.Printf("Listen server on port %s\n", config.PORT)
 		return app
 	}
 
 	// Listening server
-	log.Panic(app.Listen(":" + port))
+	log.Panic(app.Listen(":" + config.PORT))
 	return nil
 }
 

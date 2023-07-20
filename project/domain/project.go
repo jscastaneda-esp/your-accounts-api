@@ -18,7 +18,7 @@ type Project struct {
 type ProjectRepository interface {
 	persistent.TransactionRepository[ProjectRepository]
 	persistent.CreateRepository[Project]
-	persistent.ReadRepository[Project, uint]
-	FindByUserId(ctx context.Context, userId uint) ([]*Project, error)
-	persistent.DeleteRepository[uint]
+	persistent.ReadRepository[Project]
+	FindByUserIdAndType(ctx context.Context, userId uint, typeProject ProjectType) ([]*Project, error)
+	persistent.DeleteRepository
 }

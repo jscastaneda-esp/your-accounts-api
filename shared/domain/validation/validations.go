@@ -13,8 +13,8 @@ type VariableTypes interface {
 }
 
 type ErrorResponse struct {
-	Field      string `json:"field,omitempty"`
-	Constraint string `json:"constraint,omitempty"`
+	Field      string `json:"field"`
+	Constraint string `json:"constraint"`
 }
 
 var validate *validator.Validate

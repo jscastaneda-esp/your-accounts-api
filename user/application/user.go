@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"your-accounts-api/shared/domain/jwt"
 	"your-accounts-api/shared/domain/persistent"
@@ -19,8 +18,8 @@ var (
 
 //go:generate mockery --name IUserApp --filename user-app.go
 type IUserApp interface {
-	SignUp(ctx context.Context, user domain.User) (*domain.User, error)
-	Auth(ctx context.Context, uid, email string) (string, error)
+	Create(ctx context.Context, uid, email string) (uint, error)
+	Login(ctx context.Context, uid, email string) (string, error)
 }
 
 type userApp struct {
@@ -29,32 +28,36 @@ type userApp struct {
 	userTokenRepo domain.UserTokenRepository
 }
 
-func (app *userApp) SignUp(ctx context.Context, user domain.User) (*domain.User, error) {
-	exists, err := app.userRepo.ExistsByUID(ctx, user.UID)
+func (app *userApp) Create(ctx context.Context, uid, email string) (uint, error) {
+	exists, err := app.userRepo.ExistsByUID(ctx, uid)
 	if err != nil {
-		return nil, err
+		return 0, err
 	} else if exists {
-		return nil, ErrUserAlreadyExists
+		return 0, ErrUserAlreadyExists
 	}
 
-	user.Email = strings.ToLower(user.Email)
-	exists, err = app.userRepo.ExistsByEmail(ctx, user.Email)
+	email = strings.ToLower(email)
+	exists, err = app.userRepo.ExistsByEmail(ctx, email)
 	if err != nil {
-		return nil, err
+		return 0, err
 	} else if exists {
-		return nil, ErrUserAlreadyExists
+		return 0, ErrUserAlreadyExists
 	}
 
+	user := domain.User{
+		UID:   uid,
+		Email: email,
+	}
 	return app.userRepo.Create(ctx, user)
 }
 
-func (app *userApp) Auth(ctx context.Context, uid, email string) (string, error) {
+func (app *userApp) Login(ctx context.Context, uid, email string) (string, error) {
 	user, err := app.userRepo.FindByUIDAndEmail(ctx, uid, strings.ToLower(email))
 	if err != nil {
 		return "", err
 	}
 
-	token, expiresAt, err := jwtGenerate(ctx, fmt.Sprint(user.ID), user.UID, strings.ToLower(user.Email))
+	token, expiresAt, err := jwtGenerate(user.ID, user.UID, strings.ToLower(user.Email))
 	if err != nil {
 		return "", err
 	}
@@ -72,6 +75,12 @@ func (app *userApp) Auth(ctx context.Context, uid, email string) (string, error)
 	return token, nil
 }
 
+var instance IUserApp
+
 func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
-	return &userApp{tm, userRepo, userTokenRepo}
+	if instance == nil {
+		instance = &userApp{tm, userRepo, userTokenRepo}
+	}
+
+	return instance
 }

@@ -1,5 +1,5 @@
-### Create User
-POST http://localhost:8080/user/
+### Create
+POST http://localhost:8080/user
 Content-Type: application/json
 
 {
@@ -7,8 +7,8 @@ Content-Type: application/json
     "email": "jcaatanedaesp@gmail.com"
 }
 
-### Auth
-POST http://localhost:8080/user/auth
+### Login
+POST http://localhost:8080/login
 Content-Type: application/json
 
 {

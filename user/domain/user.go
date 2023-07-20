@@ -18,7 +18,7 @@ type User struct {
 type UserRepository interface {
 	persistent.TransactionRepository[UserRepository]
 	persistent.CreateRepository[User]
-	FindByUIDAndEmail(ctx context.Context, uid string, email string) (*User, error)
+	FindByUIDAndEmail(ctx context.Context, uid, email string) (*User, error)
 	ExistsByUID(ctx context.Context, uid string) (bool, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 }

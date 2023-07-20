@@ -1,36 +1,23 @@
 basePath: /
 definitions:
-  domain.ProjectType:
-    enum:
-    - budget
-    type: string
-    x-enum-varnames:
-    - TypeBudget
-  model.AuthRequest:
+  model.LoginRequest:
     properties:
       email:
         type: string
       uid:
+        maxLength: 32
+        minLength: 28
         type: string
     required:
     - email
     - uid
     type: object
-  model.AuthResponse:
+  model.LoginResponse:
     properties:
       token:
         type: string
     type: object
-  model.ReadLogsResponse:
-    properties:
-      createdAt:
-        type: string
-      description:
-        type: string
-      id:
-        type: integer
-    type: object
-  your-accounts-api_budget_infrastructure_model.ReadResponse:
+  model.ReadByIDResponse:
     properties:
       additionalIncome:
         type: number
@@ -53,7 +40,35 @@ definitions:
       year:
         type: integer
     type: object
-  your-accounts-api_project_infrastructure_model.CreateRequest:
+  model.ReadLogsResponse:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+    type: object
+  model.ReadResponse:
+    properties:
+      id:
+        type: integer
+      month:
+        type: integer
+      name:
+        type: string
+      pendingBills:
+        type: integer
+      totalAvailableBalance:
+        type: number
+      totalBalance:
+        type: number
+      totalPendingPayment:
+        type: number
+      year:
+        type: integer
+    type: object
+  your-accounts-api_budget_infrastructure_model.CreateRequest:
     properties:
       cloneId:
         minimum: 1
@@ -61,37 +76,19 @@ definitions:
       name:
         maxLength: 40
         type: string
-      type:
-        allOf:
-        - $ref: '#/definitions/domain.ProjectType'
-        enum:
-        - budget
-      userId:
-        minimum: 1
-        type: integer
     type: object
-  your-accounts-api_project_infrastructure_model.CreateResponse:
+  your-accounts-api_budget_infrastructure_model.CreateResponse:
     properties:
       id:
         type: integer
-    type: object
-  your-accounts-api_project_infrastructure_model.ReadResponse:
-    properties:
-      data:
-        additionalProperties: {}
-        type: object
-      id:
-        type: integer
-      name:
-        type: string
-      type:
-        $ref: '#/definitions/domain.ProjectType'
     type: object
   your-accounts-api_user_infrastructure_model.CreateRequest:
     properties:
       email:
         type: string
       uid:
+        maxLength: 32
+        minLength: 28
         type: string
     required:
     - email
@@ -99,16 +96,8 @@ definitions:
     type: object
   your-accounts-api_user_infrastructure_model.CreateResponse:
     properties:
-      createdAt:
-        type: string
-      email:
-        type: string
       id:
         type: integer
-      uid:
-        type: string
-      updatedAt:
-        type: string
     type: object
 info:
   contact:
@@ -137,18 +126,18 @@ paths:
       summary: Show the status of server
       tags:
       - main
-  /api/v1/budget/{id}:
+  /api/v1/budget/:
     get:
-      description: read budget by ID
+      description: read budgets associated to an user
       parameters:
       - description: Access token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Budget ID
+      - description: User ID
         in: path
-        name: id
+        name: user
         required: true
         type: integer
       produces:
@@ -157,7 +146,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/your-accounts-api_budget_infrastructure_model.ReadResponse'
+            items:
+              $ref: '#/definitions/model.ReadResponse'
+            type: array
         "400":
           description: Bad Request
           schema:
@@ -174,33 +165,32 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Read budget by ID
+      summary: Read budgets by user
       tags:
       - budget
-  /api/v1/project/:
     post:
       consumes:
       - application/json
-      description: create a new project
+      description: create a new budget
       parameters:
       - description: Access token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Project data
+      - description: Budget data
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/your-accounts-api_project_infrastructure_model.CreateRequest'
+          $ref: '#/definitions/your-accounts-api_budget_infrastructure_model.CreateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/your-accounts-api_project_infrastructure_model.CreateResponse'
+            $ref: '#/definitions/your-accounts-api_budget_infrastructure_model.CreateResponse'
         "400":
           description: Bad Request
           schema:
@@ -221,19 +211,19 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Create project
+      summary: Create budget
       tags:
-      - project
-  /api/v1/project/{id}:
+      - budget
+  /api/v1/budget/{id}:
     delete:
-      description: Delete an project by ID
+      description: Delete an budget by ID
       parameters:
       - description: Access token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Project ID
+      - description: Budget ID
         in: path
         name: id
         required: true
@@ -261,21 +251,20 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Delete project
+      summary: Delete budget
       tags:
-      - project
-  /api/v1/project/{user}:
+      - budget
     get:
-      description: read projects associated to an user
+      description: read budget by ID
       parameters:
       - description: Access token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: User ID
+      - description: Budget ID
         in: path
-        name: user
+        name: id
         required: true
         type: integer
       produces:
@@ -284,9 +273,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/your-accounts-api_project_infrastructure_model.ReadResponse'
-            type: array
+            $ref: '#/definitions/model.ReadByIDResponse'
         "400":
           description: Bad Request
           schema:
@@ -303,9 +290,9 @@ paths:
           description: Internal Server Error
           schema:
             type: string
-      summary: Read projects by user
+      summary: Read budget by ID
       tags:
-      - project
+      - budget
   /api/v1/project/logs/{id}:
     get:
       description: read logs associated to a project
@@ -348,6 +335,44 @@ paths:
       summary: Read logs by project
       tags:
       - project
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: create token for access
+      parameters:
+      - description: Authentication data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Authenticate user
+      tags:
+      - user
   /user:
     post:
       consumes:
@@ -384,44 +409,6 @@ paths:
           schema:
             type: string
       summary: Create user
-      tags:
-      - user
-  /user/auth:
-    post:
-      consumes:
-      - application/json
-      description: create token for access
-      parameters:
-      - description: Authentication data
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/model.AuthRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/model.AuthResponse'
-        "400":
-          description: Bad Request
-          schema:
-            type: string
-        "401":
-          description: Unauthorized
-          schema:
-            type: string
-        "422":
-          description: Unprocessable Entity
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-          schema:
-            type: string
-      summary: Authenticate user
       tags:
       - user
 swagger: "2.0"

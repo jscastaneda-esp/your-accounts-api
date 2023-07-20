@@ -1,33 +1,34 @@
 package model
 
-import "time"
+import "your-accounts-api/shared/infrastructure/model"
 
 type CreateRequest struct {
-	UID   string `json:"uid,omitempty" validate:"required,len=32"`
-	Email string `json:"email,omitempty" validate:"required,email"`
+	UID   string `json:"uid" validate:"required,min=28,max=32"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type CreateResponse struct {
-	ID        uint      `json:"id,omitempty"`
-	UID       string    `json:"uid,omitempty"`
-	Email     string    `json:"email,omitempty"`
-	CreatedAt time.Time `json:"createdAt,omitempty"`
-	UpdatedAt time.Time `json:"updatedAt,omitempty"`
+	model.IDResponse
 }
 
-type AuthRequest struct {
+type LoginRequest struct {
 	CreateRequest
 }
 
-type AuthResponse struct {
-	Token string `json:"token,omitempty"`
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
-type RefreshTokenRequest struct {
-	CreateRequest
-	Token string `json:"token,omitempty" validate:"required"`
+func NewCreateResponse(id uint) *CreateResponse {
+	return &CreateResponse{
+		model.IDResponse{
+			ID: id,
+		},
+	}
 }
 
-type RefreshTokenResponse struct {
-	AuthResponse
+func NewLoginResponse(token string) *LoginResponse {
+	return &LoginResponse{
+		Token: token,
+	}
 }
