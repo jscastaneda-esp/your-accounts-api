@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 	"time"
-	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 	"your-accounts-api/shared/domain/test_utils"
 	"your-accounts-api/user/domain"
 
@@ -20,12 +20,11 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uid                string
-	email              string
-	mock               sqlmock.Sqlmock
-	mockTX             *mocksShared.Transaction
-	repository         domain.UserRepository
-	repositoryInstance domain.UserRepository
+	uid        string
+	email      string
+	mock       sqlmock.Sqlmock
+	mockTX     *mocks_shared.Transaction
+	repository domain.UserRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -50,12 +49,11 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.repository = newRepository(DB)
-	suite.repositoryInstance = DefaultRepository()
+	suite.repository = NewRepository(DB)
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTX = mocksShared.NewTransaction(suite.T())
+	suite.mockTX = mocks_shared.NewTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -65,7 +63,7 @@ func (suite *TestSuite) TearDownTest() {
 func (suite *TestSuite) TestWithTransactionSuccessNew() {
 	require := require.New(suite.T())
 
-	suite.mockTX.On("Get").Return(&gorm.DB{})
+	suite.mockTX.On("Get").Return(new(gorm.DB))
 
 	repo := suite.repository.WithTransaction(suite.mockTX)
 
@@ -76,7 +74,7 @@ func (suite *TestSuite) TestWithTransactionSuccessNew() {
 func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require := require.New(suite.T())
 
-	suite.mockTX.On("Get").Return(&sql.DB{})
+	suite.mockTX.On("Get").Return(new(sql.DB))
 
 	repo := suite.repository.WithTransaction(suite.mockTX)
 
@@ -240,14 +238,6 @@ func (suite *TestSuite) TestCreateError() {
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
-}
-
-func (suite *TestSuite) TestSingleton() {
-	require := require.New(suite.T())
-
-	repository := DefaultRepository()
-
-	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

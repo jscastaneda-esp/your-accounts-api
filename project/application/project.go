@@ -41,7 +41,7 @@ func (app *projectApp) FindByUserIdAndType(ctx context.Context, userId uint, typ
 		return nil, err
 	}
 
-	response := []uint{}
+	response := make([]uint, 0)
 	for _, project := range projects {
 		response = append(response, project.ID)
 	}
@@ -78,12 +78,6 @@ func (app *projectApp) FindLogsByProject(ctx context.Context, projectId uint) ([
 	return logs, nil
 }
 
-var instance IProjectApp
-
 func NewProjectApp(tm persistent.TransactionManager, projectRepo domain.ProjectRepository, projectLogRepo domain.ProjectLogRepository) IProjectApp {
-	if instance == nil {
-		instance = &projectApp{tm, projectRepo, projectLogRepo}
-	}
-
-	return instance
+	return &projectApp{tm, projectRepo, projectLogRepo}
 }

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"your-accounts-api/project/domain"
 	"your-accounts-api/project/domain/mocks"
-	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -20,8 +20,8 @@ type TestSuite struct {
 	userId                 uint
 	typeBudget             domain.ProjectType
 	cloneId                uint
-	mockTransactionManager *mocksShared.TransactionManager
-	mockTx                 *mocksShared.Transaction
+	mockTransactionManager *mocks_shared.TransactionManager
+	mockTx                 *mocks_shared.Transaction
 	mockProjectRepo        *mocks.ProjectRepository
 	mockProjectLogRepo     *mocks.ProjectLogRepository
 	app                    IProjectApp
@@ -37,11 +37,10 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTransactionManager = mocksShared.NewTransactionManager(suite.T())
-	suite.mockTx = mocksShared.NewTransaction(suite.T())
+	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
+	suite.mockTx = mocks_shared.NewTransaction(suite.T())
 	suite.mockProjectRepo = mocks.NewProjectRepository(suite.T())
 	suite.mockProjectLogRepo = mocks.NewProjectLogRepository(suite.T())
-	instance = nil
 	suite.app = NewProjectApp(suite.mockTransactionManager, suite.mockProjectRepo, suite.mockProjectLogRepo)
 }
 

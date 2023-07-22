@@ -34,7 +34,7 @@ type gormTransactionManager struct {
 
 func (tm *gormTransactionManager) Transaction(fc func(tx persistent.Transaction) error) error {
 	return tm.db.Transaction(func(db *gorm.DB) error {
-		tx := &gormTransaction{}
+		tx := new(gormTransaction)
 		tx.Set(db)
 		return fc(tx)
 	})

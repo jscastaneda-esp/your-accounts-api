@@ -3,23 +3,22 @@ package user
 import (
 	"context"
 	"your-accounts-api/shared/domain/persistent"
-	"your-accounts-api/shared/infrastructure/db"
-	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
+	persistent_infra "your-accounts-api/shared/infrastructure/db/persistent"
 	"your-accounts-api/user/domain"
 	"your-accounts-api/user/infrastructure/entity"
 
 	"gorm.io/gorm"
 )
 
-type gormUserRepository struct {
+type gormRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormUserRepository) WithTransaction(tx persistent.Transaction) domain.UserRepository {
-	return persistentInfra.DefaultWithTransaction[domain.UserRepository](tx, newRepository, r)
+func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.UserRepository {
+	return persistent_infra.DefaultWithTransaction[domain.UserRepository](tx, NewRepository, r)
 }
 
-func (r *gormUserRepository) FindByUIDAndEmail(ctx context.Context, uid string, email string) (*domain.User, error) {
+func (r *gormRepository) FindByUIDAndEmail(ctx context.Context, uid string, email string) (*domain.User, error) {
 	where := &entity.User{
 		UID:   uid,
 		Email: email,
@@ -38,7 +37,7 @@ func (r *gormUserRepository) FindByUIDAndEmail(ctx context.Context, uid string, 
 	}, nil
 }
 
-func (r *gormUserRepository) ExistsByUID(ctx context.Context, uid string) (bool, error) {
+func (r *gormRepository) ExistsByUID(ctx context.Context, uid string) (bool, error) {
 	var count int
 	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE uid = ?", uid).Scan(&count).Error
 	if err != nil {
@@ -48,7 +47,7 @@ func (r *gormUserRepository) ExistsByUID(ctx context.Context, uid string) (bool,
 	return count > 0, nil
 }
 
-func (r *gormUserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+func (r *gormRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var count int
 	err := r.db.Raw("SELECT COUNT(1) FROM users WHERE email = ?", email).Scan(&count).Error
 	if err != nil {
@@ -58,7 +57,7 @@ func (r *gormUserRepository) ExistsByEmail(ctx context.Context, email string) (b
 	return count > 0, nil
 }
 
-func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (uint, error) {
+func (r *gormRepository) Create(ctx context.Context, user domain.User) (uint, error) {
 	model := &entity.User{
 		UID:   user.UID,
 		Email: user.Email,
@@ -71,16 +70,6 @@ func (r *gormUserRepository) Create(ctx context.Context, user domain.User) (uint
 	return model.ID, nil
 }
 
-func newRepository(db *gorm.DB) domain.UserRepository {
-	return &gormUserRepository{db}
-}
-
-var instance domain.UserRepository
-
-func DefaultRepository() domain.UserRepository {
-	if instance == nil {
-		instance = newRepository(db.DB)
-	}
-
-	return instance
+func NewRepository(db *gorm.DB) domain.UserRepository {
+	return &gormRepository{db}
 }

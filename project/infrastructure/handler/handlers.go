@@ -4,9 +4,7 @@ import (
 	"log"
 	"your-accounts-api/project/application"
 	"your-accounts-api/project/infrastructure/model"
-	"your-accounts-api/project/infrastructure/repository/project"
-	"your-accounts-api/project/infrastructure/repository/project_log"
-	"your-accounts-api/shared/infrastructure/db"
+	"your-accounts-api/shared/infrastructure/injection"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -42,7 +40,7 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by project")
 	}
 
-	response := []*model.ReadLogsResponse{}
+	response := make([]*model.ReadLogsResponse, 0)
 	for _, log := range logs {
 		response = append(response, model.NewReadLogsResponse(log))
 	}
@@ -51,11 +49,7 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	projectRepo := project.DefaultRepository()
-	projectLogRepo := project_log.DefaultRepository()
-	app := application.NewProjectApp(db.Tm, projectRepo, projectLogRepo)
-
-	controller := &controller{app}
+	controller := &controller{injection.ProjectApp}
 
 	group := router.Group("/project")
 	group.Get("/logs/:id<min(1)>", controller.readLogs)

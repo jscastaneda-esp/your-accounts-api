@@ -5,23 +5,22 @@ import (
 	"your-accounts-api/budget/domain"
 	"your-accounts-api/budget/infrastructure/entity"
 	"your-accounts-api/shared/domain/persistent"
-	"your-accounts-api/shared/infrastructure/db"
-	sharedEnt "your-accounts-api/shared/infrastructure/db/entity"
-	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
+	shared_ent "your-accounts-api/shared/infrastructure/db/entity"
+	persistent_infra "your-accounts-api/shared/infrastructure/db/persistent"
 
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-type gormBudgetRepository struct {
+type gormRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormBudgetRepository) WithTransaction(tx persistent.Transaction) domain.BudgetRepository {
-	return persistentInfra.DefaultWithTransaction[domain.BudgetRepository](tx, newRepository, r)
+func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.BudgetRepository {
+	return persistent_infra.DefaultWithTransaction[domain.BudgetRepository](tx, NewRepository, r)
 }
 
-func (r *gormBudgetRepository) Create(ctx context.Context, budget domain.Budget) (uint, error) {
+func (r *gormRepository) Create(ctx context.Context, budget domain.Budget) (uint, error) {
 	model := &entity.Budget{
 		Name:                  budget.Name,
 		Year:                  budget.Year,
@@ -45,7 +44,7 @@ func (r *gormBudgetRepository) Create(ctx context.Context, budget domain.Budget)
 	return model.ID, nil
 }
 
-func (r *gormBudgetRepository) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
+func (r *gormRepository) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
 	model := new(entity.Budget)
 	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
 		return nil, err
@@ -71,7 +70,7 @@ func (r *gormBudgetRepository) FindById(ctx context.Context, id uint) (*domain.B
 	}, nil
 }
 
-func (r *gormBudgetRepository) FindByProjectIds(ctx context.Context, projectIds []uint) ([]*domain.Budget, error) {
+func (r *gormRepository) FindByProjectIds(ctx context.Context, projectIds []uint) ([]*domain.Budget, error) {
 	var models []entity.Budget
 	if err := r.db.WithContext(ctx).Where("project_id IN ?", projectIds).Find(&models).Error; err != nil {
 		return nil, err
@@ -102,9 +101,9 @@ func (r *gormBudgetRepository) FindByProjectIds(ctx context.Context, projectIds 
 	return budgets, nil
 }
 
-func (r *gormBudgetRepository) Delete(ctx context.Context, id uint) error {
+func (r *gormRepository) Delete(ctx context.Context, id uint) error {
 	if err := r.db.WithContext(ctx).Select(clause.Associations).Delete(&entity.Budget{
-		BaseModel: sharedEnt.BaseModel{
+		BaseModel: shared_ent.BaseModel{
 			ID: id,
 		},
 	}).Error; err != nil {
@@ -114,16 +113,6 @@ func (r *gormBudgetRepository) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func newRepository(db *gorm.DB) domain.BudgetRepository {
-	return &gormBudgetRepository{db}
-}
-
-var instance domain.BudgetRepository
-
-func DefaultRepository() domain.BudgetRepository {
-	if instance == nil {
-		instance = newRepository(db.DB)
-	}
-
-	return instance
+func NewRepository(db *gorm.DB) domain.BudgetRepository {
+	return &gormRepository{db}
 }

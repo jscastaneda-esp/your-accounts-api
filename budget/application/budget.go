@@ -6,7 +6,7 @@ import (
 	"time"
 	"your-accounts-api/budget/domain"
 	"your-accounts-api/project/application"
-	projectDom "your-accounts-api/project/domain"
+	project_dom "your-accounts-api/project/domain"
 	"your-accounts-api/shared/domain/persistent"
 )
 
@@ -28,7 +28,7 @@ type budgetApp struct {
 func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uint, error) {
 	var id uint
 	err := app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectId, err := app.projectApp.Create(ctx, userId, projectDom.TypeBudget, tx)
+		projectId, err := app.projectApp.Create(ctx, userId, project_dom.TypeBudget, tx)
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 
 	var id uint
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectId, err := app.projectApp.Create(ctx, userId, projectDom.TypeBudget, tx)
+		projectId, err := app.projectApp.Create(ctx, userId, project_dom.TypeBudget, tx)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func (app *budgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, er
 }
 
 func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
-	projectIds, err := app.projectApp.FindByUserIdAndType(ctx, userId, projectDom.TypeBudget)
+	projectIds, err := app.projectApp.FindByUserIdAndType(ctx, userId, project_dom.TypeBudget)
 	if err != nil {
 		return nil, err
 	}
@@ -146,12 +146,6 @@ func (app *budgetApp) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-var instance IBudgetApp
-
 func NewBudgetApp(tm persistent.TransactionManager, budgetRepo domain.BudgetRepository, projectApp application.IProjectApp) IBudgetApp {
-	if instance == nil {
-		instance = &budgetApp{tm, budgetRepo, projectApp}
-	}
-
-	return instance
+	return &budgetApp{tm, budgetRepo, projectApp}
 }

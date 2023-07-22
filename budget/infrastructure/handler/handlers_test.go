@@ -15,7 +15,7 @@ import (
 	"your-accounts-api/shared/domain/validation"
 
 	"github.com/gofiber/fiber/v2"
-	goJwt "github.com/golang-jwt/jwt/v5"
+	go_jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -47,7 +47,7 @@ func (suite *TestSuite) SetupTest() {
 		app: suite.mock,
 	}
 
-	token := &goJwt.Token{
+	token := &go_jwt.Token{
 		Claims: &jwt.JwtUserClaims{
 			ID: 1,
 		},
@@ -106,11 +106,12 @@ func (suite *TestSuite) TestCreate422() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	validationErrors := []*validation.ErrorResponse{}
-	validationErrors = append(validationErrors, &validation.ErrorResponse{
-		Field:      "name",
-		Constraint: "max=40",
-	})
+	validationErrors := []*validation.ErrorResponse{
+		{
+			Field:      "name",
+			Constraint: "max=40",
+		},
+	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
@@ -340,7 +341,7 @@ func (suite *TestSuite) TestNewRoute() {
 	NewRoute(app)
 
 	routes := app.GetRoutes()
-	require.Len(routes, 6)
+	require.Len(routes, 7)
 
 	route1 := routes[0]
 	require.Equal(fiber.MethodGet, route1.Method)
@@ -368,9 +369,14 @@ func (suite *TestSuite) TestNewRoute() {
 	require.Len(route5.Handlers, 1)
 
 	route6 := routes[5]
-	require.Equal(fiber.MethodDelete, route6.Method)
-	require.Equal("/budget/:id<min(1)>", route6.Path)
+	require.Equal(fiber.MethodPost, route6.Method)
+	require.Equal("/budget/available/", route6.Path)
 	require.Len(route6.Handlers, 1)
+
+	route7 := routes[6]
+	require.Equal(fiber.MethodDelete, route7.Method)
+	require.Equal("/budget/:id<min(1)>", route7.Path)
+	require.Len(route7.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

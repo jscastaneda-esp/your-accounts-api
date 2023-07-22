@@ -55,7 +55,7 @@ func (suite *TestSuite) TearDownTest() {
 
 func (suite *TestSuite) TestSetSuccess() {
 	require := require.New(suite.T())
-	tx := &gormTransaction{}
+	tx := new(gormTransaction)
 
 	err := tx.Set(suite.db)
 
@@ -64,16 +64,16 @@ func (suite *TestSuite) TestSetSuccess() {
 
 func (suite *TestSuite) TestSetError() {
 	require := require.New(suite.T())
-	tx := &gormTransaction{}
+	tx := new(gormTransaction)
 
-	err := tx.Set(&sql.DB{})
+	err := tx.Set(new(sql.DB))
 
 	require.EqualError(ErrInvalidTX, err.Error())
 }
 
 func (suite *TestSuite) TestGetSuccess() {
 	require := require.New(suite.T())
-	tx := &gormTransaction{}
+	tx := new(gormTransaction)
 	tx.Set(suite.db)
 
 	db := tx.Get()

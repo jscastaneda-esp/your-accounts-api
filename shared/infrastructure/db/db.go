@@ -42,15 +42,15 @@ func NewDB() {
 		}
 
 		if err = DB.AutoMigrate(
-			&user.User{},
-			&user.UserToken{},
-			&project.Project{},
-			&project.ProjectLog{},
-			&budget.Budget{},
-			&budget.BudgetAvailableBalance{},
-			&budget.BudgetBill{},
-			&budget.BudgetBillTransaction{},
-			&budget.BudgetBillShared{},
+			new(user.User),
+			new(user.UserToken),
+			new(project.Project),
+			new(project.ProjectLog),
+			new(budget.Budget),
+			new(budget.BudgetAvailableBalance),
+			new(budget.BudgetBill),
+			new(budget.BudgetBillTransaction),
+			new(budget.BudgetBillShared),
 		); err != nil {
 			log.Fatal(err)
 		}

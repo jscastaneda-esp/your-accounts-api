@@ -8,6 +8,7 @@ import (
 	"your-accounts-api/shared/infrastructure/config"
 	"your-accounts-api/shared/infrastructure/db"
 	"your-accounts-api/shared/infrastructure/handler"
+	"your-accounts-api/shared/infrastructure/injection"
 	user "your-accounts-api/user/infrastructure/handler"
 )
 
@@ -30,9 +31,9 @@ var (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 //	@BasePath		/
 func main() {
-	config.Load()
-
+	config.LoadVariables()
 	db.NewDB()
+	injection.LoadInstances()
 
 	// Init server
 	server := infrastructure.NewServer(false)

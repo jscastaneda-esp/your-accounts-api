@@ -75,12 +75,6 @@ func (app *userApp) Login(ctx context.Context, uid, email string) (string, error
 	return token, nil
 }
 
-var instance IUserApp
-
 func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
-	if instance == nil {
-		instance = &userApp{tm, userRepo, userTokenRepo}
-	}
-
-	return instance
+	return &userApp{tm, userRepo, userTokenRepo}
 }

@@ -3,23 +3,22 @@ package user_token
 import (
 	"context"
 	"your-accounts-api/shared/domain/persistent"
-	"your-accounts-api/shared/infrastructure/db"
-	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
+	persistent_infra "your-accounts-api/shared/infrastructure/db/persistent"
 	"your-accounts-api/user/domain"
 	"your-accounts-api/user/infrastructure/entity"
 
 	"gorm.io/gorm"
 )
 
-type gormUserTokenRepository struct {
+type gormRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormUserTokenRepository) WithTransaction(tx persistent.Transaction) domain.UserTokenRepository {
-	return persistentInfra.DefaultWithTransaction[domain.UserTokenRepository](tx, newRepository, r)
+func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.UserTokenRepository {
+	return persistent_infra.DefaultWithTransaction[domain.UserTokenRepository](tx, NewRepository, r)
 }
 
-func (r *gormUserTokenRepository) Create(ctx context.Context, userToken domain.UserToken) (uint, error) {
+func (r *gormRepository) Create(ctx context.Context, userToken domain.UserToken) (uint, error) {
 	model := &entity.UserToken{
 		Token:     userToken.Token,
 		UserId:    userToken.UserId,
@@ -33,7 +32,7 @@ func (r *gormUserTokenRepository) Create(ctx context.Context, userToken domain.U
 	return model.ID, nil
 }
 
-func (r *gormUserTokenRepository) FindByTokenAndUserId(ctx context.Context, token string, userId uint) (*domain.UserToken, error) {
+func (r *gormRepository) FindByTokenAndUserId(ctx context.Context, token string, userId uint) (*domain.UserToken, error) {
 	where := &entity.UserToken{
 		Token:  token,
 		UserId: userId,
@@ -52,7 +51,7 @@ func (r *gormUserTokenRepository) FindByTokenAndUserId(ctx context.Context, toke
 	}, nil
 }
 
-func (r *gormUserTokenRepository) Update(ctx context.Context, userToken domain.UserToken) error {
+func (r *gormRepository) Update(ctx context.Context, userToken domain.UserToken) error {
 	model := new(entity.UserToken)
 	if err := r.db.WithContext(ctx).First(model, userToken.ID).Error; err != nil {
 		return err
@@ -68,16 +67,6 @@ func (r *gormUserTokenRepository) Update(ctx context.Context, userToken domain.U
 	return nil
 }
 
-func newRepository(db *gorm.DB) domain.UserTokenRepository {
-	return &gormUserTokenRepository{db}
-}
-
-var instance domain.UserTokenRepository
-
-func DefaultRepository() domain.UserTokenRepository {
-	if instance == nil {
-		instance = newRepository(db.DB)
-	}
-
-	return instance
+func NewRepository(db *gorm.DB) domain.UserTokenRepository {
+	return &gormRepository{db}
 }

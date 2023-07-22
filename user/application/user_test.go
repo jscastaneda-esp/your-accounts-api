@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 	"your-accounts-api/shared/domain/jwt"
-	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 	"your-accounts-api/user/domain"
 	"your-accounts-api/user/domain/mocks"
 
@@ -20,7 +20,7 @@ type TestSuite struct {
 	uid                    string
 	email                  string
 	token                  string
-	mockTransactionManager *mocksShared.TransactionManager
+	mockTransactionManager *mocks_shared.TransactionManager
 	mockUserRepo           *mocks.UserRepository
 	mockUserTokenRepo      *mocks.UserTokenRepository
 	app                    IUserApp
@@ -38,10 +38,9 @@ func (suite *TestSuite) SetupSuite() {
 
 func (suite *TestSuite) SetupTest() {
 	jwtGenerate = suite.originalJwtGenerate
-	suite.mockTransactionManager = mocksShared.NewTransactionManager(suite.T())
+	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
 	suite.mockUserRepo = mocks.NewUserRepository(suite.T())
 	suite.mockUserTokenRepo = mocks.NewUserTokenRepository(suite.T())
-	instance = nil
 	suite.app = NewUserApp(suite.mockTransactionManager, suite.mockUserRepo, suite.mockUserTokenRepo)
 }
 

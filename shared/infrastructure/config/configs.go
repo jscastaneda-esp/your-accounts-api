@@ -18,7 +18,7 @@ var (
 	JWT_SECRET   string
 )
 
-func Load() {
+func LoadVariables() {
 	log.SetFlags(log.Llongfile + log.LstdFlags)
 	if _, err := os.Stat(".env"); err == nil {
 		log.Println("Load .env file")

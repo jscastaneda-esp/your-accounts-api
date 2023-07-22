@@ -1,9 +1,11 @@
 package infrastructure
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"reflect"
+	"runtime"
 	"strings"
 	"time"
 	"your-accounts-api/shared/infrastructure/config"
@@ -38,7 +40,27 @@ func (s *Server) AddRoute(route any) {
 func (s *Server) Listen() *fiber.App {
 	log.Println("Listening server")
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			} else {
+				switch err.(type) {
+				case runtime.Error:
+					err = errors.New("internal server error")
+				}
+			}
+
+			// Set Content-Type: text/plain; charset=utf-8
+			c.Set(fiber.HeaderContentType, fiber.MIMETextPlainCharsetUTF8)
+
+			// Return status code with error message
+			return c.Status(code).SendString(err.Error())
+		},
+	})
 
 	// Middleware
 	{
@@ -61,7 +83,9 @@ Response: ${%s}
 			Max:        10,
 			Expiration: 1 * time.Minute,
 		}))
-		app.Use(recover.New())
+		app.Use(recover.New(recover.Config{
+			EnableStackTrace: true,
+		}))
 		app.Use(requestid.New())
 	}
 
@@ -114,6 +138,6 @@ func healthCheck(c *fiber.Ctx) error {
 func NewServer(testing bool) *Server {
 	return &Server{
 		testing: testing,
-		routes:  []any{},
+		routes:  make([]any, 0),
 	}
 }
