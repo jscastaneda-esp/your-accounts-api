@@ -30,17 +30,17 @@ func (app *budgetAvailableBalanceApp) Create(ctx context.Context, name string, b
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
 		var err error
 		description := fmt.Sprintf("Se crea el disponible %s", name)
-		err = app.projectApp.CreateLog(ctx, description, budget.ProjectId, nil, tx)
+		err = app.projectApp.CreateLog(ctx, description, *budget.ProjectId, nil, tx)
 		if err != nil {
 			return err
 		}
 
 		newAvailable := domain.BudgetAvailableBalance{
-			Name:     name,
-			BudgetId: budgetId,
+			Name:     &name,
+			BudgetId: &budgetId,
 		}
 		budgetAvailableBalanceRepo := app.budgetAvailableBalanceRepo.WithTransaction(tx)
-		id, err = budgetAvailableBalanceRepo.Create(ctx, newAvailable)
+		id, err = budgetAvailableBalanceRepo.Save(ctx, newAvailable)
 		if err != nil {
 			return err
 		}

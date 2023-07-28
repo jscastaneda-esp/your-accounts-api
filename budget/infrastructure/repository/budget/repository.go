@@ -20,81 +20,102 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.Budge
 	return persistent_infra.DefaultWithTransaction[domain.BudgetRepository](tx, NewRepository, r)
 }
 
-func (r *gormRepository) Create(ctx context.Context, budget domain.Budget) (uint, error) {
-	model := &entity.Budget{
-		Name:                  budget.Name,
-		Year:                  budget.Year,
-		Month:                 budget.Month,
-		FixedIncome:           budget.FixedIncome,
-		AdditionalIncome:      budget.AdditionalIncome,
-		TotalPendingPayment:   budget.TotalPendingPayment,
-		TotalAvailableBalance: budget.TotalAvailableBalance,
-		PendingBills:          budget.PendingBills,
-		TotalBalance:          budget.TotalBalance,
-		Total:                 budget.Total,
-		EstimatedBalance:      budget.EstimatedBalance,
-		TotalPayment:          budget.TotalPayment,
-		ProjectId:             budget.ProjectId,
+func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, error) {
+	model := new(entity.Budget)
+	if budget.ID != nil {
+		if err := r.db.WithContext(ctx).First(model, *budget.ID).Error; err != nil {
+			return 0, err
+		}
+	} else {
+		model.ProjectId = *budget.ProjectId
 	}
 
-	if err := r.db.WithContext(ctx).Create(model).Error; err != nil {
+	if budget.Name != nil {
+		model.Name = *budget.Name
+	}
+
+	if budget.Year != nil {
+		model.Year = *budget.Year
+	}
+
+	if budget.Month != nil {
+		model.Month = *budget.Month
+	}
+
+	if budget.FixedIncome != nil {
+		model.FixedIncome = *budget.FixedIncome
+	}
+
+	if budget.AdditionalIncome != nil {
+		model.AdditionalIncome = *budget.AdditionalIncome
+	}
+
+	if budget.TotalPendingPayment != nil {
+		model.TotalPendingPayment = *budget.TotalPendingPayment
+	}
+
+	if budget.TotalAvailableBalance != nil {
+		model.TotalAvailableBalance = *budget.TotalAvailableBalance
+	}
+
+	if budget.PendingBills != nil {
+		model.PendingBills = *budget.PendingBills
+	}
+
+	if budget.TotalBalance != nil {
+		model.TotalBalance = *budget.TotalBalance
+	}
+
+	if err := r.db.WithContext(ctx).Save(model).Error; err != nil {
 		return 0, err
 	}
 
 	return model.ID, nil
 }
 
-func (r *gormRepository) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
+func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, error) {
 	model := new(entity.Budget)
 	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
 		return nil, err
 	}
 
 	return &domain.Budget{
-		ID:                    model.ID,
-		Name:                  model.Name,
-		Year:                  model.Year,
-		Month:                 model.Month,
-		FixedIncome:           model.FixedIncome,
-		AdditionalIncome:      model.AdditionalIncome,
-		TotalPendingPayment:   model.TotalPendingPayment,
-		TotalAvailableBalance: model.TotalAvailableBalance,
-		PendingBills:          model.PendingBills,
-		TotalBalance:          model.TotalBalance,
-		Total:                 model.Total,
-		EstimatedBalance:      model.EstimatedBalance,
-		TotalPayment:          model.TotalPayment,
-		ProjectId:             model.ProjectId,
-		CreatedAt:             model.CreatedAt,
-		UpdatedAt:             model.UpdatedAt,
+		ID:                    &model.ID,
+		Name:                  &model.Name,
+		Year:                  &model.Year,
+		Month:                 &model.Month,
+		FixedIncome:           &model.FixedIncome,
+		AdditionalIncome:      &model.AdditionalIncome,
+		TotalPendingPayment:   &model.TotalPendingPayment,
+		TotalAvailableBalance: &model.TotalAvailableBalance,
+		PendingBills:          &model.PendingBills,
+		TotalBalance:          &model.TotalBalance,
+		ProjectId:             &model.ProjectId,
 	}, nil
 }
 
-func (r *gormRepository) FindByProjectIds(ctx context.Context, projectIds []uint) ([]*domain.Budget, error) {
+func (r *gormRepository) SearchByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
 	var models []entity.Budget
-	if err := r.db.WithContext(ctx).Where("project_id IN ?", projectIds).Find(&models).Error; err != nil {
+	if err := r.db.WithContext(ctx).Joins("inner join projects projects on projects.id = budgets.project_id").
+		Where("projects.user_id = ?", userId).Find(&models).Error; err != nil {
 		return nil, err
 	}
 
 	var budgets []*domain.Budget
 	for _, model := range models {
+		modelC := model
 		budgets = append(budgets, &domain.Budget{
-			ID:                    model.ID,
-			Name:                  model.Name,
-			Year:                  model.Year,
-			Month:                 model.Month,
-			FixedIncome:           model.FixedIncome,
-			AdditionalIncome:      model.AdditionalIncome,
-			TotalPendingPayment:   model.TotalPendingPayment,
-			TotalAvailableBalance: model.TotalAvailableBalance,
-			PendingBills:          model.PendingBills,
-			TotalBalance:          model.TotalBalance,
-			Total:                 model.Total,
-			EstimatedBalance:      model.EstimatedBalance,
-			TotalPayment:          model.TotalPayment,
-			ProjectId:             model.ProjectId,
-			CreatedAt:             model.CreatedAt,
-			UpdatedAt:             model.UpdatedAt,
+			ID:                    &modelC.ID,
+			Name:                  &modelC.Name,
+			Year:                  &modelC.Year,
+			Month:                 &modelC.Month,
+			FixedIncome:           &modelC.FixedIncome,
+			AdditionalIncome:      &modelC.AdditionalIncome,
+			TotalPendingPayment:   &modelC.TotalPendingPayment,
+			TotalAvailableBalance: &modelC.TotalAvailableBalance,
+			PendingBills:          &modelC.PendingBills,
+			TotalBalance:          &modelC.TotalBalance,
+			ProjectId:             &modelC.ProjectId,
 		})
 	}
 

@@ -84,7 +84,7 @@ func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require.Equal(suite.repository, repo)
 }
 
-func (suite *TestSuite) TestCreateSuccess() {
+func (suite *TestSuite) TestSaveSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -99,14 +99,14 @@ func (suite *TestSuite) TestCreateSuccess() {
 		ProjectId:   suite.projectId,
 	}
 
-	res, err := suite.repository.Create(context.Background(), projectLog)
+	res, err := suite.repository.Save(context.Background(), projectLog)
 
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(uint(999), res)
 }
 
-func (suite *TestSuite) TestCreateError() {
+func (suite *TestSuite) TestSaveError() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -120,15 +120,17 @@ func (suite *TestSuite) TestCreateError() {
 		ProjectId:   suite.projectId,
 	}
 
-	res, err := suite.repository.Create(context.Background(), projectLog)
+	res, err := suite.repository.Save(context.Background(), projectLog)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
 }
 
-func (suite *TestSuite) TestFindByProjectIdSuccess() {
+func (suite *TestSuite) TestSearchAllByExampleSuccess() {
 	require := require.New(suite.T())
-
+	example := domain.ProjectLog{
+		ProjectId: suite.projectId,
+	}
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `project_logs` WHERE `project_logs`.`project_id` = ? ORDER BY created_at desc LIMIT 20")).
 		WithArgs(suite.projectId).
@@ -138,7 +140,7 @@ func (suite *TestSuite) TestFindByProjectIdSuccess() {
 			AddRow(1000, time.Now(), suite.description, nil, suite.projectId),
 		)
 
-	projects, err := suite.repository.FindByProjectId(context.Background(), suite.projectId)
+	projects, err := suite.repository.SearchAllByExample(context.Background(), example)
 
 	require.NoError(err)
 	require.NotNil(projects)
@@ -153,15 +155,17 @@ func (suite *TestSuite) TestFindByProjectIdSuccess() {
 	require.Equal(suite.projectId, projects[1].ProjectId)
 }
 
-func (suite *TestSuite) TestFindByProjectIdError() {
+func (suite *TestSuite) TestSearchAllByExampleError() {
 	require := require.New(suite.T())
-
+	example := domain.ProjectLog{
+		ProjectId: suite.projectId,
+	}
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `project_logs` WHERE `project_logs`.`project_id` = ? ORDER BY created_at desc LIMIT 20")).
 		WithArgs(suite.projectId).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	projects, err := suite.repository.FindByProjectId(context.Background(), suite.projectId)
+	projects, err := suite.repository.SearchAllByExample(context.Background(), example)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Empty(projects)

@@ -19,7 +19,7 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.Proje
 	return persistent_infra.DefaultWithTransaction[domain.ProjectRepository](tx, NewRepository, r)
 }
 
-func (r *gormRepository) Create(ctx context.Context, project domain.Project) (uint, error) {
+func (r *gormRepository) Save(ctx context.Context, project domain.Project) (uint, error) {
 	model := &entity.Project{
 		UserId: project.UserId,
 		Type:   project.Type,
@@ -30,45 +30,6 @@ func (r *gormRepository) Create(ctx context.Context, project domain.Project) (ui
 	}
 
 	return model.ID, nil
-}
-
-func (r *gormRepository) FindById(ctx context.Context, id uint) (*domain.Project, error) {
-	model := new(entity.Project)
-	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
-		return nil, err
-	}
-
-	return &domain.Project{
-		ID:        model.ID,
-		UserId:    model.UserId,
-		Type:      model.Type,
-		CreatedAt: model.CreatedAt,
-		UpdatedAt: model.UpdatedAt,
-	}, nil
-}
-
-func (r *gormRepository) FindByUserIdAndType(ctx context.Context, userId uint, typeProject domain.ProjectType) ([]*domain.Project, error) {
-	where := &entity.Project{
-		UserId: userId,
-		Type:   typeProject,
-	}
-	var models []entity.Project
-	if err := r.db.WithContext(ctx).Where(where).Order("created_at desc").Limit(10).Find(&models).Error; err != nil {
-		return nil, err
-	}
-
-	var projects []*domain.Project
-	for _, model := range models {
-		projects = append(projects, &domain.Project{
-			ID:        model.ID,
-			UserId:    model.UserId,
-			Type:      model.Type,
-			CreatedAt: model.CreatedAt,
-			UpdatedAt: model.UpdatedAt,
-		})
-	}
-
-	return projects, nil
 }
 
 func (r *gormRepository) Delete(ctx context.Context, id uint) error {

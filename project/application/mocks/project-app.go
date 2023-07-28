@@ -68,32 +68,6 @@ func (_m *IProjectApp) Delete(ctx context.Context, id uint, tx persistent.Transa
 	return r0
 }
 
-// FindByUserIdAndType provides a mock function with given fields: ctx, userId, typeProject
-func (_m *IProjectApp) FindByUserIdAndType(ctx context.Context, userId uint, typeProject domain.ProjectType) ([]uint, error) {
-	ret := _m.Called(ctx, userId, typeProject)
-
-	var r0 []uint
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) ([]uint, error)); ok {
-		return rf(ctx, userId, typeProject)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) []uint); ok {
-		r0 = rf(ctx, userId, typeProject)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]uint)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uint, domain.ProjectType) error); ok {
-		r1 = rf(ctx, userId, typeProject)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // FindLogsByProject provides a mock function with given fields: ctx, projectId
 func (_m *IProjectApp) FindLogsByProject(ctx context.Context, projectId uint) ([]*domain.ProjectLog, error) {
 	ret := _m.Called(ctx, projectId)

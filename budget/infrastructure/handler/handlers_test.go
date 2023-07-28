@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http/httptest"
 	"testing"
-	"time"
 	"your-accounts-api/budget/application/mocks"
 	"your-accounts-api/budget/domain"
 	"your-accounts-api/budget/infrastructure/model"
@@ -24,6 +23,7 @@ import (
 
 type TestSuite struct {
 	suite.Suite
+	id       uint
 	name     string
 	year     uint16
 	month    uint8
@@ -34,6 +34,7 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
+	suite.id = 999
 	suite.name = "Test"
 	suite.year = 2023
 	suite.month = 1
@@ -173,18 +174,32 @@ func (suite *TestSuite) TestCreate500() {
 
 func (suite *TestSuite) TestRead200() {
 	require := require.New(suite.T())
+	ids := []uint{suite.budgetId, suite.budgetId + 1}
+	names := []string{"Test 1", "Test 2"}
+	year := uint16(1)
+	month := uint8(1)
+	zeroFloat := 0.0
+	zeroUInt := uint8(0)
 	result := []*domain.Budget{
 		{
-			ID:    suite.budgetId,
-			Name:  "Test",
-			Year:  1,
-			Month: 1,
+			ID:                    &ids[0],
+			Name:                  &names[0],
+			Year:                  &year,
+			Month:                 &month,
+			TotalAvailableBalance: &zeroFloat,
+			TotalPendingPayment:   &zeroFloat,
+			TotalBalance:          &zeroFloat,
+			PendingBills:          &zeroUInt,
 		},
 		{
-			ID:    suite.budgetId + 1,
-			Name:  "Test 2",
-			Year:  2,
-			Month: 1,
+			ID:                    &ids[1],
+			Name:                  &names[1],
+			Year:                  &year,
+			Month:                 &month,
+			TotalAvailableBalance: &zeroFloat,
+			TotalPendingPayment:   &zeroFloat,
+			TotalBalance:          &zeroFloat,
+			PendingBills:          &zeroUInt,
 		},
 	}
 	suite.mock.On("FindByUserId", mock.Anything, mock.Anything).Return(result, nil)
@@ -223,14 +238,16 @@ func (suite *TestSuite) TestRead500() {
 
 func (suite *TestSuite) TestReadByID200() {
 	require := require.New(suite.T())
+	zeroFloat := 0.0
 	result := &domain.Budget{
-		ID:        999,
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.budgetId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:               &suite.id,
+		Name:             &suite.name,
+		Year:             &suite.year,
+		Month:            &suite.month,
+		FixedIncome:      &zeroFloat,
+		AdditionalIncome: &zeroFloat,
+		TotalBalance:     &zeroFloat,
+		ProjectId:        &suite.budgetId,
 	}
 	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(result, nil)
 	expectedBody, err := json.Marshal(model.NewReadByIDResponse(result))

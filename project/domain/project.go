@@ -1,24 +1,18 @@
 package domain
 
 import (
-	"context"
-	"time"
 	"your-accounts-api/shared/domain/persistent"
 )
 
 type Project struct {
-	ID        uint
-	UserId    uint
-	Type      ProjectType
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID     uint
+	UserId uint
+	Type   ProjectType
 }
 
 //go:generate mockery --name ProjectRepository --filename project-repository.go
 type ProjectRepository interface {
 	persistent.TransactionRepository[ProjectRepository]
-	persistent.CreateRepository[Project]
-	persistent.ReadRepository[Project]
-	FindByUserIdAndType(ctx context.Context, userId uint, typeProject ProjectType) ([]*Project, error)
+	persistent.SaveRepository[Project]
 	persistent.DeleteRepository
 }

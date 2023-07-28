@@ -16,8 +16,8 @@ type ProjectLogRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *ProjectLogRepository) Create(ctx context.Context, _a1 domain.ProjectLog) (uint, error) {
+// Save provides a mock function with given fields: ctx, _a1
+func (_m *ProjectLogRepository) Save(ctx context.Context, _a1 domain.ProjectLog) (uint, error) {
 	ret := _m.Called(ctx, _a1)
 
 	var r0 uint
@@ -40,25 +40,25 @@ func (_m *ProjectLogRepository) Create(ctx context.Context, _a1 domain.ProjectLo
 	return r0, r1
 }
 
-// FindByProjectId provides a mock function with given fields: ctx, projectId
-func (_m *ProjectLogRepository) FindByProjectId(ctx context.Context, projectId uint) ([]*domain.ProjectLog, error) {
-	ret := _m.Called(ctx, projectId)
+// SearchAllByExample provides a mock function with given fields: ctx, example
+func (_m *ProjectLogRepository) SearchAllByExample(ctx context.Context, example domain.ProjectLog) ([]*domain.ProjectLog, error) {
+	ret := _m.Called(ctx, example)
 
 	var r0 []*domain.ProjectLog
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.ProjectLog, error)); ok {
-		return rf(ctx, projectId)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.ProjectLog) ([]*domain.ProjectLog, error)); ok {
+		return rf(ctx, example)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.ProjectLog); ok {
-		r0 = rf(ctx, projectId)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.ProjectLog) []*domain.ProjectLog); ok {
+		r0 = rf(ctx, example)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.ProjectLog)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = rf(ctx, projectId)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.ProjectLog) error); ok {
+		r1 = rf(ctx, example)
 	} else {
 		r1 = ret.Error(1)
 	}

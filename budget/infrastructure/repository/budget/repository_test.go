@@ -20,20 +20,24 @@ import (
 
 type TestSuite struct {
 	suite.Suite
+	id         uint
 	name       string
 	year       uint16
 	month      uint8
 	projectId  uint
+	userId     uint
 	mock       sqlmock.Sqlmock
 	mockTX     *mocks_shared.Transaction
 	repository domain.BudgetRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
+	suite.id = 999
 	suite.name = "Test"
 	suite.year = 2023
 	suite.month = 1
 	suite.projectId = 1
+	suite.userId = 1
 
 	require := require.New(suite.T())
 
@@ -86,71 +90,138 @@ func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require.Equal(suite.repository, repo)
 }
 
-func (suite *TestSuite) TestCreateSuccess() {
+func (suite *TestSuite) TestSaveNewSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `budgets` (`created_at`,`updated_at`,`name`,`year`,`month`,`fixed_income`,`additional_income`,`total_pending_payment`,`total_available_balance`,`pending_bills`,`total_balance`,`total`,`estimated_balance`,`total_payment`,`project_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")).
-		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), float64(0), float64(0), float64(0), suite.projectId).
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budgets` (`created_at`,`updated_at`,`name`,`year`,`month`,`fixed_income`,`additional_income`,`total_pending_payment`,`total_available_balance`,`pending_bills`,`total_balance`,`project_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.projectId).
 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
 	suite.mock.ExpectCommit()
 	budget := domain.Budget{
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
+		Name:      &suite.name,
+		Year:      &suite.year,
+		Month:     &suite.month,
+		ProjectId: &suite.projectId,
 	}
 
-	res, err := suite.repository.Create(context.Background(), budget)
+	res, err := suite.repository.Save(context.Background(), budget)
 
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(uint(999), res)
 }
 
-func (suite *TestSuite) TestCreateError() {
+func (suite *TestSuite) TestSaveExistsSuccess() {
 	require := require.New(suite.T())
-
+	now := time.Now()
+	zeroFloat := 0.0
+	zeroUInt := uint8(0)
+	budgetExpected := domain.Budget{
+		ID:        &suite.id,
+		Name:      &suite.name,
+		Year:      &suite.year,
+		Month:     &suite.month,
+		ProjectId: &suite.projectId,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE `budgets`.`id` = ? ORDER BY `budgets`.`id` LIMIT 1")).
+		WithArgs(suite.id).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "project_id"}).
+			AddRow(budgetExpected.ID, now.Add(-1*time.Hour), now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPendingPayment, budgetExpected.TotalAvailableBalance, budgetExpected.PendingBills, budgetExpected.TotalBalance, budgetExpected.ProjectId),
+		)
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `budgets` (`created_at`,`updated_at`,`name`,`year`,`month`,`fixed_income`,`additional_income`,`total_pending_payment`,`total_available_balance`,`pending_bills`,`total_balance`,`total`,`estimated_balance`,`total_payment`,`project_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")).
-		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), float64(0), float64(0), float64(0), suite.projectId).
-		WillReturnError(gorm.ErrInvalidField)
-	suite.mock.ExpectRollback()
+		ExpectExec(regexp.QuoteMeta("UPDATE `budgets` SET `created_at`=?,`updated_at`=?,`name`=?,`year`=?,`month`=?,`fixed_income`=?,`additional_income`=?,`total_pending_payment`=?,`total_available_balance`=?,`pending_bills`=?,`total_balance`=?,`project_id`=? WHERE `id` = ?")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, zeroFloat, zeroFloat, zeroFloat, zeroFloat, zeroUInt, zeroFloat, suite.projectId, suite.id).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+	suite.mock.ExpectCommit()
 	budget := domain.Budget{
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
+		ID:                    &suite.id,
+		Name:                  &suite.name,
+		Year:                  &suite.year,
+		Month:                 &suite.month,
+		FixedIncome:           &zeroFloat,
+		AdditionalIncome:      &zeroFloat,
+		TotalAvailableBalance: &zeroFloat,
+		TotalPendingPayment:   &zeroFloat,
+		TotalBalance:          &zeroFloat,
+		PendingBills:          &zeroUInt,
+		ProjectId:             &suite.projectId,
 	}
 
-	res, err := suite.repository.Create(context.Background(), budget)
+	res, err := suite.repository.Save(context.Background(), budget)
+
+	require.NoError(err)
+	require.NotNil(res)
+	require.Equal(uint(999), res)
+}
+
+func (suite *TestSuite) TestSaveExistsErrorFind() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE `budgets`.`id` = ? ORDER BY `budgets`.`id` LIMIT 1")).
+		WithArgs(suite.id).
+		WillReturnError(gorm.ErrInvalidField)
+	pendingBills := uint8(2)
+	budget := domain.Budget{
+		ID:           &suite.id,
+		Name:         &suite.name,
+		Year:         &suite.year,
+		Month:        &suite.month,
+		PendingBills: &pendingBills,
+		ProjectId:    &suite.projectId,
+	}
+
+	res, err := suite.repository.Save(context.Background(), budget)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
 }
 
-func (suite *TestSuite) TestFinByIdSuccess() {
+func (suite *TestSuite) TestSaveError() {
 	require := require.New(suite.T())
+
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budgets` (`created_at`,`updated_at`,`name`,`year`,`month`,`fixed_income`,`additional_income`,`total_pending_payment`,`total_available_balance`,`pending_bills`,`total_balance`,`project_id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.projectId).
+		WillReturnError(gorm.ErrInvalidField)
+	suite.mock.ExpectRollback()
+	budget := domain.Budget{
+		Name:      &suite.name,
+		Year:      &suite.year,
+		Month:     &suite.month,
+		ProjectId: &suite.projectId,
+	}
+
+	res, err := suite.repository.Save(context.Background(), budget)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.Zero(res)
+}
+
+func (suite *TestSuite) TestSearchSuccess() {
+	require := require.New(suite.T())
+	now := time.Now()
 	budgetExpected := domain.Budget{
-		ID:        999,
-		Name:      suite.name,
-		Year:      suite.year,
-		Month:     suite.month,
-		ProjectId: suite.projectId,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:        &suite.id,
+		Name:      &suite.name,
+		Year:      &suite.year,
+		Month:     &suite.month,
+		ProjectId: &suite.projectId,
 	}
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE `budgets`.`id` = ? ORDER BY `budgets`.`id` LIMIT 1")).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "total", "estimated_balance", "total_payment", "project_id"}).
-			AddRow(budgetExpected.ID, budgetExpected.CreatedAt, budgetExpected.UpdatedAt, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPendingPayment, budgetExpected.TotalAvailableBalance, budgetExpected.PendingBills, budgetExpected.TotalBalance, budgetExpected.Total, budgetExpected.EstimatedBalance, budgetExpected.TotalPayment, budgetExpected.ProjectId),
+			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "project_id"}).
+			AddRow(budgetExpected.ID, now, now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPendingPayment, budgetExpected.TotalAvailableBalance, budgetExpected.PendingBills, budgetExpected.TotalBalance, budgetExpected.ProjectId),
 		)
 
-	budget, err := suite.repository.FindById(context.Background(), budgetExpected.ID)
+	budget, err := suite.repository.Search(context.Background(), *budgetExpected.ID)
 
 	require.NoError(err)
 	require.NotNil(budget)
@@ -161,51 +232,57 @@ func (suite *TestSuite) TestFinByIdSuccess() {
 	require.Equal(budgetExpected.ProjectId, budget.ProjectId)
 }
 
-func (suite *TestSuite) TestFinByIdError() {
+func (suite *TestSuite) TestSearchError() {
 	require := require.New(suite.T())
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE `budgets`.`id` = ? ORDER BY `budgets`.`id` LIMIT 1")).
 		WithArgs(999).
 		WillReturnError(gorm.ErrInvalidField)
 
-	budget, err := suite.repository.FindById(context.Background(), 999)
+	budget, err := suite.repository.Search(context.Background(), 999)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Nil(budget)
 }
 
-func (suite *TestSuite) TestFindByProjectIdsSuccess() {
+func (suite *TestSuite) TestSearchByUserIdSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE project_id IN (?)")).
-		WithArgs(suite.projectId).
+		ExpectQuery(regexp.QuoteMeta("SELECT `budgets`.`id`,`budgets`.`created_at`,`budgets`.`updated_at`,`budgets`.`name`,`budgets`.`year`,`budgets`.`month`,`budgets`.`fixed_income`,`budgets`.`additional_income`,`budgets`.`total_pending_payment`,`budgets`.`total_available_balance`,`budgets`.`pending_bills`,`budgets`.`total_balance`,`budgets`.`project_id` FROM `budgets` inner join projects projects on projects.id = budgets.project_id WHERE projects.user_id = ?")).
+		WithArgs(suite.userId).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "total", "estimated_balance", "total_payment", "project_id"}).
-			AddRow(999, time.Now(), time.Now(), suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), float64(0), float64(0), float64(0), suite.projectId),
+			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending_payment", "total_available_balance", "pending_bills", "total_balance", "project_id"}).
+			AddRow(999, time.Now(), time.Now(), suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.projectId).
+			AddRow(1000, time.Now(), time.Now(), suite.name, suite.year, suite.month+1, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.projectId+1),
 		)
 
-	budgets, err := suite.repository.FindByProjectIds(context.Background(), []uint{suite.projectId})
+	budgets, err := suite.repository.SearchByUserId(context.Background(), suite.userId)
 
 	require.NoError(err)
 	require.NotEmpty(budgets)
-	require.Len(budgets, 1)
-	require.Equal(uint(999), budgets[0].ID)
-	require.Equal(suite.name, budgets[0].Name)
-	require.Equal(suite.year, budgets[0].Year)
-	require.Equal(suite.month, budgets[0].Month)
-	require.Equal(suite.projectId, budgets[0].ProjectId)
+	require.Len(budgets, 2)
+	require.Equal(uint(999), *budgets[0].ID)
+	require.Equal(suite.name, *budgets[0].Name)
+	require.Equal(suite.year, *budgets[0].Year)
+	require.Equal(suite.month, *budgets[0].Month)
+	require.Equal(suite.projectId, *budgets[0].ProjectId)
+	require.Equal(uint(1000), *budgets[1].ID)
+	require.Equal(suite.name, *budgets[1].Name)
+	require.Equal(suite.year, *budgets[1].Year)
+	require.Equal(suite.month+1, *budgets[1].Month)
+	require.Equal(suite.projectId+1, *budgets[1].ProjectId)
 }
 
-func (suite *TestSuite) TestFindByProjectIdsError() {
+func (suite *TestSuite) TestSearchByUserIdError() {
 	require := require.New(suite.T())
 
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE project_id IN (?)")).
-		WithArgs(suite.projectId).
+		ExpectQuery(regexp.QuoteMeta("SELECT `budgets`.`id`,`budgets`.`created_at`,`budgets`.`updated_at`,`budgets`.`name`,`budgets`.`year`,`budgets`.`month`,`budgets`.`fixed_income`,`budgets`.`additional_income`,`budgets`.`total_pending_payment`,`budgets`.`total_available_balance`,`budgets`.`pending_bills`,`budgets`.`total_balance`,`budgets`.`project_id` FROM `budgets` inner join projects projects on projects.id = budgets.project_id WHERE projects.user_id = ?")).
+		WithArgs(suite.userId).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	projects, err := suite.repository.FindByProjectIds(context.Background(), []uint{suite.projectId})
+	projects, err := suite.repository.SearchByUserId(context.Background(), suite.userId)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Empty(projects)

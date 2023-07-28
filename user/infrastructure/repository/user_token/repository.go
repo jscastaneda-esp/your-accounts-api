@@ -18,7 +18,7 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.UserT
 	return persistent_infra.DefaultWithTransaction[domain.UserTokenRepository](tx, NewRepository, r)
 }
 
-func (r *gormRepository) Create(ctx context.Context, userToken domain.UserToken) (uint, error) {
+func (r *gormRepository) Save(ctx context.Context, userToken domain.UserToken) (uint, error) {
 	model := &entity.UserToken{
 		Token:     userToken.Token,
 		UserId:    userToken.UserId,
@@ -32,10 +32,10 @@ func (r *gormRepository) Create(ctx context.Context, userToken domain.UserToken)
 	return model.ID, nil
 }
 
-func (r *gormRepository) FindByTokenAndUserId(ctx context.Context, token string, userId uint) (*domain.UserToken, error) {
+func (r *gormRepository) SearchByExample(ctx context.Context, example domain.UserToken) (*domain.UserToken, error) {
 	where := &entity.UserToken{
-		Token:  token,
-		UserId: userId,
+		Token:  example.Token,
+		UserId: example.UserId,
 	}
 	model := new(entity.UserToken)
 	if err := r.db.WithContext(ctx).Where(where).First(model).Error; err != nil {
@@ -46,25 +46,8 @@ func (r *gormRepository) FindByTokenAndUserId(ctx context.Context, token string,
 		ID:        model.ID,
 		Token:     model.Token,
 		UserId:    model.UserId,
-		CreatedAt: model.CreatedAt,
 		ExpiresAt: model.ExpiresAt,
 	}, nil
-}
-
-func (r *gormRepository) Update(ctx context.Context, userToken domain.UserToken) error {
-	model := new(entity.UserToken)
-	if err := r.db.WithContext(ctx).First(model, userToken.ID).Error; err != nil {
-		return err
-	}
-
-	model.Token = userToken.Token
-	model.UserId = userToken.UserId
-	model.ExpiresAt = userToken.ExpiresAt
-	if err := r.db.WithContext(ctx).Save(model).Error; err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func NewRepository(db *gorm.DB) domain.UserTokenRepository {

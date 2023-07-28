@@ -33,14 +33,14 @@ type ReadResponse struct {
 
 func NewReadResponse(budget *domain.Budget) ReadResponse {
 	return ReadResponse{
-		IDResponse:            model.NewIDResponse(budget.ID),
-		Name:                  budget.Name,
-		Year:                  budget.Year,
-		Month:                 budget.Month,
-		TotalAvailableBalance: budget.TotalAvailableBalance,
-		TotalPendingPayment:   budget.TotalPendingPayment,
-		TotalBalance:          budget.TotalBalance,
-		PendingBills:          budget.PendingBills,
+		IDResponse:            model.NewIDResponse(*budget.ID),
+		Name:                  *budget.Name,
+		Year:                  *budget.Year,
+		Month:                 *budget.Month,
+		TotalAvailableBalance: *budget.TotalAvailableBalance,
+		TotalPendingPayment:   *budget.TotalPendingPayment,
+		TotalBalance:          *budget.TotalBalance,
+		PendingBills:          *budget.PendingBills,
 	}
 }
 
@@ -59,16 +59,14 @@ type ReadByIDResponse struct {
 
 func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
 	return ReadByIDResponse{
-		IDResponse:       model.NewIDResponse(budget.ID),
-		Name:             budget.Name,
-		Year:             budget.Year,
-		Month:            budget.Month,
-		FixedIncome:      budget.FixedIncome,
-		AdditionalIncome: budget.AdditionalIncome,
-		TotalBalance:     budget.TotalBalance,
-		Total:            budget.Total,
-		EstimatedBalance: budget.EstimatedBalance,
-		ProjectId:        budget.ProjectId,
+		IDResponse:       model.NewIDResponse(*budget.ID),
+		Name:             *budget.Name,
+		Year:             *budget.Year,
+		Month:            *budget.Month,
+		FixedIncome:      *budget.FixedIncome,
+		AdditionalIncome: *budget.AdditionalIncome,
+		TotalBalance:     *budget.TotalBalance,
+		ProjectId:        *budget.ProjectId,
 	}
 }
 

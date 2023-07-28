@@ -82,124 +82,7 @@ func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require.Equal(suite.repository, repo)
 }
 
-func (suite *TestSuite) TestFindByUIDAndEmailSuccess() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
-		WithArgs(suite.uid, suite.email).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "uid", "email"}).
-			AddRow(999, time.Now(), time.Now(), suite.uid, suite.email),
-		)
-
-	user, err := suite.repository.FindByUIDAndEmail(context.Background(), suite.uid, suite.email)
-
-	require.NoError(err)
-	require.NotNil(user)
-	require.Equal(suite.uid, user.UID)
-	require.Equal(suite.email, user.Email)
-}
-
-func (suite *TestSuite) TestFindByUIDAndEmailError() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
-		WithArgs(suite.uid, suite.email).
-		WillReturnError(gorm.ErrRecordNotFound)
-
-	user, err := suite.repository.FindByUIDAndEmail(context.Background(), suite.uid, suite.email)
-
-	require.EqualError(gorm.ErrRecordNotFound, err.Error())
-	require.Nil(user)
-}
-
-func (suite *TestSuite) TestExistsByUIDSuccessTrue() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE uid = ?")).
-		WithArgs(suite.uid).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-	exists, err := suite.repository.ExistsByUID(context.Background(), suite.uid)
-
-	require.NoError(err)
-	require.True(exists)
-}
-
-func (suite *TestSuite) TestExistsByUIDSuccessFalse() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE uid = ?")).
-		WithArgs(suite.uid).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-
-	exists, err := suite.repository.ExistsByUID(context.Background(), suite.uid)
-
-	require.NoError(err)
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsByUIDError() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE uid = ?")).
-		WithArgs(suite.uid).
-		WillReturnError(gorm.ErrInvalidField)
-
-	exists, err := suite.repository.ExistsByUID(context.Background(), suite.uid)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsByEmailSuccessTrue() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE email = ?")).
-		WithArgs(suite.email).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
-
-	require.NoError(err)
-	require.True(exists)
-}
-
-func (suite *TestSuite) TestExistsByEmailSuccessFalse() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE email = ?")).
-		WithArgs(suite.email).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-
-	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
-
-	require.NoError(err)
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestExistsByEmailError() {
-	require := require.New(suite.T())
-
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT COUNT(1) FROM users WHERE email = ?")).
-		WithArgs(suite.email).
-		WillReturnError(gorm.ErrInvalidField)
-
-	exists, err := suite.repository.ExistsByEmail(context.Background(), suite.email)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.False(exists)
-}
-
-func (suite *TestSuite) TestCreateSuccess() {
+func (suite *TestSuite) TestSaveSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -213,14 +96,14 @@ func (suite *TestSuite) TestCreateSuccess() {
 		Email: suite.email,
 	}
 
-	res, err := suite.repository.Create(context.Background(), user)
+	res, err := suite.repository.Save(context.Background(), user)
 
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(uint(999), res)
 }
 
-func (suite *TestSuite) TestCreateError() {
+func (suite *TestSuite) TestSaveError() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -234,10 +117,116 @@ func (suite *TestSuite) TestCreateError() {
 		Email: suite.email,
 	}
 
-	res, err := suite.repository.Create(context.Background(), user)
+	res, err := suite.repository.Save(context.Background(), user)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
+}
+
+func (suite *TestSuite) TestSearchByExampleSuccess() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID:   suite.uid,
+		Email: suite.email,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
+		WithArgs(suite.uid, suite.email).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "uid", "email"}).
+			AddRow(999, time.Now(), time.Now(), suite.uid, suite.email),
+		)
+
+	user, err := suite.repository.SearchByExample(context.Background(), example)
+
+	require.NoError(err)
+	require.NotNil(user)
+	require.Equal(suite.uid, user.UID)
+	require.Equal(suite.email, user.Email)
+}
+
+func (suite *TestSuite) TestSearchByExampleError() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID:   suite.uid,
+		Email: suite.email,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
+		WithArgs(suite.uid, suite.email).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	user, err := suite.repository.SearchByExample(context.Background(), example)
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+	require.Nil(user)
+}
+
+func (suite *TestSuite) TestExistsByExampleSuccessTrue() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID:   suite.uid,
+		Email: suite.email,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		WithArgs(suite.uid, suite.email).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	exists, err := suite.repository.ExistsByExample(context.Background(), example)
+
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsByExampleSuccessFalse() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID:   suite.uid,
+		Email: suite.email,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		WithArgs(suite.uid, suite.email).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
+
+	exists, err := suite.repository.ExistsByExample(context.Background(), example)
+
+	require.NoError(err)
+	require.False(exists)
+}
+
+func (suite *TestSuite) TestExistsByExampleSuccessOnlyUIDTrue() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID: suite.uid,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ?")).
+		WithArgs(suite.uid).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	exists, err := suite.repository.ExistsByExample(context.Background(), example)
+
+	require.NoError(err)
+	require.True(exists)
+}
+
+func (suite *TestSuite) TestExistsByExampleError() {
+	require := require.New(suite.T())
+	example := domain.User{
+		UID:   suite.uid,
+		Email: suite.email,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		WithArgs(suite.uid, suite.email).
+		WillReturnError(gorm.ErrInvalidField)
+
+	exists, err := suite.repository.ExistsByExample(context.Background(), example)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.False(exists)
 }
 
 func TestTestSuite(t *testing.T) {

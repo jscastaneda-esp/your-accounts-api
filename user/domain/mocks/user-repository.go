@@ -16,8 +16,32 @@ type UserRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *UserRepository) Create(ctx context.Context, _a1 domain.User) (uint, error) {
+// ExistsByExample provides a mock function with given fields: ctx, example
+func (_m *UserRepository) ExistsByExample(ctx context.Context, example domain.User) (bool, error) {
+	ret := _m.Called(ctx, example)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (bool, error)); ok {
+		return rf(ctx, example)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) bool); ok {
+		r0 = rf(ctx, example)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, domain.User) error); ok {
+		r1 = rf(ctx, example)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Save provides a mock function with given fields: ctx, _a1
+func (_m *UserRepository) Save(ctx context.Context, _a1 domain.User) (uint, error) {
 	ret := _m.Called(ctx, _a1)
 
 	var r0 uint
@@ -40,73 +64,25 @@ func (_m *UserRepository) Create(ctx context.Context, _a1 domain.User) (uint, er
 	return r0, r1
 }
 
-// ExistsByEmail provides a mock function with given fields: ctx, email
-func (_m *UserRepository) ExistsByEmail(ctx context.Context, email string) (bool, error) {
-	ret := _m.Called(ctx, email)
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, email)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, email)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// ExistsByUID provides a mock function with given fields: ctx, uid
-func (_m *UserRepository) ExistsByUID(ctx context.Context, uid string) (bool, error) {
-	ret := _m.Called(ctx, uid)
-
-	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, uid)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, uid)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, uid)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// FindByUIDAndEmail provides a mock function with given fields: ctx, uid, email
-func (_m *UserRepository) FindByUIDAndEmail(ctx context.Context, uid string, email string) (*domain.User, error) {
-	ret := _m.Called(ctx, uid, email)
+// SearchByExample provides a mock function with given fields: ctx, example
+func (_m *UserRepository) SearchByExample(ctx context.Context, example domain.User) (*domain.User, error) {
+	ret := _m.Called(ctx, example)
 
 	var r0 *domain.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*domain.User, error)); ok {
-		return rf(ctx, uid, email)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) (*domain.User, error)); ok {
+		return rf(ctx, example)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *domain.User); ok {
-		r0 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.User) *domain.User); ok {
+		r0 = rf(ctx, example)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.User) error); ok {
+		r1 = rf(ctx, example)
 	} else {
 		r1 = ret.Error(1)
 	}

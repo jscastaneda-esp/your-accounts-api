@@ -16,8 +16,22 @@ type BudgetAvailableBalanceRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *BudgetAvailableBalanceRepository) Create(ctx context.Context, _a1 domain.BudgetAvailableBalance) (uint, error) {
+// Delete provides a mock function with given fields: ctx, id
+func (_m *BudgetAvailableBalanceRepository) Delete(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Save provides a mock function with given fields: ctx, _a1
+func (_m *BudgetAvailableBalanceRepository) Save(ctx context.Context, _a1 domain.BudgetAvailableBalance) (uint, error) {
 	ret := _m.Called(ctx, _a1)
 
 	var r0 uint
@@ -33,6 +47,46 @@ func (_m *BudgetAvailableBalanceRepository) Create(ctx context.Context, _a1 doma
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.BudgetAvailableBalance) error); ok {
 		r1 = rf(ctx, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SaveAll provides a mock function with given fields: ctx, domains
+func (_m *BudgetAvailableBalanceRepository) SaveAll(ctx context.Context, domains []domain.BudgetAvailableBalance) error {
+	ret := _m.Called(ctx, domains)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []domain.BudgetAvailableBalance) error); ok {
+		r0 = rf(ctx, domains)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// SearchAllByExample provides a mock function with given fields: ctx, example
+func (_m *BudgetAvailableBalanceRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailableBalance) ([]*domain.BudgetAvailableBalance, error) {
+	ret := _m.Called(ctx, example)
+
+	var r0 []*domain.BudgetAvailableBalance
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetAvailableBalance) ([]*domain.BudgetAvailableBalance, error)); ok {
+		return rf(ctx, example)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetAvailableBalance) []*domain.BudgetAvailableBalance); ok {
+		r0 = rf(ctx, example)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*domain.BudgetAvailableBalance)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, domain.BudgetAvailableBalance) error); ok {
+		r1 = rf(ctx, example)
 	} else {
 		r1 = ret.Error(1)
 	}
