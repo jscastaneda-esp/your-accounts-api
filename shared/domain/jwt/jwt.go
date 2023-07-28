@@ -5,6 +5,7 @@ import (
 	"time"
 	"your-accounts-api/shared/infrastructure/config"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -43,4 +44,9 @@ func JwtGenerate(id uint, uid string, email string) (string, time.Time, error) {
 	}
 
 	return token, expiresAt, nil
+}
+
+func GetUserData(c *fiber.Ctx) *JwtUserClaims {
+	token := c.Locals("user").(*jwt.Token)
+	return token.Claims.(*JwtUserClaims)
 }

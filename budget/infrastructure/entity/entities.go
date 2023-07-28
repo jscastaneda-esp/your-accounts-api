@@ -8,7 +8,7 @@ import (
 type Budget struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Name                    string                   `gorm:"not null;size:40;uniqueIndex:unq_budget"`
+	Name                    string                   `gorm:"not null;size:40"`
 	Year                    uint16                   `gorm:"not null"`
 	Month                   uint8                    `gorm:"not null"`
 	FixedIncome             float64                  `gorm:"not null;default:0"`
@@ -17,10 +17,7 @@ type Budget struct {
 	TotalAvailableBalance   float64                  `gorm:"not null;default:0"`
 	PendingBills            uint8                    `gorm:"not null;default:0"`
 	TotalBalance            float64                  `gorm:"not null;default:0"`
-	Total                   float64                  `gorm:"not null;default:0"`
-	EstimatedBalance        float64                  `gorm:"not null;default:0"`
-	TotalPayment            float64                  `gorm:"not null;default:0"`
-	ProjectId               uint                     `gorm:"not null;uniqueIndex:unq_budget"`
+	ProjectId               uint                     `gorm:"not null"`
 	BudgetAvailableBalances []BudgetAvailableBalance `gorm:"foreignKey:BudgetId"`
 	BudgetBills             []BudgetBill             `gorm:"foreignKey:BudgetId"`
 }
@@ -28,21 +25,21 @@ type Budget struct {
 type BudgetAvailableBalance struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Name     string  `gorm:"not null;size:40;uniqueIndex:unq_available"`
+	Name     string  `gorm:"not null;size:40"`
 	Amount   float64 `gorm:"not null;default:0"`
-	BudgetId uint    `gorm:"not null;uniqueIndex:unq_available"`
+	BudgetId uint    `gorm:"not null"`
 }
 
 type BudgetBill struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Description            string                    `gorm:"not null;size:200;uniqueIndex:unq_bill"`
+	Description            string                    `gorm:"not null;size:200"`
 	Amount                 float64                   `gorm:"not null;default:0"`
 	Payment                float64                   `gorm:"not null;default:0"`
 	Shared                 bool                      `gorm:"not null;default:false"`
 	DueDate                uint8                     `gorm:"not null;default:0"`
 	Complete               bool                      `gorm:"not null;default:false"`
-	BudgetId               uint                      `gorm:"not null;uniqueIndex:unq_bill"`
+	BudgetId               uint                      `gorm:"not null"`
 	Category               domain.BudgetBillCategory `gorm:"not null;type:enum('house', 'entertainment', 'personal', 'vehicle_transportation', 'education', 'services', 'financial', 'saving', 'others')"`
 	BudgetBillTransactions []BudgetBillTransaction   `gorm:"foreignKey:BillId"`
 	BudgetBillShareds      []BudgetBillShared        `gorm:"foreignKey:BillId"`
@@ -58,7 +55,7 @@ type BudgetBillTransaction struct {
 type BudgetBillShared struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Description string  `gorm:"not null;size:100;uniqueIndex:unq_bill_shared"`
+	Description string  `gorm:"not null;size:100"`
 	Amount      float64 `gorm:"not null;default:0"`
-	BillId      uint    `gorm:"not null;uniqueIndex:unq_bill_shared"`
+	BillId      uint    `gorm:"not null"`
 }

@@ -2,25 +2,26 @@ package persistent
 
 import "context"
 
-type CreateRepository[D any] interface {
-	Create(ctx context.Context, domain D) (uint, error)
+type SaveRepository[D any] interface {
+	Save(ctx context.Context, domain D) (uint, error)
 }
 
-type ReadRepository[D any] interface {
-	FindById(ctx context.Context, id uint) (*D, error)
+type SaveAllRepository[D any] interface {
+	SaveAll(ctx context.Context, domains []D) error
 }
 
-type UpdateRepository[D any] interface {
-	Update(ctx context.Context, domain D) error
+type SearchRepository[D any] interface {
+	Search(ctx context.Context, id uint) (*D, error)
+}
+
+type SearchByExample[D any] interface {
+	SearchByExample(ctx context.Context, example D) (*D, error)
+}
+
+type SearchAllByExample[D any] interface {
+	SearchAllByExample(ctx context.Context, example D) ([]*D, error)
 }
 
 type DeleteRepository interface {
 	Delete(ctx context.Context, id uint) error
-}
-
-type CrudRepository[D any, ID any] interface {
-	CreateRepository[D]
-	ReadRepository[D]
-	UpdateRepository[D]
-	DeleteRepository
 }

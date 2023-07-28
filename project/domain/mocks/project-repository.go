@@ -16,8 +16,22 @@ type ProjectRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *ProjectRepository) Create(ctx context.Context, _a1 domain.Project) (uint, error) {
+// Delete provides a mock function with given fields: ctx, id
+func (_m *ProjectRepository) Delete(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Save provides a mock function with given fields: ctx, _a1
+func (_m *ProjectRepository) Save(ctx context.Context, _a1 domain.Project) (uint, error) {
 	ret := _m.Called(ctx, _a1)
 
 	var r0 uint
@@ -33,72 +47,6 @@ func (_m *ProjectRepository) Create(ctx context.Context, _a1 domain.Project) (ui
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.Project) error); ok {
 		r1 = rf(ctx, _a1)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// Delete provides a mock function with given fields: ctx, id
-func (_m *ProjectRepository) Delete(ctx context.Context, id uint) error {
-	ret := _m.Called(ctx, id)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// FindById provides a mock function with given fields: ctx, id
-func (_m *ProjectRepository) FindById(ctx context.Context, id uint) (*domain.Project, error) {
-	ret := _m.Called(ctx, id)
-
-	var r0 *domain.Project
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) (*domain.Project, error)); ok {
-		return rf(ctx, id)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) *domain.Project); ok {
-		r0 = rf(ctx, id)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.Project)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = rf(ctx, id)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// FindByUserIdAndType provides a mock function with given fields: ctx, userId, typeProject
-func (_m *ProjectRepository) FindByUserIdAndType(ctx context.Context, userId uint, typeProject domain.ProjectType) ([]*domain.Project, error) {
-	ret := _m.Called(ctx, userId, typeProject)
-
-	var r0 []*domain.Project
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) ([]*domain.Project, error)); ok {
-		return rf(ctx, userId, typeProject)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint, domain.ProjectType) []*domain.Project); ok {
-		r0 = rf(ctx, userId, typeProject)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Project)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, uint, domain.ProjectType) error); ok {
-		r1 = rf(ctx, userId, typeProject)
 	} else {
 		r1 = ret.Error(1)
 	}

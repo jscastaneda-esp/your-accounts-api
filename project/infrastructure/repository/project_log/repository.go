@@ -5,21 +5,20 @@ import (
 	"your-accounts-api/project/domain"
 	"your-accounts-api/project/infrastructure/entity"
 	"your-accounts-api/shared/domain/persistent"
-	"your-accounts-api/shared/infrastructure/db"
-	persistentInfra "your-accounts-api/shared/infrastructure/db/persistent"
+	persistent_infra "your-accounts-api/shared/infrastructure/db/persistent"
 
 	"gorm.io/gorm"
 )
 
-type gormProjectLogRepository struct {
+type gormRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormProjectLogRepository) WithTransaction(tx persistent.Transaction) domain.ProjectLogRepository {
-	return persistentInfra.DefaultWithTransaction[domain.ProjectLogRepository](tx, newRepository, r)
+func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.ProjectLogRepository {
+	return persistent_infra.DefaultWithTransaction[domain.ProjectLogRepository](tx, NewRepository, r)
 }
 
-func (r *gormProjectLogRepository) Create(ctx context.Context, projectLog domain.ProjectLog) (uint, error) {
+func (r *gormRepository) Save(ctx context.Context, projectLog domain.ProjectLog) (uint, error) {
 	model := &entity.ProjectLog{
 		Description: projectLog.Description,
 		Detail:      projectLog.Detail,
@@ -33,9 +32,9 @@ func (r *gormProjectLogRepository) Create(ctx context.Context, projectLog domain
 	return model.ID, nil
 }
 
-func (r *gormProjectLogRepository) FindByProjectId(ctx context.Context, projectId uint) ([]*domain.ProjectLog, error) {
+func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.ProjectLog) ([]*domain.ProjectLog, error) {
 	where := &entity.ProjectLog{
-		ProjectId: projectId,
+		ProjectId: example.ProjectId,
 	}
 	var models []entity.ProjectLog
 	if err := r.db.WithContext(ctx).Where(where).Order("created_at desc").Limit(20).Find(&models).Error; err != nil {
@@ -56,16 +55,6 @@ func (r *gormProjectLogRepository) FindByProjectId(ctx context.Context, projectI
 	return projects, nil
 }
 
-func newRepository(db *gorm.DB) domain.ProjectLogRepository {
-	return &gormProjectLogRepository{db}
-}
-
-var instance domain.ProjectLogRepository
-
-func DefaultRepository() domain.ProjectLogRepository {
-	if instance == nil {
-		instance = newRepository(db.DB)
-	}
-
-	return instance
+func NewRepository(db *gorm.DB) domain.ProjectLogRepository {
+	return &gormRepository{db}
 }

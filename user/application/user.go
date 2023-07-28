@@ -29,7 +29,10 @@ type userApp struct {
 }
 
 func (app *userApp) Create(ctx context.Context, uid, email string) (uint, error) {
-	exists, err := app.userRepo.ExistsByUID(ctx, uid)
+	example := domain.User{
+		UID: uid,
+	}
+	exists, err := app.userRepo.ExistsByExample(ctx, example)
 	if err != nil {
 		return 0, err
 	} else if exists {
@@ -37,7 +40,10 @@ func (app *userApp) Create(ctx context.Context, uid, email string) (uint, error)
 	}
 
 	email = strings.ToLower(email)
-	exists, err = app.userRepo.ExistsByEmail(ctx, email)
+	example = domain.User{
+		Email: email,
+	}
+	exists, err = app.userRepo.ExistsByExample(ctx, example)
 	if err != nil {
 		return 0, err
 	} else if exists {
@@ -48,11 +54,15 @@ func (app *userApp) Create(ctx context.Context, uid, email string) (uint, error)
 		UID:   uid,
 		Email: email,
 	}
-	return app.userRepo.Create(ctx, user)
+	return app.userRepo.Save(ctx, user)
 }
 
 func (app *userApp) Login(ctx context.Context, uid, email string) (string, error) {
-	user, err := app.userRepo.FindByUIDAndEmail(ctx, uid, strings.ToLower(email))
+	example := domain.User{
+		UID:   uid,
+		Email: strings.ToLower(email),
+	}
+	user, err := app.userRepo.SearchByExample(ctx, example)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +77,7 @@ func (app *userApp) Login(ctx context.Context, uid, email string) (string, error
 		UserId:    user.ID,
 		ExpiresAt: expiresAt,
 	}
-	_, err = app.userTokenRepo.Create(ctx, userToken)
+	_, err = app.userTokenRepo.Save(ctx, userToken)
 	if err != nil {
 		return "", err
 	}
@@ -75,12 +85,6 @@ func (app *userApp) Login(ctx context.Context, uid, email string) (string, error
 	return token, nil
 }
 
-var instance IUserApp
-
 func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
-	if instance == nil {
-		instance = &userApp{tm, userRepo, userTokenRepo}
-	}
-
-	return instance
+	return &userApp{tm, userRepo, userTokenRepo}
 }

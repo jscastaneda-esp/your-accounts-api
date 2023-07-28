@@ -1,5 +1,22 @@
 basePath: /
 definitions:
+  model.CreateAvailableRequest:
+    properties:
+      budgetId:
+        minimum: 1
+        type: integer
+      name:
+        maxLength: 40
+        type: string
+    required:
+    - budgetId
+    - name
+    type: object
+  model.CreateAvailableResponse:
+    properties:
+      id:
+        type: integer
+    type: object
   model.LoginRequest:
     properties:
       email:
@@ -291,6 +308,49 @@ paths:
           schema:
             type: string
       summary: Read budget by ID
+      tags:
+      - budget
+  /api/v1/budget/available/:
+    post:
+      consumes:
+      - application/json
+      description: create a new available for budget
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Available data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateAvailableRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.CreateAvailableResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create available for budget
       tags:
       - budget
   /api/v1/project/logs/{id}:

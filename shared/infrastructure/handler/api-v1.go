@@ -21,7 +21,7 @@ func NewRoute(app fiber.Router) {
 	{
 		api.Use(jwtware.New(jwtware.Config{
 			SigningKey: jwtware.SigningKey{Key: []byte(config.JWT_SECRET)},
-			Claims:     &jwt.JwtUserClaims{},
+			Claims:     new(jwt.JwtUserClaims),
 		}))
 	}
 

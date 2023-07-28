@@ -20,7 +20,7 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.fastCtx = &fasthttp.RequestCtx{}
+	suite.fastCtx = new(fasthttp.RequestCtx)
 
 	app := fiber.New()
 	suite.ctx = app.AcquireCtx(suite.fastCtx)
@@ -77,7 +77,7 @@ func (suite *TestSuite) TestNewRouteSuccessData() {
 	require.Len(route4.Handlers, 1)
 
 	middleware := app.GetRoutes()
-	useFilter := []fiber.Route{}
+	useFilter := make([]fiber.Route, 0)
 	for _, m := range middleware {
 		if m.Path == "/api/v1" {
 			useFilter = append(useFilter, m)

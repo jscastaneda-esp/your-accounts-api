@@ -6,7 +6,7 @@ import (
 	"testing"
 	"your-accounts-api/project/domain"
 	"your-accounts-api/project/domain/mocks"
-	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -20,8 +20,8 @@ type TestSuite struct {
 	userId                 uint
 	typeBudget             domain.ProjectType
 	cloneId                uint
-	mockTransactionManager *mocksShared.TransactionManager
-	mockTx                 *mocksShared.Transaction
+	mockTransactionManager *mocks_shared.TransactionManager
+	mockTx                 *mocks_shared.Transaction
 	mockProjectRepo        *mocks.ProjectRepository
 	mockProjectLogRepo     *mocks.ProjectLogRepository
 	app                    IProjectApp
@@ -37,18 +37,17 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTransactionManager = mocksShared.NewTransactionManager(suite.T())
-	suite.mockTx = mocksShared.NewTransaction(suite.T())
+	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
+	suite.mockTx = mocks_shared.NewTransaction(suite.T())
 	suite.mockProjectRepo = mocks.NewProjectRepository(suite.T())
 	suite.mockProjectLogRepo = mocks.NewProjectLogRepository(suite.T())
-	instance = nil
 	suite.app = NewProjectApp(suite.mockTransactionManager, suite.mockProjectRepo, suite.mockProjectLogRepo)
 }
 
 func (suite *TestSuite) TestCreateSuccess() {
 	require := require.New(suite.T())
 	suite.mockProjectRepo.On("WithTransaction", suite.mockTx).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", suite.ctx, mock.Anything).Return(uint(999), nil)
+	suite.mockProjectRepo.On("Save", suite.ctx, mock.Anything).Return(uint(999), nil)
 
 	res, err := suite.app.Create(suite.ctx, suite.userId, suite.typeBudget, suite.mockTx)
 
@@ -60,46 +59,12 @@ func (suite *TestSuite) TestCreateError() {
 	require := require.New(suite.T())
 	errExpected := errors.New("Error in creation project")
 	suite.mockProjectRepo.On("WithTransaction", suite.mockTx).Return(suite.mockProjectRepo)
-	suite.mockProjectRepo.On("Create", suite.ctx, mock.Anything).Return(uint(0), errExpected)
+	suite.mockProjectRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
 	res, err := suite.app.Create(suite.ctx, suite.userId, suite.typeBudget, suite.mockTx)
 
 	require.EqualError(errExpected, err.Error())
 	require.Zero(res)
-}
-
-func (suite *TestSuite) TestFindByUserIdAndTypeSuccess() {
-	require := require.New(suite.T())
-	projectsExpected := []*domain.Project{
-		{
-			ID:     999,
-			UserId: suite.userId,
-			Type:   suite.typeBudget,
-		},
-		{
-			ID:     1000,
-			UserId: suite.userId,
-			Type:   suite.typeBudget,
-		},
-	}
-	suite.mockProjectRepo.On("FindByUserIdAndType", suite.ctx, suite.userId, suite.typeBudget).Return(projectsExpected, nil)
-
-	res, err := suite.app.FindByUserIdAndType(suite.ctx, suite.userId, suite.typeBudget)
-
-	require.NoError(err)
-	require.Equal(len(projectsExpected), len(res))
-	require.Equal(projectsExpected[0].ID, res[0])
-	require.Equal(projectsExpected[1].ID, res[1])
-}
-
-func (suite *TestSuite) TestFindByUserIdAndTypeError() {
-	require := require.New(suite.T())
-	suite.mockProjectRepo.On("FindByUserIdAndType", suite.ctx, suite.userId, suite.typeBudget).Return(nil, gorm.ErrInvalidField)
-
-	res, err := suite.app.FindByUserIdAndType(suite.ctx, suite.userId, suite.typeBudget)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(res)
 }
 
 func (suite *TestSuite) TestDeleteSuccess() {
@@ -115,9 +80,9 @@ func (suite *TestSuite) TestDeleteSuccess() {
 func (suite *TestSuite) TestCreateLogSuccess() {
 	require := require.New(suite.T())
 	suite.mockProjectLogRepo.On("WithTransaction", suite.mockTx).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", suite.ctx, mock.Anything).Return(uint(0), nil)
+	suite.mockProjectLogRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
 
-	err := suite.app.CreateLog(suite.ctx, "Create", suite.cloneId, nil, suite.mockTx)
+	err := suite.app.CreateLog(suite.ctx, "Save", suite.cloneId, nil, suite.mockTx)
 
 	require.NoError(err)
 }
@@ -126,9 +91,9 @@ func (suite *TestSuite) TestCreateLogError() {
 	require := require.New(suite.T())
 	errExpected := errors.New("Error in creation project")
 	suite.mockProjectLogRepo.On("WithTransaction", suite.mockTx).Return(suite.mockProjectLogRepo)
-	suite.mockProjectLogRepo.On("Create", suite.ctx, mock.Anything).Return(uint(0), errExpected)
+	suite.mockProjectLogRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
-	err := suite.app.CreateLog(suite.ctx, "Create", suite.cloneId, nil, suite.mockTx)
+	err := suite.app.CreateLog(suite.ctx, "Save", suite.cloneId, nil, suite.mockTx)
 
 	require.EqualError(errExpected, err.Error())
 }
@@ -149,7 +114,9 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 			ProjectId:   suite.cloneId,
 		},
 	}
-	suite.mockProjectLogRepo.On("FindByProjectId", suite.ctx, suite.cloneId).Return(logsExpected, nil)
+	suite.mockProjectLogRepo.On("SearchAllByExample", suite.ctx, domain.ProjectLog{
+		ProjectId: suite.cloneId,
+	}).Return(logsExpected, nil)
 
 	res, err := suite.app.FindLogsByProject(suite.ctx, suite.cloneId)
 
@@ -159,7 +126,9 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 
 func (suite *TestSuite) TestFindLogsByProjectError() {
 	require := require.New(suite.T())
-	suite.mockProjectLogRepo.On("FindByProjectId", suite.ctx, suite.cloneId).Return(nil, gorm.ErrRecordNotFound)
+	suite.mockProjectLogRepo.On("SearchAllByExample", suite.ctx, domain.ProjectLog{
+		ProjectId: suite.cloneId,
+	}).Return(nil, gorm.ErrRecordNotFound)
 
 	res, err := suite.app.FindLogsByProject(suite.ctx, suite.cloneId)
 

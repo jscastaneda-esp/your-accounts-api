@@ -12,6 +12,14 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+type CustomRuntimeError struct{}
+
+func (c CustomRuntimeError) Error() string {
+	return "runtime error"
+}
+
+func (c CustomRuntimeError) RuntimeError() {}
+
 type TestSuite struct {
 	suite.Suite
 }
@@ -145,6 +153,48 @@ func (suite *TestSuite) TestListenErrorCustomRoutePanic() {
 	require.Panics(func() {
 		server.Listen()
 	})
+}
+
+func (suite *TestSuite) TestListenErrorCustomRouteRouterFiberError() {
+	require := require.New(suite.T())
+	server := NewServer(true)
+	server.AddRoute(Router(func(app fiber.Router) {
+		app.Get("/router", func(c *fiber.Ctx) error {
+			return fiber.ErrInternalServerError
+		})
+	}))
+	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
+
+	app := server.Listen()
+	response, err := app.Test(request)
+
+	require.NoError(err)
+	require.NotNil(response)
+
+	resp, err := io.ReadAll(response.Body)
+	require.NoError(err)
+	require.Equal([]byte(fiber.ErrInternalServerError.Message), resp)
+}
+
+func (suite *TestSuite) TestListenErrorCustomRouteRouterRuntimeError() {
+	require := require.New(suite.T())
+	server := NewServer(true)
+	server.AddRoute(Router(func(app fiber.Router) {
+		app.Get("/router", func(c *fiber.Ctx) error {
+			return CustomRuntimeError{}
+		})
+	}))
+	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
+
+	app := server.Listen()
+	response, err := app.Test(request)
+
+	require.NoError(err)
+	require.NotNil(response)
+
+	resp, err := io.ReadAll(response.Body)
+	require.NoError(err)
+	require.Equal([]byte("internal server error"), resp)
 }
 
 func (suite *TestSuite) TestListenErrorPanic() {

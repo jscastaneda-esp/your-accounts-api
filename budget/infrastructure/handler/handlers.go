@@ -4,19 +4,14 @@ import (
 	"errors"
 	"log"
 	"your-accounts-api/budget/application"
+	"your-accounts-api/budget/infrastructure/handler/available"
 	"your-accounts-api/budget/infrastructure/model"
-	"your-accounts-api/budget/infrastructure/repository/budget"
-	projectApp "your-accounts-api/project/application"
-	"your-accounts-api/project/infrastructure/repository/project"
-	"your-accounts-api/project/infrastructure/repository/project_log"
 
-	// "your-accounts-api/shared/domain/jwt"
 	"your-accounts-api/shared/domain/jwt"
-	"your-accounts-api/shared/infrastructure/db"
+	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
 
 	"github.com/gofiber/fiber/v2"
-	goJwt "github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +41,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	userData := getUserData(c)
+	userData := jwt.GetUserData(c)
 
 	var id uint
 	var err error
@@ -83,7 +78,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		500				{string}	string
 //	@Router			/api/v1/budget/	[get]
 func (ctrl *controller) read(c *fiber.Ctx) error {
-	userData := getUserData(c)
+	userData := jwt.GetUserData(c)
 
 	budgets, err := ctrl.app.FindByUserId(c.UserContext(), userData.ID)
 	if err != nil {
@@ -91,7 +86,7 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading budgets by user")
 	}
 
-	response := []model.ReadResponse{}
+	response := make([]model.ReadResponse, 0)
 	for _, budget := range budgets {
 		response = append(response, model.NewReadResponse(budget))
 	}
@@ -167,23 +162,15 @@ func (ctrl *controller) delete(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
-func getUserData(c *fiber.Ctx) *jwt.JwtUserClaims {
-	token := c.Locals("user").(*goJwt.Token)
-	return token.Claims.(*jwt.JwtUserClaims)
-}
-
 func NewRoute(router fiber.Router) {
-	budgetRepo := budget.DefaultRepository()
-	projectRepo := project.DefaultRepository()
-	projectLogRepo := project_log.DefaultRepository()
-	projectApp := projectApp.NewProjectApp(db.Tm, projectRepo, projectLogRepo)
-	app := application.NewBudgetApp(db.Tm, budgetRepo, projectApp)
-
-	controller := &controller{app}
+	controller := &controller{injection.BudgetApp}
 
 	group := router.Group("/budget")
 	group.Post("/", controller.create)
 	group.Get("/", controller.read)
 	group.Get("/:id<min(1)>", controller.readById)
 	group.Delete("/:id<min(1)>", controller.delete)
+
+	// Additional routes
+	available.NewRoute(group)
 }

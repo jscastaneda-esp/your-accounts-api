@@ -111,11 +111,12 @@ func (suite *TestSuite) TestCreate422() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	validationErrors := []*validation.ErrorResponse{}
-	validationErrors = append(validationErrors, &validation.ErrorResponse{
-		Field:      "uid",
-		Constraint: "min=28",
-	})
+	validationErrors := []*validation.ErrorResponse{
+		{
+			Field:      "uid",
+			Constraint: "min=28",
+		},
+	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
@@ -227,11 +228,12 @@ func (suite *TestSuite) TestLogin422() {
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	validationErrors := []*validation.ErrorResponse{}
-	validationErrors = append(validationErrors, &validation.ErrorResponse{
-		Field:      "uid",
-		Constraint: "min=28",
-	})
+	validationErrors := []*validation.ErrorResponse{
+		{
+			Field:      "uid",
+			Constraint: "min=28",
+		},
+	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 

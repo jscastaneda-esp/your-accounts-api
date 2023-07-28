@@ -179,6 +179,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/budget/available/": {
+            "post": {
+                "description": "create a new available for budget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Create available for budget",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Available data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAvailableRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateAvailableResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/budget/{id}": {
             "get": {
                 "description": "read budget by ID",
@@ -478,6 +543,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "model.CreateAvailableRequest": {
+            "type": "object",
+            "required": [
+                "budgetId",
+                "name"
+            ],
+            "properties": {
+                "budgetId": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 40
+                }
+            }
+        },
+        "model.CreateAvailableResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "model.LoginRequest": {
             "type": "object",
             "required": [

@@ -4,12 +4,10 @@ import (
 	"errors"
 	"log"
 
-	"your-accounts-api/shared/infrastructure/db"
+	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
 	"your-accounts-api/user/application"
 	"your-accounts-api/user/infrastructure/model"
-	"your-accounts-api/user/infrastructure/repository/user"
-	"your-accounts-api/user/infrastructure/repository/user_token"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -86,11 +84,7 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	userRepo := user.DefaultRepository()
-	userTokenRepo := user_token.DefaultRepository()
-	app := application.NewUserApp(db.Tm, userRepo, userTokenRepo)
-
-	controller := &controller{app}
+	controller := &controller{injection.UserApp}
 
 	router.Post("/user", controller.create)
 	router.Post("/login", controller.login)

@@ -14,6 +14,12 @@ type CreateResponse struct {
 	model.IDResponse
 }
 
+func NewCreateResponse(id uint) CreateResponse {
+	return CreateResponse{
+		IDResponse: model.NewIDResponse(id),
+	}
+}
+
 type ReadResponse struct {
 	model.IDResponse
 	Name                  string  `json:"name"`
@@ -23,6 +29,19 @@ type ReadResponse struct {
 	TotalPendingPayment   float64 `json:"totalPendingPayment"`
 	TotalBalance          float64 `json:"totalBalance"`
 	PendingBills          uint8   `json:"pendingBills"`
+}
+
+func NewReadResponse(budget *domain.Budget) ReadResponse {
+	return ReadResponse{
+		IDResponse:            model.NewIDResponse(*budget.ID),
+		Name:                  *budget.Name,
+		Year:                  *budget.Year,
+		Month:                 *budget.Month,
+		TotalAvailableBalance: *budget.TotalAvailableBalance,
+		TotalPendingPayment:   *budget.TotalPendingPayment,
+		TotalBalance:          *budget.TotalBalance,
+		PendingBills:          *budget.PendingBills,
+	}
 }
 
 type ReadByIDResponse struct {
@@ -38,42 +57,30 @@ type ReadByIDResponse struct {
 	ProjectId        uint    `json:"projectId"`
 }
 
-func NewCreateResponse(id uint) CreateResponse {
-	return CreateResponse{
-		model.IDResponse{
-			ID: id,
-		},
-	}
-}
-
-func NewReadResponse(budget *domain.Budget) ReadResponse {
-	return ReadResponse{
-		IDResponse: model.IDResponse{
-			ID: budget.ID,
-		},
-		Name:                  budget.Name,
-		Year:                  budget.Year,
-		Month:                 budget.Month,
-		TotalAvailableBalance: budget.TotalAvailableBalance,
-		TotalPendingPayment:   budget.TotalPendingPayment,
-		TotalBalance:          budget.TotalBalance,
-		PendingBills:          budget.PendingBills,
-	}
-}
-
 func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
 	return ReadByIDResponse{
-		IDResponse: model.IDResponse{
-			ID: budget.ID,
-		},
-		Name:             budget.Name,
-		Year:             budget.Year,
-		Month:            budget.Month,
-		FixedIncome:      budget.FixedIncome,
-		AdditionalIncome: budget.AdditionalIncome,
-		TotalBalance:     budget.TotalBalance,
-		Total:            budget.Total,
-		EstimatedBalance: budget.EstimatedBalance,
-		ProjectId:        budget.ProjectId,
+		IDResponse:       model.NewIDResponse(*budget.ID),
+		Name:             *budget.Name,
+		Year:             *budget.Year,
+		Month:            *budget.Month,
+		FixedIncome:      *budget.FixedIncome,
+		AdditionalIncome: *budget.AdditionalIncome,
+		TotalBalance:     *budget.TotalBalance,
+		ProjectId:        *budget.ProjectId,
+	}
+}
+
+type CreateAvailableRequest struct {
+	Name     string `json:"name" validate:"required,max=40"`
+	BudgetId uint   `json:"budgetId" validate:"required,min=1"`
+}
+
+type CreateAvailableResponse struct {
+	model.IDResponse
+}
+
+func NewCreateAvailableResponse(id uint) CreateAvailableResponse {
+	return CreateAvailableResponse{
+		IDResponse: model.NewIDResponse(id),
 	}
 }

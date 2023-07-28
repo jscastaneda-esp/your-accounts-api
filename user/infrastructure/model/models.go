@@ -11,20 +11,18 @@ type CreateResponse struct {
 	model.IDResponse
 }
 
+func NewCreateResponse(id uint) *CreateResponse {
+	return &CreateResponse{
+		model.NewIDResponse(id),
+	}
+}
+
 type LoginRequest struct {
 	CreateRequest
 }
 
 type LoginResponse struct {
 	Token string `json:"token"`
-}
-
-func NewCreateResponse(id uint) *CreateResponse {
-	return &CreateResponse{
-		model.IDResponse{
-			ID: id,
-		},
-	}
 }
 
 func NewLoginResponse(token string) *LoginResponse {

@@ -14,9 +14,7 @@ type ReadLogsResponse struct {
 
 func NewReadLogsResponse(log *domain.ProjectLog) *ReadLogsResponse {
 	return &ReadLogsResponse{
-		IDResponse: model.IDResponse{
-			ID: log.ID,
-		},
+		IDResponse:  model.NewIDResponse(log.ID),
 		Description: log.Description,
 		CreatedAt:   log.CreatedAt,
 	}

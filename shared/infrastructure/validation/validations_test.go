@@ -22,7 +22,7 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.fastCtx = &fasthttp.RequestCtx{}
+	suite.fastCtx = new(fasthttp.RequestCtx)
 
 	app := fiber.New()
 	suite.ctx = app.AcquireCtx(suite.fastCtx)
@@ -65,17 +65,18 @@ func (suite *TestSuite) TestValidateErrorBodyParser() {
 
 func (suite *TestSuite) TestValidateErrorValidate() {
 	require := require.New(suite.T())
-	test := &TestStruct{}
+	test := new(TestStruct)
 	body, err := json.Marshal(test)
 	require.NoError(err)
 	suite.fastCtx.Request.Header.SetContentType(fiber.MIMEApplicationJSON)
 	suite.fastCtx.Request.SetBody(body)
 	mapper := new(TestStruct)
-	validationErrors := []*validation.ErrorResponse{}
-	validationErrors = append(validationErrors, &validation.ErrorResponse{
-		Field:      "data",
-		Constraint: "required",
-	})
+	validationErrors := []*validation.ErrorResponse{
+		{
+			Field:      "data",
+			Constraint: "required",
+		},
+	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 

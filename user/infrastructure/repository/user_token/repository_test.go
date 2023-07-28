@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 	"time"
-	mocksShared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 	"your-accounts-api/shared/domain/test_utils"
 	"your-accounts-api/user/domain"
 
@@ -20,13 +20,12 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	token              string
-	userId             uint
-	expiresAt          time.Time
-	mock               sqlmock.Sqlmock
-	mockTX             *mocksShared.Transaction
-	repository         domain.UserTokenRepository
-	repositoryInstance domain.UserTokenRepository
+	token      string
+	userId     uint
+	expiresAt  time.Time
+	mock       sqlmock.Sqlmock
+	mockTX     *mocks_shared.Transaction
+	repository domain.UserTokenRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -52,9 +51,8 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.mockTX = mocksShared.NewTransaction(suite.T())
-	suite.repository = newRepository(DB)
-	suite.repositoryInstance = DefaultRepository()
+	suite.mockTX = mocks_shared.NewTransaction(suite.T())
+	suite.repository = NewRepository(DB)
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -64,7 +62,7 @@ func (suite *TestSuite) TearDownTest() {
 func (suite *TestSuite) TestWithTransactionSuccessNew() {
 	require := require.New(suite.T())
 
-	suite.mockTX.On("Get").Return(&gorm.DB{})
+	suite.mockTX.On("Get").Return(new(gorm.DB))
 
 	repo := suite.repository.WithTransaction(suite.mockTX)
 
@@ -75,7 +73,7 @@ func (suite *TestSuite) TestWithTransactionSuccessNew() {
 func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require := require.New(suite.T())
 
-	getMock := suite.mockTX.On("Get").Return(&sql.DB{})
+	getMock := suite.mockTX.On("Get").Return(new(sql.DB))
 
 	repo := suite.repository.WithTransaction(suite.mockTX)
 
@@ -84,7 +82,7 @@ func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	getMock.Unset()
 }
 
-func (suite *TestSuite) TestCreateSuccess() {
+func (suite *TestSuite) TestSaveSuccess() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -99,14 +97,14 @@ func (suite *TestSuite) TestCreateSuccess() {
 		ExpiresAt: suite.expiresAt,
 	}
 
-	res, err := suite.repository.Create(context.Background(), userToken)
+	res, err := suite.repository.Save(context.Background(), userToken)
 
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(uint(999), res)
 }
 
-func (suite *TestSuite) TestCreateError() {
+func (suite *TestSuite) TestSaveError() {
 	require := require.New(suite.T())
 
 	suite.mock.ExpectBegin()
@@ -121,19 +119,22 @@ func (suite *TestSuite) TestCreateError() {
 		ExpiresAt: suite.expiresAt,
 	}
 
-	res, err := suite.repository.Create(context.Background(), userToken)
+	res, err := suite.repository.Save(context.Background(), userToken)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
 	require.Zero(res)
 }
 
-func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
+func (suite *TestSuite) TestSearchByExampleSuccess() {
 	require := require.New(suite.T())
+	example := domain.UserToken{
+		Token:  suite.token,
+		UserId: suite.userId,
+	}
 	userTokenExpected := &domain.UserToken{
 		ID:        999,
 		Token:     suite.token,
 		UserId:    suite.userId,
-		CreatedAt: time.Now(),
 		ExpiresAt: suite.expiresAt,
 	}
 	suite.mock.
@@ -141,131 +142,31 @@ func (suite *TestSuite) TestFindByTokenAndUserIdSuccess() {
 		WithArgs(suite.token, suite.userId).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
-			AddRow(userTokenExpected.ID, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.CreatedAt, userTokenExpected.ExpiresAt),
+			AddRow(userTokenExpected.ID, userTokenExpected.Token, userTokenExpected.UserId, time.Now(), userTokenExpected.ExpiresAt),
 		)
 
-	res, err := suite.repository.FindByTokenAndUserId(context.Background(), suite.token, suite.userId)
+	res, err := suite.repository.SearchByExample(context.Background(), example)
 
 	require.NoError(err)
 	require.NotNil(res)
 	require.Equal(userTokenExpected, res)
 }
 
-func (suite *TestSuite) TestFindByTokenAndUserIdError() {
+func (suite *TestSuite) TestSearchByExampleError() {
 	require := require.New(suite.T())
+	example := domain.UserToken{
+		Token:  suite.token,
+		UserId: suite.userId,
+	}
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`token` = ? AND `user_tokens`.`user_id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
 		WithArgs(suite.token, suite.userId).
 		WillReturnError(gorm.ErrRecordNotFound)
 
-	res, err := suite.repository.FindByTokenAndUserId(context.Background(), suite.token, suite.userId)
+	res, err := suite.repository.SearchByExample(context.Background(), example)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Nil(res)
-}
-
-func (suite *TestSuite) TestUpdateSuccess() {
-	require := require.New(suite.T())
-	userToken := domain.UserToken{
-		ID:        999,
-		Token:     suite.token,
-		UserId:    suite.userId,
-		CreatedAt: time.Now(),
-		ExpiresAt: suite.expiresAt,
-	}
-	userTokenExpected := domain.UserToken{
-		ID:        userToken.ID,
-		Token:     userToken.Token,
-		UserId:    userToken.UserId,
-		CreatedAt: userToken.CreatedAt,
-		ExpiresAt: userToken.ExpiresAt,
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
-		WithArgs(userToken.ID).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
-			AddRow(userToken.ID, userToken.Token, userToken.UserId, userToken.CreatedAt, userToken.ExpiresAt),
-		)
-	suite.mock.ExpectBegin()
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("UPDATE `user_tokens` SET `created_at`=?,`token`=?,`user_id`=?,`expires_at`=? WHERE `id` = ?")).
-		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.ExpiresAt, userTokenExpected.ID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	suite.mock.ExpectCommit()
-
-	err := suite.repository.Update(context.Background(), userTokenExpected)
-
-	require.NoError(err)
-}
-
-func (suite *TestSuite) TestUpdateErrorFind() {
-	require := require.New(suite.T())
-	userToken := domain.UserToken{
-		ID:        999,
-		Token:     suite.token,
-		UserId:    suite.userId,
-		CreatedAt: time.Now(),
-		ExpiresAt: suite.expiresAt,
-	}
-	userTokenExpected := domain.UserToken{
-		ID:        userToken.ID,
-		Token:     userToken.Token,
-		UserId:    userToken.UserId,
-		CreatedAt: userToken.CreatedAt,
-		ExpiresAt: userToken.ExpiresAt,
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
-		WithArgs(userToken.ID).
-		WillReturnError(gorm.ErrInvalidField)
-
-	err := suite.repository.Update(context.Background(), userTokenExpected)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-}
-
-func (suite *TestSuite) TestUpdateErrorSave() {
-	require := require.New(suite.T())
-	userToken := domain.UserToken{
-		ID:        999,
-		Token:     suite.token,
-		UserId:    suite.userId,
-		CreatedAt: time.Now(),
-		ExpiresAt: suite.expiresAt,
-	}
-	userTokenExpected := domain.UserToken{
-		ID:        userToken.ID,
-		Token:     userToken.Token,
-		UserId:    userToken.UserId,
-		CreatedAt: userToken.CreatedAt,
-		ExpiresAt: userToken.ExpiresAt,
-	}
-	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
-		WithArgs(userToken.ID).
-		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
-			AddRow(userToken.ID, userToken.Token, userToken.UserId, userToken.CreatedAt, userToken.ExpiresAt),
-		)
-	suite.mock.ExpectBegin()
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("UPDATE `user_tokens` SET `created_at`=?,`token`=?,`user_id`=?,`expires_at`=? WHERE `id` = ?")).
-		WithArgs(userTokenExpected.CreatedAt, userTokenExpected.Token, userTokenExpected.UserId, userTokenExpected.ExpiresAt, userTokenExpected.ID).
-		WillReturnError(gorm.ErrInvalidField)
-	suite.mock.ExpectRollback()
-
-	err := suite.repository.Update(context.Background(), userTokenExpected)
-
-	require.EqualError(gorm.ErrInvalidField, err.Error())
-}
-
-func (suite *TestSuite) TestSingleton() {
-	require := require.New(suite.T())
-
-	repository := DefaultRepository()
-
-	require.Equal(suite.repositoryInstance, repository)
 }
 
 func TestTestSuite(t *testing.T) {

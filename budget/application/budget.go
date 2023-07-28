@@ -6,7 +6,7 @@ import (
 	"time"
 	"your-accounts-api/budget/domain"
 	"your-accounts-api/project/application"
-	projectDom "your-accounts-api/project/domain"
+	project_dom "your-accounts-api/project/domain"
 	"your-accounts-api/shared/domain/persistent"
 )
 
@@ -28,7 +28,7 @@ type budgetApp struct {
 func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uint, error) {
 	var id uint
 	err := app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectId, err := app.projectApp.Create(ctx, userId, projectDom.TypeBudget, tx)
+		projectId, err := app.projectApp.Create(ctx, userId, project_dom.TypeBudget, tx)
 		if err != nil {
 			return err
 		}
@@ -40,13 +40,15 @@ func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uin
 
 		budgetRepo := app.budgetRepo.WithTransaction(tx)
 		now := time.Now()
+		year := uint16(now.Year())
+		month := uint8(now.Month())
 		newBudget := domain.Budget{
-			Name:      name,
-			Year:      uint16(now.Year()),
-			Month:     uint8(now.Month()),
-			ProjectId: projectId,
+			Name:      &name,
+			Year:      &year,
+			Month:     &month,
+			ProjectId: &projectId,
 		}
-		id, err = budgetRepo.Create(ctx, newBudget)
+		id, err = budgetRepo.Save(ctx, newBudget)
 		if err != nil {
 			return err
 		}
@@ -68,35 +70,34 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 
 	var id uint
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
-		projectId, err := app.projectApp.Create(ctx, userId, projectDom.TypeBudget, tx)
+		projectId, err := app.projectApp.Create(ctx, userId, project_dom.TypeBudget, tx)
 		if err != nil {
 			return err
 		}
 
-		description := fmt.Sprintf("Creación a partir del presupuesto %s(%d)", baseBudget.Name, baseId)
-		detail := fmt.Sprintf(`{"cloneId": %d, "cloneName": "%s"}`, baseId, baseBudget.Name)
+		description := fmt.Sprintf("Creación a partir del presupuesto %s(%d)", *baseBudget.Name, baseId)
+		detail := fmt.Sprintf(`{"cloneId": %d, "cloneName": "%s"}`, baseId, *baseBudget.Name)
 		err = app.projectApp.CreateLog(ctx, description, projectId, &detail, tx)
 		if err != nil {
 			return err
 		}
 
 		budgetRepo := app.budgetRepo.WithTransaction(tx)
+		name := fmt.Sprintf("%s Copia", *baseBudget.Name)
 		newBudget := domain.Budget{
-			Name:             fmt.Sprintf("%s Copia", baseBudget.Name),
+			Name:             &name,
 			Year:             baseBudget.Year,
 			Month:            baseBudget.Month,
 			FixedIncome:      baseBudget.FixedIncome,
 			AdditionalIncome: baseBudget.AdditionalIncome,
-			Total:            baseBudget.Total,
-			EstimatedBalance: baseBudget.EstimatedBalance,
-			ProjectId:        projectId,
+			ProjectId:        &projectId,
 		}
-		id, err = budgetRepo.Create(ctx, newBudget)
+		id, err = budgetRepo.Save(ctx, newBudget)
 		if err != nil {
 			return err
 		}
 
-		// TODO Pendiente la creación de Availables, Bills y BillShared
+		// TODO Pendiente la creación de AvailableBalances, Bills y BillShared
 
 		return nil
 	})
@@ -108,7 +109,7 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 }
 
 func (app *budgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
-	budget, err := app.budgetRepo.FindById(ctx, id)
+	budget, err := app.budgetRepo.Search(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -117,12 +118,7 @@ func (app *budgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, er
 }
 
 func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
-	projectIds, err := app.projectApp.FindByUserIdAndType(ctx, userId, projectDom.TypeBudget)
-	if err != nil {
-		return nil, err
-	}
-
-	budgets, err := app.budgetRepo.FindByProjectIds(ctx, projectIds)
+	budgets, err := app.budgetRepo.SearchByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -137,21 +133,15 @@ func (app *budgetApp) Delete(ctx context.Context, id uint) error {
 	}
 
 	return app.tm.Transaction(func(tx persistent.Transaction) error {
-		err = app.budgetRepo.Delete(ctx, budget.ID) // TODO Validar si se puede eliminar toda la información
+		err = app.budgetRepo.Delete(ctx, *budget.ID) // TODO Validar si se puede eliminar toda la información
 		if err != nil {
 			return err
 		}
 
-		return app.projectApp.Delete(ctx, budget.ProjectId, tx)
+		return app.projectApp.Delete(ctx, *budget.ProjectId, tx)
 	})
 }
 
-var instance IBudgetApp
-
 func NewBudgetApp(tm persistent.TransactionManager, budgetRepo domain.BudgetRepository, projectApp application.IProjectApp) IBudgetApp {
-	if instance == nil {
-		instance = &budgetApp{tm, budgetRepo, projectApp}
-	}
-
-	return instance
+	return &budgetApp{tm, budgetRepo, projectApp}
 }
