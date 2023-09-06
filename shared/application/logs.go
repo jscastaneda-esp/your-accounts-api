@@ -8,8 +8,8 @@ import (
 
 //go:generate mockery --name ILogApp --filename log-app.go
 type ILogApp interface {
-	CreateLog(ctx context.Context, description string, resourceId uint, detail *string, tx persistent.Transaction) error
-	FindLogsByProject(ctx context.Context, resourceId uint) ([]*domain.Log, error)
+	CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error
+	FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error)
 }
 
 type logApp struct {
@@ -17,12 +17,13 @@ type logApp struct {
 	logRepo domain.LogRepository
 }
 
-func (app *logApp) CreateLog(ctx context.Context, description string, resourceId uint, detail *string, tx persistent.Transaction) error {
+func (app *logApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error {
 	projectLogRepo := app.logRepo.WithTransaction(tx)
 	newLog := domain.Log{
 		Description: description,
-		ResourceId:  resourceId,
 		Detail:      detail,
+		Code:        code,
+		ResourceId:  resourceId,
 	}
 	_, err := projectLogRepo.Save(ctx, newLog)
 	if err != nil {
@@ -32,8 +33,9 @@ func (app *logApp) CreateLog(ctx context.Context, description string, resourceId
 	return nil
 }
 
-func (app *logApp) FindLogsByProject(ctx context.Context, resourceId uint) ([]*domain.Log, error) {
+func (app *logApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error) {
 	example := domain.Log{
+		Code:       code,
 		ResourceId: resourceId,
 	}
 	logs, err := app.logRepo.SearchAllByExample(ctx, example)

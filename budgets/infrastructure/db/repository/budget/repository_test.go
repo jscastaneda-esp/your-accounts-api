@@ -296,10 +296,6 @@ func (suite *TestSuite) TestDeleteSuccess() {
 	id := uint(999)
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("DELETE FROM `logs` WHERE `logs`.`resource_id` = ?")).
-		WithArgs(id).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	suite.mock.
 		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_available_balances` WHERE `budget_available_balances`.`budget_id` = ?")).
 		WithArgs(id).
 		WillReturnResult(sqlmock.NewResult(1, 1))
@@ -322,10 +318,6 @@ func (suite *TestSuite) TestDeleteErrorDelete() {
 	require := require.New(suite.T())
 	id := uint(999)
 	suite.mock.ExpectBegin()
-	suite.mock.
-		ExpectExec(regexp.QuoteMeta("DELETE FROM `logs` WHERE `logs`.`resource_id` = ?")).
-		WithArgs(id).
-		WillReturnResult(sqlmock.NewResult(1, 1))
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_available_balances` WHERE `budget_available_balances`.`budget_id` = ?")).
 		WithArgs(id).

@@ -18,7 +18,6 @@ type Budget struct {
 	PendingBills            uint8                    `gorm:"not null;default:0"`
 	TotalBalance            float64                  `gorm:"not null;default:0"`
 	UserId                  uint                     `gorm:"not null"`
-	Logs                    []entity.Log             `gorm:"foreignKey:ResourceId"`
 	BudgetAvailableBalances []BudgetAvailableBalance `gorm:"foreignKey:BudgetId"`
 	BudgetBills             []BudgetBill             `gorm:"foreignKey:BudgetId"`
 }
@@ -34,19 +33,11 @@ type BudgetAvailableBalance struct {
 type BudgetBill struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Description            string                    `gorm:"not null;size:200"`
-	Amount                 float64                   `gorm:"not null;default:0"`
-	Payment                float64                   `gorm:"not null;default:0"`
-	DueDate                uint8                     `gorm:"not null;default:0"`
-	Complete               bool                      `gorm:"not null;default:false"`
-	BudgetId               uint                      `gorm:"not null"`
-	Category               domain.BudgetBillCategory `gorm:"not null;type:enum('house', 'entertainment', 'personal', 'vehicle_transportation', 'education', 'services', 'financial', 'saving', 'others')"`
-	BudgetBillTransactions []BudgetBillTransaction   `gorm:"foreignKey:BillId"`
-}
-
-type BudgetBillTransaction struct {
-	entity.BaseModel
-	Description string  `gorm:"not null;size:100"`
-	Amount      float64 `gorm:"not null"`
-	BillId      uint    `gorm:"not null"`
+	Description string                    `gorm:"not null;size:200"`
+	Amount      float64                   `gorm:"not null;default:0"`
+	Payment     float64                   `gorm:"not null;default:0"`
+	DueDate     uint8                     `gorm:"not null;default:0"`
+	Complete    bool                      `gorm:"not null;default:false"`
+	BudgetId    uint                      `gorm:"not null"`
+	Category    domain.BudgetBillCategory `gorm:"not null;type:enum('house', 'entertainment', 'personal', 'vehicle_transportation', 'education', 'services', 'financial', 'saving', 'others')"`
 }

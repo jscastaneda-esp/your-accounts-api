@@ -43,11 +43,10 @@ func NewDB() {
 		if err = DB.AutoMigrate(
 			new(users.User),
 			new(users.UserToken),
-			new(shared.Log),
 			new(budgets.Budget),
 			new(budgets.BudgetAvailableBalance),
 			new(budgets.BudgetBill),
-			new(budgets.BudgetBillTransaction),
+			new(shared.Log),
 		); err != nil {
 			log.Fatal(err)
 		}

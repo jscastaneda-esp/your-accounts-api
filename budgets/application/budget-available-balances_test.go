@@ -8,6 +8,7 @@ import (
 	"your-accounts-api/budgets/domain"
 	"your-accounts-api/budgets/domain/mocks"
 	mocks_logs "your-accounts-api/shared/application/mocks"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
@@ -57,7 +58,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, *budgetExpected.ID, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableBalanceRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableBalanceRepo)
 	suite.mockBudgetAvailableBalanceRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
 
@@ -96,7 +97,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateErrorCreateLog() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, *budgetExpected.ID, mock.Anything, nil).Return(errExpected)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
 
@@ -145,7 +146,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateError() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, *budgetExpected.ID, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableBalanceRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableBalanceRepo)
 	suite.mockBudgetAvailableBalanceRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
