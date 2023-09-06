@@ -48,7 +48,6 @@ func NewDB() {
 			new(budgets.BudgetAvailableBalance),
 			new(budgets.BudgetBill),
 			new(budgets.BudgetBillTransaction),
-			new(budgets.BudgetBillShared),
 		); err != nil {
 			log.Fatal(err)
 		}
