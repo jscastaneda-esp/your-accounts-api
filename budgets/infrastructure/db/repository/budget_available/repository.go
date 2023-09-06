@@ -1,4 +1,4 @@
-package budget_available_balance
+package budget_available
 
 import (
 	"context"
@@ -15,12 +15,12 @@ type gormRepository struct {
 	db *gorm.DB
 }
 
-func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.BudgetAvailableBalanceRepository {
-	return db.DefaultWithTransaction[domain.BudgetAvailableBalanceRepository](tx, NewRepository, r)
+func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.BudgetAvailableRepository {
+	return db.DefaultWithTransaction[domain.BudgetAvailableRepository](tx, NewRepository, r)
 }
 
-func (r *gormRepository) Save(ctx context.Context, available domain.BudgetAvailableBalance) (uint, error) {
-	model := new(entity.BudgetAvailableBalance)
+func (r *gormRepository) Save(ctx context.Context, available domain.BudgetAvailable) (uint, error) {
+	model := new(entity.BudgetAvailable)
 	if available.ID != nil {
 		if err := r.db.WithContext(ctx).First(model, *available.ID).Error; err != nil {
 			return 0, err
@@ -44,10 +44,10 @@ func (r *gormRepository) Save(ctx context.Context, available domain.BudgetAvaila
 	return model.ID, nil
 }
 
-func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.BudgetAvailableBalance) error {
-	models := []*entity.BudgetAvailableBalance{}
+func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.BudgetAvailable) error {
+	models := []*entity.BudgetAvailable{}
 	for _, available := range availables {
-		model := new(entity.BudgetAvailableBalance)
+		model := new(entity.BudgetAvailable)
 		if available.ID != nil {
 			model.ID = *available.ID
 		}
@@ -74,19 +74,19 @@ func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.Budget
 	return nil
 }
 
-func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailableBalance) ([]*domain.BudgetAvailableBalance, error) {
-	where := &entity.BudgetAvailableBalance{
+func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailable) ([]*domain.BudgetAvailable, error) {
+	where := &entity.BudgetAvailable{
 		BudgetId: *example.BudgetId,
 	}
-	var models []entity.BudgetAvailableBalance
+	var models []entity.BudgetAvailable
 	if err := r.db.WithContext(ctx).Where(where).Find(&models).Error; err != nil {
 		return nil, err
 	}
 
-	var projects []*domain.BudgetAvailableBalance
+	var projects []*domain.BudgetAvailable
 	for _, model := range models {
 		modelC := model
-		projects = append(projects, &domain.BudgetAvailableBalance{
+		projects = append(projects, &domain.BudgetAvailable{
 			ID:       &modelC.ID,
 			Name:     &modelC.Name,
 			Amount:   &modelC.Amount,
@@ -98,7 +98,7 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 }
 
 func (r *gormRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.BudgetAvailableBalance{
+	if err := r.db.WithContext(ctx).Delete(&entity.BudgetAvailable{
 		BaseModel: shared_ent.BaseModel{
 			ID: id,
 		},
@@ -109,6 +109,6 @@ func (r *gormRepository) Delete(ctx context.Context, id uint) error {
 	return nil
 }
 
-func NewRepository(db *gorm.DB) domain.BudgetAvailableBalanceRepository {
+func NewRepository(db *gorm.DB) domain.BudgetAvailableRepository {
 	return &gormRepository{db}
 }

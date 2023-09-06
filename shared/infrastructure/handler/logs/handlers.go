@@ -21,15 +21,15 @@ type controller struct {
 //	@Description	read logs associated to a resource and code
 //	@Tags			log
 //	@Produce		json
-//	@Param			Authorization							header		string			true	"Access token"
-//	@Param			id										path		uint			true	"Resource ID"
-//	@Param			code									path		domain.CodeLog	true	"Code"
-//	@Success		200										{array}		model.ReadLogsResponse
-//	@Failure		400										{string}	string
-//	@Failure		401										{string}	string
-//	@Failure		404										{string}	string
-//	@Failure		500										{string}	string
-//	@Router			/api/v1/project/logs/{id}/code/{code}	[get]
+//	@Param			Authorization					header		string			true	"Access token"
+//	@Param			id								path		uint			true	"Resource ID"
+//	@Param			code							path		domain.CodeLog	true	"Code"
+//	@Success		200								{array}		model.ReadLogsResponse
+//	@Failure		400								{string}	string
+//	@Failure		401								{string}	string
+//	@Failure		404								{string}	string
+//	@Failure		500								{string}	string
+//	@Router			/api/v1/log/{id}/code/{code}	[get]
 func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 	resourceId, err := c.ParamsInt("id")
 	if err != nil {

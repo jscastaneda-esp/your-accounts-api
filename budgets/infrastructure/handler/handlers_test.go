@@ -182,24 +182,24 @@ func (suite *TestSuite) TestRead200() {
 	zeroUInt := uint8(0)
 	result := []*domain.Budget{
 		{
-			ID:                    &ids[0],
-			Name:                  &names[0],
-			Year:                  &year,
-			Month:                 &month,
-			TotalAvailableBalance: &zeroFloat,
-			TotalPendingPayment:   &zeroFloat,
-			TotalBalance:          &zeroFloat,
-			PendingBills:          &zeroUInt,
+			ID:             &ids[0],
+			Name:           &names[0],
+			Year:           &year,
+			Month:          &month,
+			TotalAvailable: &zeroFloat,
+			TotalPending:   &zeroFloat,
+			TotalSaving:    &zeroFloat,
+			PendingBills:   &zeroUInt,
 		},
 		{
-			ID:                    &ids[1],
-			Name:                  &names[1],
-			Year:                  &year,
-			Month:                 &month,
-			TotalAvailableBalance: &zeroFloat,
-			TotalPendingPayment:   &zeroFloat,
-			TotalBalance:          &zeroFloat,
-			PendingBills:          &zeroUInt,
+			ID:             &ids[1],
+			Name:           &names[1],
+			Year:           &year,
+			Month:          &month,
+			TotalAvailable: &zeroFloat,
+			TotalPending:   &zeroFloat,
+			TotalSaving:    &zeroFloat,
+			PendingBills:   &zeroUInt,
 		},
 	}
 	suite.mock.On("FindByUserId", mock.Anything, mock.Anything).Return(result, nil)
@@ -239,7 +239,6 @@ func (suite *TestSuite) TestRead500() {
 func (suite *TestSuite) TestReadByID200() {
 	require := require.New(suite.T())
 	zeroFloat := 0.0
-	userId := uint(1)
 	result := &domain.Budget{
 		ID:               &suite.id,
 		Name:             &suite.name,
@@ -247,8 +246,6 @@ func (suite *TestSuite) TestReadByID200() {
 		Month:            &suite.month,
 		FixedIncome:      &zeroFloat,
 		AdditionalIncome: &zeroFloat,
-		TotalBalance:     &zeroFloat,
-		UserId:           &userId,
 	}
 	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(result, nil)
 	expectedBody, err := json.Marshal(model.NewReadByIDResponse(result))

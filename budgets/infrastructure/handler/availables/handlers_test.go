@@ -24,7 +24,7 @@ type TestSuite struct {
 	name     string
 	budgetId uint
 	app      *fiber.App
-	mock     *mocks.IBudgetAvailableBalanceApp
+	mock     *mocks.IBudgetAvailableApp
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -33,7 +33,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mock = mocks.NewIBudgetAvailableBalanceApp(suite.T())
+	suite.mock = mocks.NewIBudgetAvailableApp(suite.T())
 	ctrl := &controller{
 		app: suite.mock,
 	}

@@ -362,7 +362,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/project/logs/{id}/code/{code}": {
+        "/api/v1/log/{id}/code/{code}": {
             "get": {
                 "description": "read logs associated to a resource and code",
                 "produces": [
@@ -610,9 +610,6 @@ const docTemplate = `{
                 "additionalIncome": {
                     "type": "number"
                 },
-                "estimatedBalance": {
-                    "type": "number"
-                },
                 "fixedIncome": {
                     "type": "number"
                 },
@@ -624,12 +621,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "total": {
-                    "type": "number"
-                },
-                "totalBalance": {
-                    "type": "number"
                 },
                 "year": {
                     "type": "integer"
@@ -665,13 +656,13 @@ const docTemplate = `{
                 "pendingBills": {
                     "type": "integer"
                 },
-                "totalAvailableBalance": {
+                "totalAvailable": {
                     "type": "number"
                 },
-                "totalBalance": {
+                "totalPending": {
                     "type": "number"
                 },
-                "totalPendingPayment": {
+                "totalSaving": {
                     "type": "number"
                 },
                 "year": {
