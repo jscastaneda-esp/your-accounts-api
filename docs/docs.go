@@ -135,7 +135,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.CreateRequest"
+                            "$ref": "#/definitions/your-accounts-api_budgets_infrastructure_model.CreateRequest"
                         }
                     }
                 ],
@@ -143,7 +143,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_budget_infrastructure_model.CreateResponse"
+                            "$ref": "#/definitions/your-accounts-api_budgets_infrastructure_model.CreateResponse"
                         }
                     },
                     "400": {
@@ -362,16 +362,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/project/logs/{id}": {
+        "/api/v1/project/logs/{id}/code/{code}": {
             "get": {
-                "description": "read logs associated to a project",
+                "description": "read logs associated to a resource and code",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "project"
+                    "log"
                 ],
-                "summary": "Read logs by project",
+                "summary": "Read logs by resource and code",
                 "parameters": [
                     {
                         "type": "string",
@@ -382,8 +382,19 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "Project ID",
+                        "description": "Resource ID",
                         "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "budget",
+                            "budget_bill"
+                        ],
+                        "type": "string",
+                        "description": "Code",
+                        "name": "code",
                         "in": "path",
                         "required": true
                     }
@@ -503,7 +514,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_user_infrastructure_model.CreateRequest"
+                            "$ref": "#/definitions/your-accounts-api_users_infrastructure_model.CreateRequest"
                         }
                     }
                 ],
@@ -511,7 +522,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/your-accounts-api_user_infrastructure_model.CreateResponse"
+                            "$ref": "#/definitions/your-accounts-api_users_infrastructure_model.CreateResponse"
                         }
                     },
                     "400": {
@@ -614,9 +625,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "projectId": {
-                    "type": "integer"
-                },
                 "total": {
                     "type": "number"
                 },
@@ -671,7 +679,7 @@ const docTemplate = `{
                 }
             }
         },
-        "your-accounts-api_budget_infrastructure_model.CreateRequest": {
+        "your-accounts-api_budgets_infrastructure_model.CreateRequest": {
             "type": "object",
             "properties": {
                 "cloneId": {
@@ -684,7 +692,7 @@ const docTemplate = `{
                 }
             }
         },
-        "your-accounts-api_budget_infrastructure_model.CreateResponse": {
+        "your-accounts-api_budgets_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -692,7 +700,7 @@ const docTemplate = `{
                 }
             }
         },
-        "your-accounts-api_user_infrastructure_model.CreateRequest": {
+        "your-accounts-api_users_infrastructure_model.CreateRequest": {
             "type": "object",
             "required": [
                 "email",
@@ -709,7 +717,7 @@ const docTemplate = `{
                 }
             }
         },
-        "your-accounts-api_user_infrastructure_model.CreateResponse": {
+        "your-accounts-api_users_infrastructure_model.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {

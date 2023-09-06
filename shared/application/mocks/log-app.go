@@ -16,13 +16,13 @@ type ILogApp struct {
 	mock.Mock
 }
 
-// CreateLog provides a mock function with given fields: ctx, description, resourceId, detail, tx
-func (_m *ILogApp) CreateLog(ctx context.Context, description string, resourceId uint, detail *string, tx persistent.Transaction) error {
-	ret := _m.Called(ctx, description, resourceId, detail, tx)
+// CreateLog provides a mock function with given fields: ctx, description, code, resourceId, detail, tx
+func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error {
+	ret := _m.Called(ctx, description, code, resourceId, detail, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint, *string, persistent.Transaction) error); ok {
-		r0 = rf(ctx, description, resourceId, detail, tx)
+	if rf, ok := ret.Get(0).(func(context.Context, string, domain.CodeLog, uint, *string, persistent.Transaction) error); ok {
+		r0 = rf(ctx, description, code, resourceId, detail, tx)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -30,25 +30,25 @@ func (_m *ILogApp) CreateLog(ctx context.Context, description string, resourceId
 	return r0
 }
 
-// FindLogsByProject provides a mock function with given fields: ctx, resourceId
-func (_m *ILogApp) FindLogsByProject(ctx context.Context, resourceId uint) ([]*domain.Log, error) {
-	ret := _m.Called(ctx, resourceId)
+// FindLogsByProject provides a mock function with given fields: ctx, code, resourceId
+func (_m *ILogApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error) {
+	ret := _m.Called(ctx, code, resourceId)
 
 	var r0 []*domain.Log
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.Log, error)); ok {
-		return rf(ctx, resourceId)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) ([]*domain.Log, error)); ok {
+		return rf(ctx, code, resourceId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.Log); ok {
-		r0 = rf(ctx, resourceId)
+	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) []*domain.Log); ok {
+		r0 = rf(ctx, code, resourceId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*domain.Log)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
-		r1 = rf(ctx, resourceId)
+	if rf, ok := ret.Get(1).(func(context.Context, domain.CodeLog, uint) error); ok {
+		r1 = rf(ctx, code, resourceId)
 	} else {
 		r1 = ret.Error(1)
 	}

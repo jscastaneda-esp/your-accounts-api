@@ -18,7 +18,7 @@ type TestSuite struct {
 	suite.Suite
 	name                   string
 	userId                 uint
-	typeBudget             domain.ProjectType
+	code                   domain.CodeLog
 	cloneId                uint
 	mockTransactionManager *mocks_shared.TransactionManager
 	mockTx                 *mocks_shared.Transaction
@@ -30,7 +30,7 @@ type TestSuite struct {
 func (suite *TestSuite) SetupSuite() {
 	suite.name = "Test"
 	suite.userId = 1
-	suite.typeBudget = domain.TypeBudget
+	suite.code = domain.Budget
 	suite.cloneId = 1
 	suite.ctx = context.Background()
 }
@@ -47,7 +47,7 @@ func (suite *TestSuite) TestCreateLogSuccess() {
 	suite.mockLogRepo.On("WithTransaction", suite.mockTx).Return(suite.mockLogRepo)
 	suite.mockLogRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
 
-	err := suite.app.CreateLog(suite.ctx, "Save", suite.cloneId, nil, suite.mockTx)
+	err := suite.app.CreateLog(suite.ctx, "Save", suite.code, suite.cloneId, nil, suite.mockTx)
 
 	require.NoError(err)
 }
@@ -58,7 +58,7 @@ func (suite *TestSuite) TestCreateLogError() {
 	suite.mockLogRepo.On("WithTransaction", suite.mockTx).Return(suite.mockLogRepo)
 	suite.mockLogRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
-	err := suite.app.CreateLog(suite.ctx, "Save", suite.cloneId, nil, suite.mockTx)
+	err := suite.app.CreateLog(suite.ctx, "Save", suite.code, suite.cloneId, nil, suite.mockTx)
 
 	require.EqualError(errExpected, err.Error())
 }
@@ -80,10 +80,11 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 		},
 	}
 	suite.mockLogRepo.On("SearchAllByExample", suite.ctx, domain.Log{
+		Code:       suite.code,
 		ResourceId: suite.cloneId,
 	}).Return(logsExpected, nil)
 
-	res, err := suite.app.FindLogsByProject(suite.ctx, suite.cloneId)
+	res, err := suite.app.FindLogsByProject(suite.ctx, suite.code, suite.cloneId)
 
 	require.NoError(err)
 	require.Equal(logsExpected, res)
@@ -92,10 +93,11 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 func (suite *TestSuite) TestFindLogsByProjectError() {
 	require := require.New(suite.T())
 	suite.mockLogRepo.On("SearchAllByExample", suite.ctx, domain.Log{
+		Code:       suite.code,
 		ResourceId: suite.cloneId,
 	}).Return(nil, gorm.ErrRecordNotFound)
 
-	res, err := suite.app.FindLogsByProject(suite.ctx, suite.cloneId)
+	res, err := suite.app.FindLogsByProject(suite.ctx, suite.code, suite.cloneId)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 	require.Empty(res)

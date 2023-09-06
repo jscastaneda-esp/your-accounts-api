@@ -22,6 +22,7 @@ func (r *gormRepository) Save(ctx context.Context, log domain.Log) (uint, error)
 	model := &entity.Log{
 		Description: log.Description,
 		Detail:      log.Detail,
+		Code:        log.Code,
 		ResourceId:  log.ResourceId,
 	}
 
@@ -34,6 +35,7 @@ func (r *gormRepository) Save(ctx context.Context, log domain.Log) (uint, error)
 
 func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.Log) ([]*domain.Log, error) {
 	where := &entity.Log{
+		Code:       example.Code,
 		ResourceId: example.ResourceId,
 	}
 	var models []entity.Log
@@ -47,6 +49,7 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 			ID:          model.ID,
 			Description: model.Description,
 			Detail:      model.Detail,
+			Code:        model.Code,
 			ResourceId:  model.ResourceId,
 			CreatedAt:   model.CreatedAt,
 		})

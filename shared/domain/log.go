@@ -9,6 +9,7 @@ type Log struct {
 	ID          uint
 	Description string
 	Detail      *string
+	Code        CodeLog
 	ResourceId  uint
 	CreatedAt   time.Time
 }

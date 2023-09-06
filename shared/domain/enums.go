@@ -1,7 +1,8 @@
 package domain
 
-type ProjectType string
+type CodeLog string
 
 const (
-	TypeBudget ProjectType = "budget"
+	Budget     CodeLog = "budget"
+	BudgetBill CodeLog = "budget_bill"
 )

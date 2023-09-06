@@ -6,6 +6,7 @@ import (
 	"time"
 	"your-accounts-api/budgets/domain"
 	"your-accounts-api/shared/application"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 )
 
@@ -44,7 +45,7 @@ func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uin
 			return err
 		}
 
-		return app.logApp.CreateLog(ctx, "Creación", id, nil, tx)
+		return app.logApp.CreateLog(ctx, "Creación", shared.Budget, id, nil, tx)
 	})
 	if err != nil {
 		return 0, err
@@ -80,7 +81,7 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 
 		description := fmt.Sprintf("Creación a partir del presupuesto %s(%d)", *baseBudget.Name, baseId)
 		detail := fmt.Sprintf(`{"cloneId": %d, "cloneName": "%s"}`, baseId, *baseBudget.Name)
-		err = app.logApp.CreateLog(ctx, description, id, &detail, tx)
+		err = app.logApp.CreateLog(ctx, description, shared.Budget, id, &detail, tx)
 		if err != nil {
 			return err
 		}

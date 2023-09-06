@@ -7,6 +7,7 @@ import (
 	"your-accounts-api/budgets/domain"
 	"your-accounts-api/budgets/domain/mocks"
 	mocks_logs "your-accounts-api/shared/application/mocks"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
@@ -47,7 +48,7 @@ func (suite *TestBudgetSuite) TestCreateSuccess() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, suite.budgetId, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 
 	res, err := suite.app.Create(suite.ctx, suite.userId, "Test")
 
@@ -63,7 +64,7 @@ func (suite *TestBudgetSuite) TestCreateErrorCreateLog() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, suite.budgetId, mock.Anything, nil).Return(errExpected)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Create(suite.ctx, suite.userId, "Test")
 
@@ -116,7 +117,7 @@ func (suite *TestBudgetSuite) TestCloneSuccess() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, suite.budgetId, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
 
@@ -156,7 +157,7 @@ func (suite *TestBudgetSuite) TestCloneErrorCreateLog() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, suite.budgetId, mock.Anything, nil).Return(errExpected)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
 

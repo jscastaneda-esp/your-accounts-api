@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"your-accounts-api/budgets/domain"
 	"your-accounts-api/shared/application"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 )
 
@@ -30,7 +31,7 @@ func (app *budgetAvailableBalanceApp) Create(ctx context.Context, name string, b
 	err = app.tm.Transaction(func(tx persistent.Transaction) error {
 		var err error
 		description := fmt.Sprintf("Se crea el disponible %s", name)
-		err = app.logApp.CreateLog(ctx, description, *budget.ID, nil, tx)
+		err = app.logApp.CreateLog(ctx, description, shared.Budget, *budget.ID, nil, tx)
 		if err != nil {
 			return err
 		}
