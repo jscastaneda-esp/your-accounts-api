@@ -44,7 +44,7 @@ func NewDB() {
 			new(users.User),
 			new(users.UserToken),
 			new(budgets.Budget),
-			new(budgets.BudgetAvailableBalance),
+			new(budgets.BudgetAvailable),
 			new(budgets.BudgetBill),
 			new(shared.Log),
 		); err != nil {

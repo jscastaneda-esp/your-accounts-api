@@ -50,20 +50,20 @@ func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, 
 		model.AdditionalIncome = *budget.AdditionalIncome
 	}
 
-	if budget.TotalPendingPayment != nil {
-		model.TotalPendingPayment = *budget.TotalPendingPayment
+	if budget.TotalPending != nil {
+		model.TotalPending = *budget.TotalPending
 	}
 
-	if budget.TotalAvailableBalance != nil {
-		model.TotalAvailableBalance = *budget.TotalAvailableBalance
+	if budget.TotalAvailable != nil {
+		model.TotalAvailable = *budget.TotalAvailable
+	}
+
+	if budget.TotalSaving != nil {
+		model.TotalSaving = *budget.TotalSaving
 	}
 
 	if budget.PendingBills != nil {
 		model.PendingBills = *budget.PendingBills
-	}
-
-	if budget.TotalBalance != nil {
-		model.TotalBalance = *budget.TotalBalance
 	}
 
 	if err := r.db.WithContext(ctx).Save(model).Error; err != nil {
@@ -80,17 +80,17 @@ func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, e
 	}
 
 	return &domain.Budget{
-		ID:                    &model.ID,
-		Name:                  &model.Name,
-		Year:                  &model.Year,
-		Month:                 &model.Month,
-		FixedIncome:           &model.FixedIncome,
-		AdditionalIncome:      &model.AdditionalIncome,
-		TotalPendingPayment:   &model.TotalPendingPayment,
-		TotalAvailableBalance: &model.TotalAvailableBalance,
-		PendingBills:          &model.PendingBills,
-		TotalBalance:          &model.TotalBalance,
-		UserId:                &model.UserId,
+		ID:               &model.ID,
+		Name:             &model.Name,
+		Year:             &model.Year,
+		Month:            &model.Month,
+		FixedIncome:      &model.FixedIncome,
+		AdditionalIncome: &model.AdditionalIncome,
+		TotalPending:     &model.TotalPending,
+		TotalAvailable:   &model.TotalAvailable,
+		TotalSaving:      &model.TotalSaving,
+		PendingBills:     &model.PendingBills,
+		UserId:           &model.UserId,
 	}, nil
 }
 
@@ -107,17 +107,17 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 	for _, model := range models {
 		modelC := model
 		budgets = append(budgets, &domain.Budget{
-			ID:                    &modelC.ID,
-			Name:                  &modelC.Name,
-			Year:                  &modelC.Year,
-			Month:                 &modelC.Month,
-			FixedIncome:           &modelC.FixedIncome,
-			AdditionalIncome:      &modelC.AdditionalIncome,
-			TotalPendingPayment:   &modelC.TotalPendingPayment,
-			TotalAvailableBalance: &modelC.TotalAvailableBalance,
-			PendingBills:          &modelC.PendingBills,
-			TotalBalance:          &modelC.TotalBalance,
-			UserId:                &modelC.UserId,
+			ID:               &modelC.ID,
+			Name:             &modelC.Name,
+			Year:             &modelC.Year,
+			Month:            &modelC.Month,
+			FixedIncome:      &modelC.FixedIncome,
+			AdditionalIncome: &modelC.AdditionalIncome,
+			TotalPending:     &modelC.TotalPending,
+			TotalAvailable:   &modelC.TotalAvailable,
+			TotalSaving:      &modelC.TotalSaving,
+			PendingBills:     &modelC.PendingBills,
+			UserId:           &modelC.UserId,
 		})
 	}
 

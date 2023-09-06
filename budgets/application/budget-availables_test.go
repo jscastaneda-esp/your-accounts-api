@@ -19,13 +19,13 @@ import (
 
 type TestBudgetAvailableSuite struct {
 	suite.Suite
-	budgetId                       uint
-	mockTransactionManager         *mocks_shared.TransactionManager
-	mockBudgetAvailableBalanceRepo *mocks.BudgetAvailableBalanceRepository
-	mockBudgetApp                  *mocks_budgets.IBudgetApp
-	mockLogApp                     *mocks_logs.ILogApp
-	app                            IBudgetAvailableBalanceApp
-	ctx                            context.Context
+	budgetId                uint
+	mockTransactionManager  *mocks_shared.TransactionManager
+	mockBudgetAvailableRepo *mocks.BudgetAvailableRepository
+	mockBudgetApp           *mocks_budgets.IBudgetApp
+	mockLogApp              *mocks_logs.ILogApp
+	app                     IBudgetAvailableApp
+	ctx                     context.Context
 }
 
 func (suite *TestBudgetAvailableSuite) SetupSuite() {
@@ -35,10 +35,10 @@ func (suite *TestBudgetAvailableSuite) SetupSuite() {
 
 func (suite *TestBudgetAvailableSuite) SetupTest() {
 	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
-	suite.mockBudgetAvailableBalanceRepo = mocks.NewBudgetAvailableBalanceRepository(suite.T())
+	suite.mockBudgetAvailableRepo = mocks.NewBudgetAvailableRepository(suite.T())
 	suite.mockBudgetApp = mocks_budgets.NewIBudgetApp(suite.T())
 	suite.mockLogApp = mocks_logs.NewILogApp(suite.T())
-	suite.app = NewBudgetAvailableBalanceApp(suite.mockTransactionManager, suite.mockBudgetAvailableBalanceRepo, suite.mockBudgetApp, suite.mockLogApp)
+	suite.app = NewBudgetAvailableApp(suite.mockTransactionManager, suite.mockBudgetAvailableRepo, suite.mockBudgetApp, suite.mockLogApp)
 }
 
 func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
@@ -59,8 +59,8 @@ func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
 		return fc(nil)
 	})
 	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
-	suite.mockBudgetAvailableBalanceRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableBalanceRepo)
-	suite.mockBudgetAvailableBalanceRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
 
@@ -147,8 +147,8 @@ func (suite *TestBudgetAvailableSuite) TestCreateError() {
 		return fc(nil)
 	})
 	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
-	suite.mockBudgetAvailableBalanceRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableBalanceRepo)
-	suite.mockBudgetAvailableBalanceRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
 

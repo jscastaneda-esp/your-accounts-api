@@ -11,7 +11,7 @@ import (
 )
 
 type controller struct {
-	app application.IBudgetAvailableBalanceApp
+	app application.IBudgetAvailableApp
 }
 
 // BudgetAvailableCreateHandler godoc
@@ -45,7 +45,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 }
 
 func NewRoute(router fiber.Router) {
-	controller := &controller{injection.BudgetAvailableBalanceApp}
+	controller := &controller{injection.BudgetAvailableApp}
 
 	group := router.Group("/available")
 	group.Post("/", controller.create)

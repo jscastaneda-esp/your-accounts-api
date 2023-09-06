@@ -5,17 +5,17 @@ import (
 )
 
 type Budget struct {
-	ID                    *uint
-	Name                  *string
-	Year                  *uint16
-	Month                 *uint8
-	FixedIncome           *float64
-	AdditionalIncome      *float64
-	TotalPendingPayment   *float64
-	TotalAvailableBalance *float64
-	PendingBills          *uint8
-	TotalBalance          *float64
-	UserId                *uint
+	ID               *uint
+	Name             *string
+	Year             *uint16
+	Month            *uint8
+	FixedIncome      *float64
+	AdditionalIncome *float64
+	TotalPending     *float64
+	TotalAvailable   *float64
+	TotalSaving      *float64
+	PendingBills     *uint8
+	UserId           *uint
 }
 
 //go:generate mockery --name BudgetRepository --filename budget-repository.go

@@ -86,7 +86,7 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 			return err
 		}
 
-		// TODO Pendiente la creación de AvailableBalances, Bills y BillShared
+		// TODO Pendiente la creación de Availables y Bills
 
 		return nil
 	})

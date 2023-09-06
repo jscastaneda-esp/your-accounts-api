@@ -8,21 +8,21 @@ import (
 type Budget struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
-	Name                    string                   `gorm:"not null;size:40"`
-	Year                    uint16                   `gorm:"not null"`
-	Month                   uint8                    `gorm:"not null"`
-	FixedIncome             float64                  `gorm:"not null;default:0"`
-	AdditionalIncome        float64                  `gorm:"not null;default:0"`
-	TotalPendingPayment     float64                  `gorm:"not null;default:0"`
-	TotalAvailableBalance   float64                  `gorm:"not null;default:0"`
-	PendingBills            uint8                    `gorm:"not null;default:0"`
-	TotalBalance            float64                  `gorm:"not null;default:0"`
-	UserId                  uint                     `gorm:"not null"`
-	BudgetAvailableBalances []BudgetAvailableBalance `gorm:"foreignKey:BudgetId"`
-	BudgetBills             []BudgetBill             `gorm:"foreignKey:BudgetId"`
+	Name             string            `gorm:"not null;size:40"`
+	Year             uint16            `gorm:"not null"`
+	Month            uint8             `gorm:"not null"`
+	FixedIncome      float64           `gorm:"not null;default:0"`
+	AdditionalIncome float64           `gorm:"not null;default:0"`
+	TotalPending     float64           `gorm:"not null;default:0"`
+	TotalAvailable   float64           `gorm:"not null;default:0"`
+	PendingBills     uint8             `gorm:"not null;default:0"`
+	TotalSaving      float64           `gorm:"not null;default:0"`
+	UserId           uint              `gorm:"not null"`
+	BudgetAvailables []BudgetAvailable `gorm:"foreignKey:BudgetId"`
+	BudgetBills      []BudgetBill      `gorm:"foreignKey:BudgetId"`
 }
 
-type BudgetAvailableBalance struct {
+type BudgetAvailable struct {
 	entity.BaseModel
 	entity.BaseUpdateModel
 	Name     string  `gorm:"not null;size:40"`

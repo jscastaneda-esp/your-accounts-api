@@ -22,25 +22,25 @@ func NewCreateResponse(id uint) CreateResponse {
 
 type ReadResponse struct {
 	model.IDResponse
-	Name                  string  `json:"name"`
-	Year                  uint16  `json:"year"`
-	Month                 uint8   `json:"month"`
-	TotalAvailableBalance float64 `json:"totalAvailableBalance"`
-	TotalPendingPayment   float64 `json:"totalPendingPayment"`
-	TotalBalance          float64 `json:"totalBalance"`
-	PendingBills          uint8   `json:"pendingBills"`
+	Name           string  `json:"name"`
+	Year           uint16  `json:"year"`
+	Month          uint8   `json:"month"`
+	TotalAvailable float64 `json:"totalAvailable"`
+	TotalPending   float64 `json:"totalPending"`
+	TotalSaving    float64 `json:"totalSaving"`
+	PendingBills   uint8   `json:"pendingBills"`
 }
 
 func NewReadResponse(budget *domain.Budget) ReadResponse {
 	return ReadResponse{
-		IDResponse:            model.NewIDResponse(*budget.ID),
-		Name:                  *budget.Name,
-		Year:                  *budget.Year,
-		Month:                 *budget.Month,
-		TotalAvailableBalance: *budget.TotalAvailableBalance,
-		TotalPendingPayment:   *budget.TotalPendingPayment,
-		TotalBalance:          *budget.TotalBalance,
-		PendingBills:          *budget.PendingBills,
+		IDResponse:     model.NewIDResponse(*budget.ID),
+		Name:           *budget.Name,
+		Year:           *budget.Year,
+		Month:          *budget.Month,
+		TotalAvailable: *budget.TotalAvailable,
+		TotalPending:   *budget.TotalPending,
+		TotalSaving:    *budget.TotalSaving,
+		PendingBills:   *budget.PendingBills,
 	}
 }
 
@@ -51,9 +51,6 @@ type ReadByIDResponse struct {
 	Month            uint8   `json:"month"`
 	FixedIncome      float64 `json:"fixedIncome"`
 	AdditionalIncome float64 `json:"additionalIncome"`
-	TotalBalance     float64 `json:"totalBalance"`
-	Total            float64 `json:"total"`
-	EstimatedBalance float64 `json:"estimatedBalance"`
 }
 
 func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
@@ -64,7 +61,6 @@ func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
 		Month:            *budget.Month,
 		FixedIncome:      *budget.FixedIncome,
 		AdditionalIncome: *budget.AdditionalIncome,
-		TotalBalance:     *budget.TotalBalance,
 	}
 }
 
