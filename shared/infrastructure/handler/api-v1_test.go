@@ -29,13 +29,13 @@ func (suite *TestSuite) SetupSuite() {
 		return c.SendString("Test")
 	})
 
-	projectRouter = func(router fiber.Router) {
+	logsRouter = func(router fiber.Router) {
 		router.Get("/project/", func(c *fiber.Ctx) error {
 			return c.SendString("Project")
 		})
 	}
 
-	budgetRouter = func(router fiber.Router) {
+	budgetsRouter = func(router fiber.Router) {
 		router.Get("/budget/", func(c *fiber.Ctx) error {
 			return c.SendString("Budget")
 		})
@@ -101,7 +101,7 @@ func (suite *TestSuite) TestNewRouteSuccessRequest() {
 	config.JWT_SECRET = "aSecret"
 
 	NewRoute(app)
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request, 10)
 
 	require.NoError(err)
 	require.NotNil(response)

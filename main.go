@@ -9,12 +9,12 @@ import (
 	"your-accounts-api/shared/infrastructure/db"
 	"your-accounts-api/shared/infrastructure/handler"
 	"your-accounts-api/shared/infrastructure/injection"
-	user "your-accounts-api/user/infrastructure/handler"
+	users "your-accounts-api/users/infrastructure/handler"
 )
 
 var (
 	routers = []infrastructure.Router{
-		user.NewRoute,
+		users.NewRoute,
 		handler.NewRoute,
 	}
 )
