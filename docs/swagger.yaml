@@ -1,5 +1,27 @@
 basePath: /
 definitions:
+  domain.BudgetBillCategory:
+    enum:
+    - house
+    - entertainment
+    - personal
+    - vehicle_transportation
+    - education
+    - services
+    - financial
+    - saving
+    - others
+    type: string
+    x-enum-varnames:
+    - House
+    - Entertainment
+    - Personal
+    - Vehicle_Transportation
+    - Education
+    - Services
+    - Financial
+    - Saving
+    - Others
   model.CreateAvailableRequest:
     properties:
       budgetId:
@@ -38,6 +60,14 @@ definitions:
     properties:
       additionalIncome:
         type: number
+      availables:
+        items:
+          $ref: '#/definitions/model.ReadByIDResponseAvailable'
+        type: array
+      bills:
+        items:
+          $ref: '#/definitions/model.ReadByIDResponseBill'
+        type: array
       fixedIncome:
         type: number
       id:
@@ -49,12 +79,41 @@ definitions:
       year:
         type: integer
     type: object
+  model.ReadByIDResponseAvailable:
+    properties:
+      amount:
+        type: number
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.ReadByIDResponseBill:
+    properties:
+      amount:
+        type: number
+      category:
+        $ref: '#/definitions/domain.BudgetBillCategory'
+      complete:
+        type: boolean
+      description:
+        type: string
+      dueDate:
+        type: integer
+      id:
+        type: integer
+      payment:
+        type: number
+    type: object
   model.ReadLogsResponse:
     properties:
       createdAt:
         type: string
       description:
         type: string
+      detail:
+        additionalProperties: {}
+        type: object
       id:
         type: integer
     type: object

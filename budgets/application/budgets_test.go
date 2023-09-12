@@ -220,12 +220,41 @@ func (suite *TestBudgetSuite) TestFindByIdSuccess() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
+	ids := []uint{1, 2}
+	names := []string{"Test 1", "Test 2"}
+	categories := []domain.BudgetBillCategory{domain.Education, domain.Financial}
 	budgetExpected := &domain.Budget{
 		ID:     &suite.budgetId,
 		Name:   &name,
 		Year:   &year,
 		Month:  &month,
 		UserId: &suite.userId,
+		BudgetAvailables: []domain.BudgetAvailable{
+			{
+				ID:       &ids[0],
+				Name:     &names[0],
+				BudgetId: &suite.budgetId,
+			},
+			{
+				ID:       &ids[1],
+				Name:     &names[1],
+				BudgetId: &suite.budgetId,
+			},
+		},
+		BudgetBills: []domain.BudgetBill{
+			{
+				ID:          &ids[0],
+				Description: &names[0],
+				Category:    &categories[0],
+				BudgetId:    &suite.budgetId,
+			},
+			{
+				ID:          &ids[1],
+				Description: &names[1],
+				Category:    &categories[1],
+				BudgetId:    &suite.budgetId,
+			},
+		},
 	}
 	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 
@@ -255,7 +284,7 @@ func (suite *TestBudgetSuite) TestFindByUserIdSuccess() {
 	year := uint16(2003)
 	month := uint8(5)
 	userIds := []uint{999, 1000}
-	budgetsExpected := []*domain.Budget{
+	budgetsExpected := []domain.Budget{
 		{
 			ID:     &ids[0],
 			Name:   &names[0],

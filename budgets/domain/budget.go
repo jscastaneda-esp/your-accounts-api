@@ -16,6 +16,8 @@ type Budget struct {
 	TotalSaving      *float64
 	PendingBills     *uint8
 	UserId           *uint
+	BudgetAvailables []BudgetAvailable
+	BudgetBills      []BudgetBill
 }
 
 //go:generate mockery --name BudgetRepository --filename budget-repository.go

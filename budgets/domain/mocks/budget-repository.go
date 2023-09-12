@@ -81,19 +81,19 @@ func (_m *BudgetRepository) Search(ctx context.Context, id uint) (*domain.Budget
 }
 
 // SearchAllByExample provides a mock function with given fields: ctx, example
-func (_m *BudgetRepository) SearchAllByExample(ctx context.Context, example domain.Budget) ([]*domain.Budget, error) {
+func (_m *BudgetRepository) SearchAllByExample(ctx context.Context, example domain.Budget) ([]domain.Budget, error) {
 	ret := _m.Called(ctx, example)
 
-	var r0 []*domain.Budget
+	var r0 []domain.Budget
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) ([]*domain.Budget, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) ([]domain.Budget, error)); ok {
 		return rf(ctx, example)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) []*domain.Budget); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Budget) []domain.Budget); ok {
 		r0 = rf(ctx, example)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Budget)
+			r0 = ret.Get(0).([]domain.Budget)
 		}
 	}
 

@@ -103,19 +103,19 @@ func (_m *IBudgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, er
 }
 
 // FindByUserId provides a mock function with given fields: ctx, userId
-func (_m *IBudgetApp) FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
+func (_m *IBudgetApp) FindByUserId(ctx context.Context, userId uint) ([]domain.Budget, error) {
 	ret := _m.Called(ctx, userId)
 
-	var r0 []*domain.Budget
+	var r0 []domain.Budget
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]*domain.Budget, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) ([]domain.Budget, error)); ok {
 		return rf(ctx, userId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uint) []*domain.Budget); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, uint) []domain.Budget); ok {
 		r0 = rf(ctx, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Budget)
+			r0 = ret.Get(0).([]domain.Budget)
 		}
 	}
 

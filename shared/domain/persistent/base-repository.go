@@ -19,7 +19,7 @@ type SearchByExample[D any] interface {
 }
 
 type SearchAllByExample[D any] interface {
-	SearchAllByExample(ctx context.Context, example D) ([]*D, error)
+	SearchAllByExample(ctx context.Context, example D) ([]D, error)
 }
 
 type DeleteRepository interface {

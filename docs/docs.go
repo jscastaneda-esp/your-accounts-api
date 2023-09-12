@@ -554,6 +554,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.BudgetBillCategory": {
+            "type": "string",
+            "enum": [
+                "house",
+                "entertainment",
+                "personal",
+                "vehicle_transportation",
+                "education",
+                "services",
+                "financial",
+                "saving",
+                "others"
+            ],
+            "x-enum-varnames": [
+                "House",
+                "Entertainment",
+                "Personal",
+                "Vehicle_Transportation",
+                "Education",
+                "Services",
+                "Financial",
+                "Saving",
+                "Others"
+            ]
+        },
         "model.CreateAvailableRequest": {
             "type": "object",
             "required": [
@@ -610,6 +635,18 @@ const docTemplate = `{
                 "additionalIncome": {
                     "type": "number"
                 },
+                "availables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ReadByIDResponseAvailable"
+                    }
+                },
+                "bills": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ReadByIDResponseBill"
+                    }
+                },
                 "fixedIncome": {
                     "type": "number"
                 },
@@ -627,6 +664,46 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ReadByIDResponseAvailable": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReadByIDResponseBill": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category": {
+                    "$ref": "#/definitions/domain.BudgetBillCategory"
+                },
+                "complete": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "payment": {
+                    "type": "number"
+                }
+            }
+        },
         "model.ReadLogsResponse": {
             "type": "object",
             "properties": {
@@ -635,6 +712,10 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
                 },
                 "id": {
                     "type": "integer"

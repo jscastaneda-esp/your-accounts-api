@@ -41,19 +41,19 @@ func (_m *LogRepository) Save(ctx context.Context, _a1 domain.Log) (uint, error)
 }
 
 // SearchAllByExample provides a mock function with given fields: ctx, example
-func (_m *LogRepository) SearchAllByExample(ctx context.Context, example domain.Log) ([]*domain.Log, error) {
+func (_m *LogRepository) SearchAllByExample(ctx context.Context, example domain.Log) ([]domain.Log, error) {
 	ret := _m.Called(ctx, example)
 
-	var r0 []*domain.Log
+	var r0 []domain.Log
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Log) ([]*domain.Log, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Log) ([]domain.Log, error)); ok {
 		return rf(ctx, example)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.Log) []*domain.Log); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.Log) []domain.Log); ok {
 		r0 = rf(ctx, example)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Log)
+			r0 = ret.Get(0).([]domain.Log)
 		}
 	}
 

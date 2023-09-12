@@ -75,8 +75,34 @@ func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, 
 
 func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, error) {
 	model := new(entity.Budget)
-	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload(clause.Associations).First(model, id).Error; err != nil {
 		return nil, err
+	}
+
+	availables := []domain.BudgetAvailable{}
+	for _, available := range model.BudgetAvailables {
+		availableC := available
+		availables = append(availables, domain.BudgetAvailable{
+			ID:       &availableC.ID,
+			Name:     &availableC.Name,
+			Amount:   &availableC.Amount,
+			BudgetId: &availableC.BudgetId,
+		})
+	}
+
+	bills := []domain.BudgetBill{}
+	for _, bill := range model.BudgetBills {
+		billC := bill
+		bills = append(bills, domain.BudgetBill{
+			ID:          &billC.ID,
+			Description: &billC.Description,
+			Amount:      &billC.Amount,
+			Payment:     &billC.Payment,
+			DueDate:     &billC.DueDate,
+			Complete:    &billC.Complete,
+			BudgetId:    &billC.BudgetId,
+			Category:    &billC.Category,
+		})
 	}
 
 	return &domain.Budget{
@@ -91,10 +117,12 @@ func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, e
 		TotalSaving:      &model.TotalSaving,
 		PendingBills:     &model.PendingBills,
 		UserId:           &model.UserId,
+		BudgetAvailables: availables,
+		BudgetBills:      bills,
 	}, nil
 }
 
-func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.Budget) ([]*domain.Budget, error) {
+func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.Budget) ([]domain.Budget, error) {
 	where := &entity.Budget{
 		UserId: *example.UserId,
 	}
@@ -103,10 +131,10 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 		return nil, err
 	}
 
-	var budgets []*domain.Budget
+	var budgets []domain.Budget
 	for _, model := range models {
 		modelC := model
-		budgets = append(budgets, &domain.Budget{
+		budgets = append(budgets, domain.Budget{
 			ID:               &modelC.ID,
 			Name:             &modelC.Name,
 			Year:             &modelC.Year,
