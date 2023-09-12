@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"regexp"
 	"testing"
 	"time"
@@ -21,7 +22,8 @@ import (
 type TestSuite struct {
 	suite.Suite
 	description string
-	detail      string
+	detailStr   string
+	detail      map[string]any
 	code        domain.CodeLog
 	resourceId  uint
 	mock        sqlmock.Sqlmock
@@ -30,18 +32,19 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
+
 	suite.description = "Test"
-	suite.detail = `{"test":"test"}`
+	suite.detail = map[string]any{
+		"test": "test",
+	}
+	jsonStr, err := json.Marshal(suite.detail)
+	suite.detailStr = string(jsonStr)
 	suite.code = domain.Budget
 	suite.resourceId = 1
 
 	require := require.New(suite.T())
 
-	var (
-		db  *sql.DB
-		err error
-	)
-
+	var db *sql.DB
 	db, suite.mock, err = sqlmock.New()
 	require.NoError(err)
 	suite.mock.MatchExpectationsInOrder(false)
@@ -93,12 +96,12 @@ func (suite *TestSuite) TestSaveSuccess() {
 	suite.mock.ExpectBegin()
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta("INSERT INTO `logs` (`created_at`,`description`,`detail`,`code`,`resource_id`) VALUES (?,?,?,?,?)")).
-		WithArgs(test_utils.AnyTime{}, suite.description, suite.detail, suite.code, suite.resourceId).
+		WithArgs(test_utils.AnyTime{}, suite.description, suite.detailStr, suite.code, suite.resourceId).
 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
 	suite.mock.ExpectCommit()
 	log := domain.Log{
 		Description: suite.description,
-		Detail:      &suite.detail,
+		Detail:      suite.detail,
 		Code:        suite.code,
 		ResourceId:  suite.resourceId,
 	}
@@ -116,7 +119,7 @@ func (suite *TestSuite) TestSaveError() {
 	suite.mock.ExpectBegin()
 	suite.mock.
 		ExpectExec(regexp.QuoteMeta("INSERT INTO `logs` (`created_at`,`description`,`detail`,`code`,`resource_id`) VALUES (?,?,?,?,?)")).
-		WithArgs(test_utils.AnyTime{}, suite.description, nil, suite.code, suite.resourceId).
+		WithArgs(test_utils.AnyTime{}, suite.description, "{}", suite.code, suite.resourceId).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	log := domain.Log{
@@ -142,7 +145,7 @@ func (suite *TestSuite) TestSearchAllByExampleSuccess() {
 		WithArgs(suite.code, suite.resourceId).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "description", "detail", "code", "resource_id"}).
-			AddRow(999, time.Now(), suite.description, suite.detail, suite.code, suite.resourceId).
+			AddRow(999, time.Now(), suite.description, suite.detailStr, suite.code, suite.resourceId).
 			AddRow(1000, time.Now(), suite.description, nil, suite.code, suite.resourceId),
 		)
 
@@ -153,7 +156,7 @@ func (suite *TestSuite) TestSearchAllByExampleSuccess() {
 	require.Len(projects, 2)
 	require.Equal(uint(999), projects[0].ID)
 	require.Equal(suite.description, projects[0].Description)
-	require.Equal(suite.detail, *projects[0].Detail)
+	require.Equal(suite.detail, projects[0].Detail)
 	require.Equal(suite.code, projects[0].Code)
 	require.Equal(suite.resourceId, projects[0].ResourceId)
 	require.Equal(uint(1000), projects[1].ID)

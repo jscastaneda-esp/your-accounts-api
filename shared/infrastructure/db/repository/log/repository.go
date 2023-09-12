@@ -19,6 +19,10 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.LogRe
 }
 
 func (r *gormRepository) Save(ctx context.Context, log domain.Log) (uint, error) {
+	if log.Detail == nil {
+		log.Detail = map[string]any{}
+	}
+
 	model := &entity.Log{
 		Description: log.Description,
 		Detail:      log.Detail,

@@ -17,11 +17,11 @@ type ILogApp struct {
 }
 
 // CreateLog provides a mock function with given fields: ctx, description, code, resourceId, detail, tx
-func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error {
+func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]interface{}, tx persistent.Transaction) error {
 	ret := _m.Called(ctx, description, code, resourceId, detail, tx)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, domain.CodeLog, uint, *string, persistent.Transaction) error); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, domain.CodeLog, uint, map[string]interface{}, persistent.Transaction) error); ok {
 		r0 = rf(ctx, description, code, resourceId, detail, tx)
 	} else {
 		r0 = ret.Error(0)
