@@ -65,7 +65,9 @@ func (suite *TestSuite) TestCreateLogError() {
 
 func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 	require := require.New(suite.T())
-	detail := `{"cloneId": 1}`
+	detail := map[string]any{
+		"cloneId": 1,
+	}
 	logsExpected := []*domain.Log{
 		{
 			ID:          999,
@@ -75,7 +77,7 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 		{
 			ID:          1000,
 			Description: "Test",
-			Detail:      &detail,
+			Detail:      detail,
 			ResourceId:  suite.cloneId,
 		},
 	}

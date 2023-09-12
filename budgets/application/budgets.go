@@ -80,8 +80,11 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 		}
 
 		description := fmt.Sprintf("Creación a partir del presupuesto %s(%d)", *baseBudget.Name, baseId)
-		detail := fmt.Sprintf(`{"cloneId": %d, "cloneName": "%s"}`, baseId, *baseBudget.Name)
-		err = app.logApp.CreateLog(ctx, description, shared.Budget, id, &detail, tx)
+		detail := map[string]any{
+			"cloneId":   baseId,
+			"cloneName": *baseBudget.Name,
+		}
+		err = app.logApp.CreateLog(ctx, description, shared.Budget, id, detail, tx)
 		if err != nil {
 			return err
 		}

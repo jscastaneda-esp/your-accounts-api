@@ -8,7 +8,7 @@ import (
 
 //go:generate mockery --name ILogApp --filename log-app.go
 type ILogApp interface {
-	CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error
+	CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error
 	FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error)
 }
 
@@ -17,7 +17,7 @@ type logApp struct {
 	logRepo domain.LogRepository
 }
 
-func (app *logApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail *string, tx persistent.Transaction) error {
+func (app *logApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error {
 	projectLogRepo := app.logRepo.WithTransaction(tx)
 	newLog := domain.Log{
 		Description: description,

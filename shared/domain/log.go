@@ -8,7 +8,7 @@ import (
 type Log struct {
 	ID          uint
 	Description string
-	Detail      *string
+	Detail      map[string]any
 	Code        CodeLog
 	ResourceId  uint
 	CreatedAt   time.Time
