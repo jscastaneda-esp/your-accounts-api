@@ -6,7 +6,6 @@ import (
 	"your-accounts-api/budgets/infrastructure/db/entity"
 	"your-accounts-api/shared/domain/persistent"
 	"your-accounts-api/shared/infrastructure/db"
-	shared_ent "your-accounts-api/shared/infrastructure/db/entity"
 
 	"gorm.io/gorm"
 )
@@ -44,70 +43,70 @@ func (r *gormRepository) Save(ctx context.Context, available domain.BudgetAvaila
 	return model.ID, nil
 }
 
-func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.BudgetAvailable) error {
-	models := []*entity.BudgetAvailable{}
-	for _, available := range availables {
-		model := new(entity.BudgetAvailable)
-		if available.ID != nil {
-			model.ID = *available.ID
-		}
+// func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.BudgetAvailable) error {
+// 	models := []*entity.BudgetAvailable{}
+// 	for _, available := range availables {
+// 		model := new(entity.BudgetAvailable)
+// 		if available.ID != nil {
+// 			model.ID = *available.ID
+// 		}
 
-		if available.Name != nil {
-			model.Name = *available.Name
-		}
+// 		if available.Name != nil {
+// 			model.Name = *available.Name
+// 		}
 
-		if available.Amount != nil {
-			model.Amount = *available.Amount
-		}
+// 		if available.Amount != nil {
+// 			model.Amount = *available.Amount
+// 		}
 
-		if available.BudgetId != nil {
-			model.BudgetId = *available.BudgetId
-		}
+// 		if available.BudgetId != nil {
+// 			model.BudgetId = *available.BudgetId
+// 		}
 
-		models = append(models, model)
-	}
+// 		models = append(models, model)
+// 	}
 
-	if err := r.db.WithContext(ctx).Save(models).Error; err != nil {
-		return err
-	}
+// 	if err := r.db.WithContext(ctx).Save(models).Error; err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailable) ([]*domain.BudgetAvailable, error) {
-	where := &entity.BudgetAvailable{
-		BudgetId: *example.BudgetId,
-	}
-	var models []entity.BudgetAvailable
-	if err := r.db.WithContext(ctx).Where(where).Find(&models).Error; err != nil {
-		return nil, err
-	}
+// func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailable) ([]domain.BudgetAvailable, error) {
+// 	where := &entity.BudgetAvailable{
+// 		BudgetId: *example.BudgetId,
+// 	}
+// 	var models []entity.BudgetAvailable
+// 	if err := r.db.WithContext(ctx).Where(where).Find(&models).Error; err != nil {
+// 		return nil, err
+// 	}
 
-	var projects []*domain.BudgetAvailable
-	for _, model := range models {
-		modelC := model
-		projects = append(projects, &domain.BudgetAvailable{
-			ID:       &modelC.ID,
-			Name:     &modelC.Name,
-			Amount:   &modelC.Amount,
-			BudgetId: &modelC.BudgetId,
-		})
-	}
+// 	var projects []domain.BudgetAvailable
+// 	for _, model := range models {
+// 		modelC := model
+// 		projects = append(projects, domain.BudgetAvailable{
+// 			ID:       &modelC.ID,
+// 			Name:     &modelC.Name,
+// 			Amount:   &modelC.Amount,
+// 			BudgetId: &modelC.BudgetId,
+// 		})
+// 	}
 
-	return projects, nil
-}
+// 	return projects, nil
+// }
 
-func (r *gormRepository) Delete(ctx context.Context, id uint) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.BudgetAvailable{
-		BaseModel: shared_ent.BaseModel{
-			ID: id,
-		},
-	}).Error; err != nil {
-		return err
-	}
+// func (r *gormRepository) Delete(ctx context.Context, id uint) error {
+// 	if err := r.db.WithContext(ctx).Delete(&entity.BudgetAvailable{
+// 		BaseModel: shared_ent.BaseModel{
+// 			ID: id,
+// 		},
+// 	}).Error; err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func NewRepository(db *gorm.DB) domain.BudgetAvailableRepository {
 	return &gormRepository{db}

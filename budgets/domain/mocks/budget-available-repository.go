@@ -16,20 +16,6 @@ type BudgetAvailableRepository struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: ctx, id
-func (_m *BudgetAvailableRepository) Delete(ctx context.Context, id uint) error {
-	ret := _m.Called(ctx, id)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
-		r0 = rf(ctx, id)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Save provides a mock function with given fields: ctx, _a1
 func (_m *BudgetAvailableRepository) Save(ctx context.Context, _a1 domain.BudgetAvailable) (uint, error) {
 	ret := _m.Called(ctx, _a1)
@@ -47,46 +33,6 @@ func (_m *BudgetAvailableRepository) Save(ctx context.Context, _a1 domain.Budget
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.BudgetAvailable) error); ok {
 		r1 = rf(ctx, _a1)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// SaveAll provides a mock function with given fields: ctx, domains
-func (_m *BudgetAvailableRepository) SaveAll(ctx context.Context, domains []domain.BudgetAvailable) error {
-	ret := _m.Called(ctx, domains)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, []domain.BudgetAvailable) error); ok {
-		r0 = rf(ctx, domains)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// SearchAllByExample provides a mock function with given fields: ctx, example
-func (_m *BudgetAvailableRepository) SearchAllByExample(ctx context.Context, example domain.BudgetAvailable) ([]*domain.BudgetAvailable, error) {
-	ret := _m.Called(ctx, example)
-
-	var r0 []*domain.BudgetAvailable
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetAvailable) ([]*domain.BudgetAvailable, error)); ok {
-		return rf(ctx, example)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetAvailable) []*domain.BudgetAvailable); ok {
-		r0 = rf(ctx, example)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.BudgetAvailable)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, domain.BudgetAvailable) error); ok {
-		r1 = rf(ctx, example)
 	} else {
 		r1 = ret.Error(1)
 	}

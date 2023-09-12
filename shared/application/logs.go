@@ -9,7 +9,7 @@ import (
 //go:generate mockery --name ILogApp --filename log-app.go
 type ILogApp interface {
 	CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error
-	FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error)
+	FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error)
 }
 
 type logApp struct {
@@ -33,7 +33,7 @@ func (app *logApp) CreateLog(ctx context.Context, description string, code domai
 	return nil
 }
 
-func (app *logApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error) {
+func (app *logApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
 	example := domain.Log{
 		Code:       code,
 		ResourceId: resourceId,

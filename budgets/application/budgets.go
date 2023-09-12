@@ -15,7 +15,7 @@ type IBudgetApp interface {
 	Create(ctx context.Context, userId uint, name string) (uint, error)
 	Clone(ctx context.Context, userId uint, baseId uint) (uint, error)
 	FindById(ctx context.Context, id uint) (*domain.Budget, error)
-	FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error)
+	FindByUserId(ctx context.Context, userId uint) ([]domain.Budget, error)
 	Delete(ctx context.Context, id uint) error
 }
 
@@ -109,7 +109,7 @@ func (app *budgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, er
 	return budget, nil
 }
 
-func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]*domain.Budget, error) {
+func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]domain.Budget, error) {
 	example := domain.Budget{
 		UserId: &userId,
 	}
@@ -128,7 +128,7 @@ func (app *budgetApp) Delete(ctx context.Context, id uint) error {
 	}
 
 	return app.tm.Transaction(func(tx persistent.Transaction) error {
-		return app.budgetRepo.Delete(ctx, *budget.ID) // TODO Validar si se puede eliminar toda la información
+		return app.budgetRepo.Delete(ctx, *budget.ID)
 	})
 }
 

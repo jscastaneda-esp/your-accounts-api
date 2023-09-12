@@ -43,13 +43,13 @@ func (suite *TestSuite) SetupTest() {
 
 func (suite *TestSuite) TestReadLogs200() {
 	require := require.New(suite.T())
-	result := &domain.Log{
+	result := domain.Log{
 		ID:          1,
 		Description: "Test",
 		ResourceId:  suite.resourceId,
 		CreatedAt:   time.Now(),
 	}
-	suite.mock.On("FindLogsByProject", mock.Anything, suite.code, suite.resourceId).Return([]*domain.Log{result}, nil)
+	suite.mock.On("FindLogsByProject", mock.Anything, suite.code, suite.resourceId).Return([]domain.Log{result}, nil)
 	expectedBody, err := json.Marshal([]*model.ReadLogsResponse{model.NewReadLogsResponse(result)})
 	require.NoError(err)
 

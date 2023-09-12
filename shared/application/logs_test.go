@@ -68,7 +68,7 @@ func (suite *TestSuite) TestFindLogsByProjectSuccess() {
 	detail := map[string]any{
 		"cloneId": 1,
 	}
-	logsExpected := []*domain.Log{
+	logsExpected := []domain.Log{
 		{
 			ID:          999,
 			Description: "Test",

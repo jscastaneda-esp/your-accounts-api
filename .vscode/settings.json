@@ -28,21 +28,6 @@
         "enableSsl": "Disabled"
       },
       "previewLimit": 50,
-      "server": "192.168.1.14",
-      "port": 3306,
-      "driver": "MySQL",
-      "name": "YourAccounts",
-      "group": "Local",
-      "username": "root",
-      "password": "test",
-      "database": "youraccounts"
-    },
-    {
-      "mysqlOptions": {
-        "authProtocol": "default",
-        "enableSsl": "Disabled"
-      },
-      "previewLimit": 50,
       "server": "containers-us-west-186.railway.app",
       "port": 5977,
       "driver": "MySQL",
@@ -66,6 +51,21 @@
       "username": "root",
       "database": "railway",
       "password": "PlKcYtiXlLbtwxw4GGCp"
+    },
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "192.168.1.8",
+      "port": 3306,
+      "driver": "MySQL",
+      "name": "YourAccounts",
+      "group": "Local",
+      "username": "root",
+      "password": "test",
+      "database": "youraccounts"
     }
   ]
 }

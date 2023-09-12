@@ -9,3 +9,23 @@ func NewIDResponse(id uint) IDResponse {
 		ID: id,
 	}
 }
+
+type NameResponse struct {
+	Name string `json:"name"`
+}
+
+func NewNameResponse(name string) NameResponse {
+	return NameResponse{
+		Name: name,
+	}
+}
+
+type AmountResponse struct {
+	Amount float64 `json:"amount"`
+}
+
+func NewAmountResponse(amount float64) AmountResponse {
+	return AmountResponse{
+		Amount: amount,
+	}
+}

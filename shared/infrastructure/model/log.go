@@ -12,7 +12,7 @@ type ReadLogsResponse struct {
 	CreatedAt   time.Time      `json:"createdAt"`
 }
 
-func NewReadLogsResponse(log *domain.Log) *ReadLogsResponse {
+func NewReadLogsResponse(log domain.Log) *ReadLogsResponse {
 	return &ReadLogsResponse{
 		IDResponse:  NewIDResponse(log.ID),
 		Description: log.Description,

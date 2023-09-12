@@ -20,47 +20,93 @@ func NewCreateResponse(id uint) CreateResponse {
 	}
 }
 
-type ReadResponse struct {
+type ReadBudgetResponse struct {
 	model.IDResponse
-	Name           string  `json:"name"`
-	Year           uint16  `json:"year"`
-	Month          uint8   `json:"month"`
+	model.NameResponse
+	Year  uint16 `json:"year"`
+	Month uint8  `json:"month"`
+}
+
+func NewReadBudgetResponse(id uint, name string, year uint16, month uint8) ReadBudgetResponse {
+	return ReadBudgetResponse{
+		IDResponse:   model.NewIDResponse(id),
+		NameResponse: model.NewNameResponse(name),
+		Year:         year,
+		Month:        month,
+	}
+}
+
+type ReadResponse struct {
+	ReadBudgetResponse
 	TotalAvailable float64 `json:"totalAvailable"`
 	TotalPending   float64 `json:"totalPending"`
 	TotalSaving    float64 `json:"totalSaving"`
 	PendingBills   uint8   `json:"pendingBills"`
 }
 
-func NewReadResponse(budget *domain.Budget) ReadResponse {
+func NewReadResponse(budget domain.Budget) ReadResponse {
 	return ReadResponse{
-		IDResponse:     model.NewIDResponse(*budget.ID),
-		Name:           *budget.Name,
-		Year:           *budget.Year,
-		Month:          *budget.Month,
-		TotalAvailable: *budget.TotalAvailable,
-		TotalPending:   *budget.TotalPending,
-		TotalSaving:    *budget.TotalSaving,
-		PendingBills:   *budget.PendingBills,
+		ReadBudgetResponse: NewReadBudgetResponse(*budget.ID, *budget.Name, *budget.Year, *budget.Month),
+		TotalAvailable:     *budget.TotalAvailable,
+		TotalPending:       *budget.TotalPending,
+		TotalSaving:        *budget.TotalSaving,
+		PendingBills:       *budget.PendingBills,
 	}
 }
 
-type ReadByIDResponse struct {
+type ReadByIDResponseAvailable struct {
 	model.IDResponse
-	Name             string  `json:"name"`
-	Year             uint16  `json:"year"`
-	Month            uint8   `json:"month"`
-	FixedIncome      float64 `json:"fixedIncome"`
-	AdditionalIncome float64 `json:"additionalIncome"`
+	model.NameResponse
+	model.AmountResponse
+}
+
+type ReadByIDResponseBill struct {
+	model.IDResponse
+	model.AmountResponse
+	Description string                    `json:"description"`
+	Payment     float64                   `json:"payment"`
+	DueDate     uint8                     `json:"dueDate"`
+	Complete    bool                      `json:"complete"`
+	Category    domain.BudgetBillCategory `json:"category"`
+}
+
+type ReadByIDResponse struct {
+	ReadBudgetResponse
+	FixedIncome      float64                     `json:"fixedIncome"`
+	AdditionalIncome float64                     `json:"additionalIncome"`
+	Availables       []ReadByIDResponseAvailable `json:"availables"`
+	Bills            []ReadByIDResponseBill      `json:"bills"`
 }
 
 func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
+	availables := []ReadByIDResponseAvailable{}
+	for _, available := range budget.BudgetAvailables {
+		availables = append(availables, ReadByIDResponseAvailable{
+			IDResponse:     model.NewIDResponse(*available.ID),
+			NameResponse:   model.NewNameResponse(*available.Name),
+			AmountResponse: model.NewAmountResponse(*available.Amount),
+		})
+	}
+
+	bills := []ReadByIDResponseBill{}
+	for _, bill := range budget.BudgetBills {
+		bills = append(bills, ReadByIDResponseBill{
+			IDResponse:     model.NewIDResponse(*bill.ID),
+			AmountResponse: model.NewAmountResponse(*bill.Amount),
+			Description:    *bill.Description,
+			Payment:        *bill.Payment,
+			DueDate:        *bill.DueDate,
+			Complete:       *bill.Complete,
+			Category:       *bill.Category,
+		})
+	}
+
 	return ReadByIDResponse{
-		IDResponse:       model.NewIDResponse(*budget.ID),
-		Name:             *budget.Name,
-		Year:             *budget.Year,
-		Month:            *budget.Month,
-		FixedIncome:      *budget.FixedIncome,
-		AdditionalIncome: *budget.AdditionalIncome,
+		ReadBudgetResponse: NewReadBudgetResponse(*budget.ID, *budget.Name, *budget.Year, *budget.Month),
+		FixedIncome:        *budget.FixedIncome,
+		AdditionalIncome:   *budget.AdditionalIncome,
+		Availables:         availables,
+		Bills:              bills,
 	}
 }
 

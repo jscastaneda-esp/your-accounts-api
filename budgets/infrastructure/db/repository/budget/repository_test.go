@@ -205,13 +205,54 @@ func (suite *TestSuite) TestSaveError() {
 func (suite *TestSuite) TestSearchSuccess() {
 	require := require.New(suite.T())
 	now := time.Now()
+	ids := []uint{1, 2}
+	names := []string{"Test 1", "Test 2"}
+	categories := []domain.BudgetBillCategory{domain.Education, domain.Financial}
 	budgetExpected := domain.Budget{
 		ID:     &suite.id,
 		Name:   &suite.name,
 		Year:   &suite.year,
 		Month:  &suite.month,
 		UserId: &suite.userId,
+		BudgetAvailables: []domain.BudgetAvailable{
+			{
+				ID:       &ids[0],
+				Name:     &names[0],
+				BudgetId: &suite.id,
+			},
+			{
+				ID:       &ids[1],
+				Name:     &names[1],
+				BudgetId: &suite.id,
+			},
+		},
+		BudgetBills: []domain.BudgetBill{
+			{
+				ID:          &ids[0],
+				Description: &names[0],
+				Category:    &categories[0],
+				BudgetId:    &suite.id,
+			},
+			{
+				ID:          &ids[1],
+				Description: &names[1],
+				Category:    &categories[1],
+				BudgetId:    &suite.id,
+			},
+		},
 	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`budget_id` = ?")).
+		WithArgs(budgetExpected.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
+			AddRow(budgetExpected.BudgetAvailables[0].ID, now, now, budgetExpected.BudgetAvailables[0].Name, budgetExpected.BudgetAvailables[0].Amount, budgetExpected.BudgetAvailables[0].BudgetId).
+			AddRow(budgetExpected.BudgetAvailables[1].ID, now, now, budgetExpected.BudgetAvailables[1].Name, budgetExpected.BudgetAvailables[1].Amount, budgetExpected.BudgetAvailables[1].BudgetId))
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_bills` WHERE `budget_bills`.`budget_id` = ?")).
+		WithArgs(budgetExpected.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "description", "amount", "payment", "due_date", "complete", "budget_id", "category"}).
+			AddRow(budgetExpected.BudgetBills[0].ID, now, now, budgetExpected.BudgetBills[0].Description, budgetExpected.BudgetBills[0].Amount, budgetExpected.BudgetBills[0].Payment, budgetExpected.BudgetBills[0].DueDate, budgetExpected.BudgetBills[0].Complete, budgetExpected.BudgetAvailables[0].BudgetId, budgetExpected.BudgetBills[0].Category).
+			AddRow(budgetExpected.BudgetBills[1].ID, now, now, budgetExpected.BudgetBills[1].Description, budgetExpected.BudgetBills[1].Amount, budgetExpected.BudgetBills[1].Payment, budgetExpected.BudgetBills[1].DueDate, budgetExpected.BudgetBills[1].Complete, budgetExpected.BudgetAvailables[1].BudgetId, budgetExpected.BudgetBills[1].Category))
 	suite.mock.
 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budgets` WHERE `budgets`.`id` = ? ORDER BY `budgets`.`id` LIMIT 1")).
 		WithArgs(budgetExpected.ID).
@@ -229,6 +270,18 @@ func (suite *TestSuite) TestSearchSuccess() {
 	require.Equal(budgetExpected.Year, budget.Year)
 	require.Equal(budgetExpected.Month, budget.Month)
 	require.Equal(budgetExpected.UserId, budget.UserId)
+	require.Len(budget.BudgetAvailables, len(budgetExpected.BudgetAvailables))
+	require.Len(budget.BudgetBills, len(budgetExpected.BudgetBills))
+	require.Equal(budgetExpected.BudgetAvailables[0].ID, budget.BudgetAvailables[0].ID)
+	require.Equal(budgetExpected.BudgetAvailables[0].Name, budget.BudgetAvailables[0].Name)
+	require.Equal(budgetExpected.BudgetAvailables[1].ID, budget.BudgetAvailables[1].ID)
+	require.Equal(budgetExpected.BudgetAvailables[1].Name, budget.BudgetAvailables[1].Name)
+	require.Equal(budgetExpected.BudgetBills[0].ID, budget.BudgetBills[0].ID)
+	require.Equal(budgetExpected.BudgetBills[0].Description, budget.BudgetBills[0].Description)
+	require.Equal(budgetExpected.BudgetBills[0].Category, budget.BudgetBills[0].Category)
+	require.Equal(budgetExpected.BudgetBills[1].ID, budget.BudgetBills[1].ID)
+	require.Equal(budgetExpected.BudgetBills[1].Description, budget.BudgetBills[1].Description)
+	require.Equal(budgetExpected.BudgetBills[1].Category, budget.BudgetBills[1].Category)
 }
 
 func (suite *TestSuite) TestSearchError() {

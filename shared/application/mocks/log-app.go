@@ -31,19 +31,19 @@ func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domai
 }
 
 // FindLogsByProject provides a mock function with given fields: ctx, code, resourceId
-func (_m *ILogApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]*domain.Log, error) {
+func (_m *ILogApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
 	ret := _m.Called(ctx, code, resourceId)
 
-	var r0 []*domain.Log
+	var r0 []domain.Log
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) ([]*domain.Log, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) ([]domain.Log, error)); ok {
 		return rf(ctx, code, resourceId)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) []*domain.Log); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, domain.CodeLog, uint) []domain.Log); ok {
 		r0 = rf(ctx, code, resourceId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*domain.Log)
+			r0 = ret.Get(0).([]domain.Log)
 		}
 	}
 

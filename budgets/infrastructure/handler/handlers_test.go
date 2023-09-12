@@ -180,7 +180,7 @@ func (suite *TestSuite) TestRead200() {
 	month := uint8(1)
 	zeroFloat := 0.0
 	zeroUInt := uint8(0)
-	result := []*domain.Budget{
+	result := []domain.Budget{
 		{
 			ID:             &ids[0],
 			Name:           &names[0],
