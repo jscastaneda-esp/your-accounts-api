@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"reflect"
 	"runtime"
 	"strings"
@@ -38,7 +39,7 @@ func (s *Server) AddRoute(route any) {
 }
 
 func (s *Server) Listen() *fiber.App {
-	log.Println("Listening server")
+	slog.Info("Listening server")
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -107,18 +108,18 @@ Response: ${%s}
 			case Router:
 				r(app)
 			default:
-				log.Panicf("use: invalid route %v\n", reflect.TypeOf(r))
+				log.Fatalf("use: invalid route %v\n", reflect.TypeOf(r))
 			}
 		}
 	}
 
 	if s.testing {
-		log.Printf("Listen server on port %s\n", config.PORT)
+		slog.Info(fmt.Sprintf("Listen server on port %s\n", config.PORT))
 		return app
 	}
 
 	// Listening server
-	log.Panic(app.Listen(":" + config.PORT))
+	log.Fatal(app.Listen(":" + config.PORT))
 	return nil
 }
 

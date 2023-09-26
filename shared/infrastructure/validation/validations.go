@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"log"
+	"log/slog"
 	"your-accounts-api/shared/domain/validation"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +9,7 @@ import (
 
 func Validate(c *fiber.Ctx, request any) bool {
 	if err := c.BodyParser(request); err != nil {
-		log.Println("Error request body parser:", err)
+		slog.Error("Error request body parser:", err)
 		c.Status(fiber.StatusBadRequest)
 		return false
 	}

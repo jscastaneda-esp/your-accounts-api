@@ -15,7 +15,6 @@ type BudgetAvailable struct {
 type BudgetAvailableRepository interface {
 	persistent.TransactionRepository[BudgetAvailableRepository]
 	persistent.SaveRepository[BudgetAvailable]
-	// persistent.SaveAllRepository[BudgetAvailable]
-	// persistent.SearchAllByExample[BudgetAvailable]
-	// persistent.DeleteRepository
+	persistent.SaveAllRepository[BudgetAvailable]
+	persistent.DeleteRepository
 }

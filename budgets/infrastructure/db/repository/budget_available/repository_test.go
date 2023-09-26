@@ -184,188 +184,191 @@ func (suite *TestSuite) TestSaveError() {
 	require.Zero(res)
 }
 
-// func (suite *TestSuite) TestSaveAllNewSuccess() {
-// 	require := require.New(suite.T())
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`) VALUES (?,?,?,?,?),(?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
-// 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
-// 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
-// 	suite.mock.ExpectCommit()
-// 	availables := []domain.BudgetAvailable{
-// 		{
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 		{
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 	}
+func (suite *TestSuite) TestSaveAllNewSuccess() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`) VALUES (?,?,?,?,?),(?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+	suite.mock.ExpectCommit()
+	availables := []domain.BudgetAvailable{
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+	}
 
-// 	err := suite.repository.SaveAll(context.Background(), availables)
+	err := suite.repository.SaveAll(context.Background(), availables)
 
-// 	require.NoError(err)
-// }
+	require.NoError(err)
+}
 
-// func (suite *TestSuite) TestSaveAllNewAndUpdateSuccess() {
-// 	require := require.New(suite.T())
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,DEFAULT) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
-// 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, suite.id, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
-// 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
-// 	suite.mock.ExpectCommit()
-// 	availables := []domain.BudgetAvailable{
-// 		{
-// 			ID:       &suite.id,
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 		{
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 	}
+func (suite *TestSuite) TestSaveAllNewAndUpdateSuccess() {
+	require := require.New(suite.T())
+	now := time.Now()
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`id` = ? ORDER BY `budget_availables`.`id` LIMIT 1")).
+		WithArgs(suite.id).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
+			AddRow(suite.id, now.Add(-1*time.Hour), now, suite.name, suite.amount, suite.budgetId),
+		)
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,DEFAULT) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, suite.id, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+	suite.mock.ExpectCommit()
+	availables := []domain.BudgetAvailable{
+		{
+			ID:       &suite.id,
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+	}
 
-// 	err := suite.repository.SaveAll(context.Background(), availables)
+	err := suite.repository.SaveAll(context.Background(), availables)
 
-// 	require.NoError(err)
-// }
+	require.NoError(err)
+}
 
-// func (suite *TestSuite) TestSaveAllUpdateSuccess() {
-// 	require := require.New(suite.T())
-// 	ids := []uint{suite.id, suite.id + 1}
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
-// 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, ids[0], test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, ids[1], test_utils.AnyTime{}).
-// 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
-// 	suite.mock.ExpectCommit()
-// 	availables := []domain.BudgetAvailable{
-// 		{
-// 			ID:       &ids[0],
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 		{
-// 			ID:       &ids[1],
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 	}
+func (suite *TestSuite) TestSaveAllUpdateSuccess() {
+	require := require.New(suite.T())
+	ids := []uint{suite.id, suite.id + 1}
+	now := time.Now()
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`id` = ? ORDER BY `budget_availables`.`id` LIMIT 1")).
+		WithArgs(ids[0]).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
+			AddRow(ids[0], now.Add(-1*time.Hour), now, suite.name, suite.amount, suite.budgetId),
+		)
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`id` = ? ORDER BY `budget_availables`.`id` LIMIT 1")).
+		WithArgs(ids[1]).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
+			AddRow(ids[1], now.Add(-1*time.Hour), now, suite.name, suite.amount, suite.budgetId),
+		)
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, ids[0], test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, ids[1], test_utils.AnyTime{}).
+		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+	suite.mock.ExpectCommit()
+	availables := []domain.BudgetAvailable{
+		{
+			ID:       &ids[0],
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+		{
+			ID:       &ids[1],
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+	}
 
-// 	err := suite.repository.SaveAll(context.Background(), availables)
+	err := suite.repository.SaveAll(context.Background(), availables)
 
-// 	require.NoError(err)
-// }
+	require.NoError(err)
+}
 
-// func (suite *TestSuite) TestSaveAllError() {
-// 	require := require.New(suite.T())
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`) VALUES (?,?,?,?,?),(?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
-// 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
-// 		WillReturnError(gorm.ErrInvalidField)
-// 	suite.mock.ExpectRollback()
-// 	availables := []domain.BudgetAvailable{
-// 		{
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 		{
-// 			Name:     &suite.name,
-// 			Amount:   &suite.amount,
-// 			BudgetId: &suite.budgetId,
-// 		},
-// 	}
+func (suite *TestSuite) TestSaveAllErrorFind() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`id` = ? ORDER BY `budget_availables`.`id` LIMIT 1")).
+		WithArgs(suite.id).
+		WillReturnError(gorm.ErrInvalidField)
+	availables := []domain.BudgetAvailable{
+		{
+			ID:       &suite.id,
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+	}
 
-// 	err := suite.repository.SaveAll(context.Background(), availables)
+	err := suite.repository.SaveAll(context.Background(), availables)
 
-// 	require.EqualError(gorm.ErrInvalidField, err.Error())
-// }
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+}
 
-// func (suite *TestSuite) TestSearchAllByExampleSuccess() {
-// 	require := require.New(suite.T())
-// 	suite.mock.
-// 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`budget_id` = ?")).
-// 		WithArgs(suite.budgetId).
-// 		WillReturnRows(sqlmock.
-// 			NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
-// 			AddRow(999, time.Now(), time.Now(), suite.name, suite.amount, suite.budgetId).
-// 			AddRow(1000, time.Now(), time.Now(), suite.name, suite.amount+1, suite.budgetId+1),
-// 		)
-// 	example := domain.BudgetAvailable{
-// 		BudgetId: &suite.budgetId,
-// 	}
+func (suite *TestSuite) TestSaveAllError() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("INSERT INTO `budget_availables` (`created_at`,`updated_at`,`name`,`amount`,`budget_id`) VALUES (?,?,?,?,?),(?,?,?,?,?) ON DUPLICATE KEY UPDATE `updated_at`=?,`name`=VALUES(`name`),`amount`=VALUES(`amount`),`budget_id`=VALUES(`budget_id`)")).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.amount, suite.budgetId, test_utils.AnyTime{}).
+		WillReturnError(gorm.ErrInvalidField)
+	suite.mock.ExpectRollback()
+	availables := []domain.BudgetAvailable{
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+		{
+			Name:     &suite.name,
+			Amount:   &suite.amount,
+			BudgetId: &suite.budgetId,
+		},
+	}
 
-// 	availables, err := suite.repository.SearchAllByExample(context.Background(), example)
+	err := suite.repository.SaveAll(context.Background(), availables)
 
-// 	require.NoError(err)
-// 	require.NotEmpty(availables)
-// 	require.Len(availables, 2)
-// 	require.Equal(uint(999), *availables[0].ID)
-// 	require.Equal(suite.name, *availables[0].Name)
-// 	require.Equal(suite.amount, *availables[0].Amount)
-// 	require.Equal(suite.budgetId, *availables[0].BudgetId)
-// 	require.Equal(uint(1000), *availables[1].ID)
-// 	require.Equal(suite.name, *availables[1].Name)
-// 	require.Equal(suite.amount+1, *availables[1].Amount)
-// 	require.Equal(suite.budgetId+1, *availables[1].BudgetId)
-// }
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+}
 
-// func (suite *TestSuite) TestSearchAllByExampleError() {
-// 	require := require.New(suite.T())
-// 	suite.mock.
-// 		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `budget_availables` WHERE `budget_availables`.`budget_id` = ?")).
-// 		WithArgs(suite.budgetId).
-// 		WillReturnError(gorm.ErrInvalidField)
-// 	example := domain.BudgetAvailable{
-// 		BudgetId: &suite.budgetId,
-// 	}
+func (suite *TestSuite) TestDeleteSuccess() {
+	require := require.New(suite.T())
+	id := uint(999)
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_availables` WHERE `budget_availables`.`id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
 
-// 	availables, err := suite.repository.SearchAllByExample(context.Background(), example)
+	err := suite.repository.Delete(context.Background(), id)
 
-// 	require.EqualError(gorm.ErrInvalidField, err.Error())
-// 	require.Empty(availables)
-// }
+	require.NoError(err)
+}
 
-// func (suite *TestSuite) TestDeleteSuccess() {
-// 	require := require.New(suite.T())
-// 	id := uint(999)
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_availables` WHERE `budget_availables`.`id` = ?")).
-// 		WithArgs(id).
-// 		WillReturnResult(sqlmock.NewResult(1, 1))
-// 	suite.mock.ExpectCommit()
+func (suite *TestSuite) TestDeleteErrorDelete() {
+	require := require.New(suite.T())
+	id := uint(999)
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_availables` WHERE `budget_availables`.`id` = ?")).
+		WithArgs(id).
+		WillReturnError(gorm.ErrInvalidField)
+	suite.mock.ExpectRollback()
 
-// 	err := suite.repository.Delete(context.Background(), id)
+	err := suite.repository.Delete(context.Background(), id)
 
-// 	require.NoError(err)
-// }
-
-// func (suite *TestSuite) TestDeleteErrorDelete() {
-// 	require := require.New(suite.T())
-// 	id := uint(999)
-// 	suite.mock.ExpectBegin()
-// 	suite.mock.
-// 		ExpectExec(regexp.QuoteMeta("DELETE FROM `budget_availables` WHERE `budget_availables`.`id` = ?")).
-// 		WithArgs(id).
-// 		WillReturnError(gorm.ErrInvalidField)
-// 	suite.mock.ExpectRollback()
-
-// 	err := suite.repository.Delete(context.Background(), id)
-
-// 	require.EqualError(gorm.ErrInvalidField, err.Error())
-// }
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+}
 
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))

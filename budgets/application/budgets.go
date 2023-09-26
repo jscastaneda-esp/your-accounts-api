@@ -20,9 +20,11 @@ type IBudgetApp interface {
 }
 
 type budgetApp struct {
-	tm         persistent.TransactionManager
-	budgetRepo domain.BudgetRepository
-	logApp     application.ILogApp
+	tm                  persistent.TransactionManager
+	budgetRepo          domain.BudgetRepository
+	budgetAvailableRepo domain.BudgetAvailableRepository
+	budgetBillRepo      domain.BudgetBillRepository
+	logApp              application.ILogApp
 }
 
 func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uint, error) {
@@ -79,6 +81,38 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 			return err
 		}
 
+		budgetAvailableRepo := app.budgetAvailableRepo.WithTransaction(tx)
+		newAvailables := []domain.BudgetAvailable{}
+		for _, available := range baseBudget.BudgetAvailables {
+			newAvailable := domain.BudgetAvailable{
+				Name:     available.Name,
+				Amount:   available.Amount,
+				BudgetId: &id,
+			}
+			newAvailables = append(newAvailables, newAvailable)
+		}
+		err = budgetAvailableRepo.SaveAll(ctx, newAvailables)
+		if err != nil {
+			return err
+		}
+
+		budgetBillRepo := app.budgetBillRepo.WithTransaction(tx)
+		newBills := []domain.BudgetBill{}
+		for _, bill := range baseBudget.BudgetBills {
+			newBill := domain.BudgetBill{
+				Description: bill.Description,
+				Amount:      bill.Amount,
+				DueDate:     bill.DueDate,
+				BudgetId:    &id,
+				Category:    bill.Category,
+			}
+			newBills = append(newBills, newBill)
+		}
+		err = budgetBillRepo.SaveAll(ctx, newBills)
+		if err != nil {
+			return err
+		}
+
 		description := fmt.Sprintf("Creación a partir del presupuesto %s(%d)", *baseBudget.Name, baseId)
 		detail := map[string]any{
 			"cloneId":   baseId,
@@ -88,8 +122,6 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 		if err != nil {
 			return err
 		}
-
-		// TODO Pendiente la creación de Availables y Bills
 
 		return nil
 	})
@@ -132,6 +164,9 @@ func (app *budgetApp) Delete(ctx context.Context, id uint) error {
 	})
 }
 
-func NewBudgetApp(tm persistent.TransactionManager, budgetRepo domain.BudgetRepository, logApp application.ILogApp) IBudgetApp {
-	return &budgetApp{tm, budgetRepo, logApp}
+func NewBudgetApp(
+	tm persistent.TransactionManager, budgetRepo domain.BudgetRepository, budgetAvailableRepo domain.BudgetAvailableRepository,
+	budgetBillRepo domain.BudgetBillRepository, logApp application.ILogApp,
+) IBudgetApp {
+	return &budgetApp{tm, budgetRepo, budgetAvailableRepo, budgetBillRepo, logApp}
 }
