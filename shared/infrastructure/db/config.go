@@ -2,6 +2,7 @@ package db
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -22,8 +23,6 @@ var Tm persistent.TransactionManager
 
 func NewDB() {
 	if DB == nil {
-		log.Println("Init connection to database")
-
 		var err error
 		newLogger := logger.New(
 			log.New(os.Stdout, "\r\n", log.Llongfile+log.LstdFlags),
@@ -34,6 +33,8 @@ func NewDB() {
 				Colorful:                  true,
 			},
 		)
+
+		slog.Info("Init connection to database")
 		if DB, err = gorm.Open(mysql.Open(config.DATABASE_DSN), &gorm.Config{
 			Logger: newLogger,
 		}); err != nil {

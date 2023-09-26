@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -21,10 +22,10 @@ var (
 func LoadVariables() {
 	log.SetFlags(log.Llongfile + log.LstdFlags)
 	if _, err := os.Stat(".env"); err == nil {
-		log.Println("Load .env file")
+		slog.Info("Load .env file")
 		err = godotenv.Load()
 		if err != nil {
-			log.Panic("Error loading .env file: ", err)
+			log.Fatal("Error loading .env file: ", err)
 		}
 	}
 

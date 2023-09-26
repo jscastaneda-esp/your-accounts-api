@@ -2,7 +2,8 @@ package handler
 
 import (
 	"errors"
-	"log"
+	"fmt"
+	"log/slog"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/handler/availables"
 	"your-accounts-api/budgets/infrastructure/model"
@@ -50,13 +51,13 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 	} else {
 		id, err = ctrl.app.Clone(c.UserContext(), userData.ID, *request.CloneId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("Clone ID %d not found\n", *request.CloneId)
+			slog.Error(fmt.Sprintf("Clone ID %d not found\n", *request.CloneId))
 			return fiber.NewError(fiber.StatusNotFound, "Error creating budget. Clone ID not found")
 		}
 	}
 
 	if err != nil {
-		log.Printf("Error creating budget: %v\n", err)
+		slog.Error(fmt.Sprintf("Error creating budget: %v\n", err))
 		return fiber.NewError(fiber.StatusInternalServerError, "Error creating budget")
 	}
 
@@ -82,7 +83,7 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 
 	budgets, err := ctrl.app.FindByUserId(c.UserContext(), userData.ID)
 	if err != nil {
-		log.Printf("Error reading budgets by user: %v\n", err)
+		slog.Error(fmt.Sprintf("Error reading budgets by user: %v\n", err))
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading budgets by user")
 	}
 
@@ -111,13 +112,13 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 func (ctrl *controller) readById(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		log.Printf("Error getting param 'id': %v\n", err)
+		slog.Error(fmt.Sprintf("Error getting param 'id': %v\n", err))
 		return fiber.ErrBadRequest
 	}
 
 	budget, err := ctrl.app.FindById(c.UserContext(), uint(id))
 	if err != nil {
-		log.Printf("Error reading budget by id: %v\n", err)
+		slog.Error(fmt.Sprintf("Error reading budget by id: %v\n", err))
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
 		}
@@ -145,13 +146,13 @@ func (ctrl *controller) readById(c *fiber.Ctx) error {
 func (ctrl *controller) delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		log.Printf("Error getting param 'id': %v\n", err)
+		slog.Error(fmt.Sprintf("Error getting param 'id': %v\n", err))
 		return fiber.ErrBadRequest
 	}
 
 	err = ctrl.app.Delete(c.UserContext(), uint(id))
 	if err != nil {
-		log.Printf("Error deleting budget: %v\n", err)
+		slog.Error(fmt.Sprintf("Error deleting budget: %v\n", err))
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
 		}

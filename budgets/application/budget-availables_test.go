@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	mocks_budgets "your-accounts-api/budgets/application/mocks"
-	"your-accounts-api/budgets/domain"
 	"your-accounts-api/budgets/domain/mocks"
 	mocks_logs "your-accounts-api/shared/application/mocks"
 	shared "your-accounts-api/shared/domain"
@@ -22,7 +20,6 @@ type TestBudgetAvailableSuite struct {
 	budgetId                uint
 	mockTransactionManager  *mocks_shared.TransactionManager
 	mockBudgetAvailableRepo *mocks.BudgetAvailableRepository
-	mockBudgetApp           *mocks_budgets.IBudgetApp
 	mockLogApp              *mocks_logs.ILogApp
 	app                     IBudgetAvailableApp
 	ctx                     context.Context
@@ -36,29 +33,16 @@ func (suite *TestBudgetAvailableSuite) SetupSuite() {
 func (suite *TestBudgetAvailableSuite) SetupTest() {
 	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
 	suite.mockBudgetAvailableRepo = mocks.NewBudgetAvailableRepository(suite.T())
-	suite.mockBudgetApp = mocks_budgets.NewIBudgetApp(suite.T())
 	suite.mockLogApp = mocks_logs.NewILogApp(suite.T())
-	suite.app = NewBudgetAvailableApp(suite.mockTransactionManager, suite.mockBudgetAvailableRepo, suite.mockBudgetApp, suite.mockLogApp)
+	suite.app = NewBudgetAvailableApp(suite.mockTransactionManager, suite.mockBudgetAvailableRepo, suite.mockLogApp)
 }
 
 func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
 	require := require.New(suite.T())
-	name := "Test"
-	year := uint16(1)
-	month := uint8(1)
-	userId := uint(1)
-	budgetExpected := &domain.Budget{
-		ID:     &suite.budgetId,
-		Name:   &name,
-		Year:   &year,
-		Month:  &month,
-		UserId: &userId,
-	}
-	suite.mockBudgetApp.On("FindById", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
 	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
 
@@ -68,36 +52,13 @@ func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
 	require.Equal(suite.budgetId, res)
 }
 
-func (suite *TestBudgetAvailableSuite) TestCreateErrorFindById() {
-	require := require.New(suite.T())
-	errExpected := errors.New("Error find budget by id")
-	suite.mockBudgetApp.On("FindById", suite.ctx, suite.budgetId).Return(nil, errExpected)
-
-	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
-
-	require.EqualError(errExpected, err.Error())
-	require.Zero(res)
-}
-
 func (suite *TestBudgetAvailableSuite) TestCreateErrorCreateLog() {
 	require := require.New(suite.T())
-	name := "Test"
-	year := uint16(1)
-	month := uint8(1)
-	userId := uint(1)
-	budgetExpected := &domain.Budget{
-		ID:     &suite.budgetId,
-		Name:   &name,
-		Year:   &year,
-		Month:  &month,
-		UserId: &userId,
-	}
 	errExpected := errors.New("Error in creation project log")
-	suite.mockBudgetApp.On("FindById", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(errExpected)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
 
@@ -107,19 +68,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateErrorCreateLog() {
 
 func (suite *TestBudgetAvailableSuite) TestCreateErrorTransaction() {
 	require := require.New(suite.T())
-	name := "Test"
-	year := uint16(1)
-	month := uint8(1)
-	userId := uint(1)
-	budgetExpected := &domain.Budget{
-		ID:     &suite.budgetId,
-		Name:   &name,
-		Year:   &year,
-		Month:  &month,
-		UserId: &userId,
-	}
 	errExpected := errors.New("Error in transaction")
-	suite.mockBudgetApp.On("FindById", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(errExpected)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
@@ -130,23 +79,11 @@ func (suite *TestBudgetAvailableSuite) TestCreateErrorTransaction() {
 
 func (suite *TestBudgetAvailableSuite) TestCreateError() {
 	require := require.New(suite.T())
-	name := "Test"
-	year := uint16(1)
-	month := uint8(1)
-	userId := uint(1)
-	budgetExpected := &domain.Budget{
-		ID:     &suite.budgetId,
-		Name:   &name,
-		Year:   &year,
-		Month:  &month,
-		UserId: &userId,
-	}
 	errExpected := errors.New("Error in creation available")
-	suite.mockBudgetApp.On("FindById", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, *budgetExpected.ID, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
 	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 

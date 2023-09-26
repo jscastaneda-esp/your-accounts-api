@@ -17,21 +17,15 @@ type IBudgetAvailableApp interface {
 type budgetAvailableApp struct {
 	tm                  persistent.TransactionManager
 	budgetAvailableRepo domain.BudgetAvailableRepository
-	budgetApp           IBudgetApp
 	logApp              application.ILogApp
 }
 
 func (app *budgetAvailableApp) Create(ctx context.Context, name string, budgetId uint) (uint, error) {
-	budget, err := app.budgetApp.FindById(ctx, budgetId)
-	if err != nil {
-		return 0, err
-	}
-
 	var id uint
-	err = app.tm.Transaction(func(tx persistent.Transaction) error {
+	err := app.tm.Transaction(func(tx persistent.Transaction) error {
 		var err error
 		description := fmt.Sprintf("Se crea el disponible %s", name)
-		err = app.logApp.CreateLog(ctx, description, shared.Budget, *budget.ID, nil, tx)
+		err = app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, nil, tx)
 		if err != nil {
 			return err
 		}
@@ -55,6 +49,6 @@ func (app *budgetAvailableApp) Create(ctx context.Context, name string, budgetId
 	return id, nil
 }
 
-func NewBudgetAvailableApp(tm persistent.TransactionManager, budgetAvailableRepo domain.BudgetAvailableRepository, budgetApp IBudgetApp, logApp application.ILogApp) IBudgetAvailableApp {
-	return &budgetAvailableApp{tm, budgetAvailableRepo, budgetApp, logApp}
+func NewBudgetAvailableApp(tm persistent.TransactionManager, budgetAvailableRepo domain.BudgetAvailableRepository, logApp application.ILogApp) IBudgetAvailableApp {
+	return &budgetAvailableApp{tm, budgetAvailableRepo, logApp}
 }

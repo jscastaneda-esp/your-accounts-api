@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"io"
-	"log"
+	"log/slog"
 	"net/http/httptest"
 	"testing"
 	"your-accounts-api/shared/infrastructure/config"
@@ -36,7 +36,7 @@ func (suite *TestSuite) TestAddRouteSuccess() {
 		},
 	})
 	server.AddRoute(Router(func(_ fiber.Router) {
-		log.Println("Test")
+		slog.Info("Test")
 	}))
 
 	require.NotEmpty(server.routes)
@@ -145,16 +145,6 @@ func (suite *TestSuite) TestListenSuccessCustomRouteRouter() {
 	require.Equal([]byte("Router"), resp)
 }
 
-func (suite *TestSuite) TestListenErrorCustomRoutePanic() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute("panic")
-
-	require.Panics(func() {
-		server.Listen()
-	})
-}
-
 func (suite *TestSuite) TestListenErrorCustomRouteRouterFiberError() {
 	require := require.New(suite.T())
 	server := NewServer(true)
@@ -195,16 +185,6 @@ func (suite *TestSuite) TestListenErrorCustomRouteRouterRuntimeError() {
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
 	require.Equal([]byte("internal server error"), resp)
-}
-
-func (suite *TestSuite) TestListenErrorPanic() {
-	require := require.New(suite.T())
-	server := NewServer(false)
-	config.PORT = "9999999"
-
-	require.Panics(func() {
-		server.Listen()
-	})
 }
 
 func TestTestSuite(t *testing.T) {

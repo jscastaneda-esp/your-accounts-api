@@ -19,13 +19,15 @@ import (
 
 type TestBudgetSuite struct {
 	suite.Suite
-	budgetId               uint
-	userId                 uint
-	mockTransactionManager *mocks_shared.TransactionManager
-	mockBudgetRepo         *mocks.BudgetRepository
-	mockLogApp             *mocks_logs.ILogApp
-	app                    IBudgetApp
-	ctx                    context.Context
+	budgetId                uint
+	userId                  uint
+	mockTransactionManager  *mocks_shared.TransactionManager
+	mockBudgetRepo          *mocks.BudgetRepository
+	mockBudgetAvailableRepo *mocks.BudgetAvailableRepository
+	mockBudgetBillRepo      *mocks.BudgetBillRepository
+	mockLogApp              *mocks_logs.ILogApp
+	app                     IBudgetApp
+	ctx                     context.Context
 }
 
 func (suite *TestBudgetSuite) SetupSuite() {
@@ -37,8 +39,10 @@ func (suite *TestBudgetSuite) SetupSuite() {
 func (suite *TestBudgetSuite) SetupTest() {
 	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
 	suite.mockBudgetRepo = mocks.NewBudgetRepository(suite.T())
+	suite.mockBudgetAvailableRepo = mocks.NewBudgetAvailableRepository(suite.T())
+	suite.mockBudgetBillRepo = mocks.NewBudgetBillRepository(suite.T())
 	suite.mockLogApp = mocks_logs.NewILogApp(suite.T())
-	suite.app = NewBudgetApp(suite.mockTransactionManager, suite.mockBudgetRepo, suite.mockLogApp)
+	suite.app = NewBudgetApp(suite.mockTransactionManager, suite.mockBudgetRepo, suite.mockBudgetAvailableRepo, suite.mockBudgetBillRepo, suite.mockLogApp)
 }
 
 func (suite *TestBudgetSuite) TestCreateSuccess() {
@@ -104,12 +108,28 @@ func (suite *TestBudgetSuite) TestCloneSuccess() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
+	category := domain.Education
 	budgetExpected := &domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
 		Month:  &month,
 		UserId: &suite.userId,
+		BudgetAvailables: []domain.BudgetAvailable{
+			{
+				ID:       &baseId,
+				Name:     &name,
+				BudgetId: &baseId,
+			},
+		},
+		BudgetBills: []domain.BudgetBill{
+			{
+				ID:          &baseId,
+				Description: &name,
+				Category:    &category,
+				BudgetId:    &baseId,
+			},
+		},
 	}
 	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(budgetExpected, nil)
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
@@ -117,6 +137,10 @@ func (suite *TestBudgetSuite) TestCloneSuccess() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("SaveAll", suite.ctx, mock.Anything).Return(nil)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo)
+	suite.mockBudgetBillRepo.On("SaveAll", suite.ctx, mock.Anything).Return(nil)
 	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
@@ -130,6 +154,66 @@ func (suite *TestBudgetSuite) TestCloneErrorSearch() {
 	baseId := uint(999)
 	errExpected := errors.New("Error find budget by id")
 	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(nil, errExpected)
+
+	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
+
+	require.EqualError(errExpected, err.Error())
+	require.Zero(res)
+}
+
+func (suite *TestBudgetSuite) TestCloneErrorSaveAvailables() {
+	require := require.New(suite.T())
+	baseId := uint(999)
+	name := "Test"
+	year := uint16(1)
+	month := uint8(1)
+	budgetExpected := &domain.Budget{
+		ID:     &baseId,
+		Name:   &name,
+		Year:   &year,
+		Month:  &month,
+		UserId: &suite.userId,
+	}
+	errExpected := errors.New("Error in creation availables")
+	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(budgetExpected, nil)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	})
+	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
+	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("SaveAll", suite.ctx, mock.Anything).Return(errExpected)
+
+	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
+
+	require.EqualError(errExpected, err.Error())
+	require.Zero(res)
+}
+
+func (suite *TestBudgetSuite) TestCloneErrorSaveBills() {
+	require := require.New(suite.T())
+	baseId := uint(999)
+	name := "Test"
+	year := uint16(1)
+	month := uint8(1)
+	budgetExpected := &domain.Budget{
+		ID:     &baseId,
+		Name:   &name,
+		Year:   &year,
+		Month:  &month,
+		UserId: &suite.userId,
+	}
+	errExpected := errors.New("Error in creation bills")
+	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(budgetExpected, nil)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	})
+	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
+	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("SaveAll", suite.ctx, mock.Anything).Return(nil)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo)
+	suite.mockBudgetBillRepo.On("SaveAll", suite.ctx, mock.Anything).Return(errExpected)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
 
@@ -157,6 +241,10 @@ func (suite *TestBudgetSuite) TestCloneErrorCreateLog() {
 	})
 	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
 	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
+	suite.mockBudgetAvailableRepo.On("SaveAll", suite.ctx, mock.Anything).Return(nil)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo)
+	suite.mockBudgetBillRepo.On("SaveAll", suite.ctx, mock.Anything).Return(nil)
 	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)

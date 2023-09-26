@@ -1,7 +1,8 @@
 package availables
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/model"
 	"your-accounts-api/shared/infrastructure/injection"
@@ -37,7 +38,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	id, err := ctrl.app.Create(c.UserContext(), request.Name, request.BudgetId)
 	if err != nil {
-		log.Printf("Error creating available: %v\n", err)
+		slog.Error(fmt.Sprintf("Error creating available: %v\n", err))
 		return fiber.NewError(fiber.StatusInternalServerError, "Error creating available")
 	}
 
