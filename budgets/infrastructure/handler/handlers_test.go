@@ -356,7 +356,7 @@ func (suite *TestSuite) TestNewRoute() {
 	NewRoute(app)
 
 	routes := app.GetRoutes()
-	require.Len(routes, 7)
+	require.Len(routes, 8)
 
 	route1 := routes[0]
 	require.Equal(fiber.MethodGet, route1.Method)
@@ -389,9 +389,14 @@ func (suite *TestSuite) TestNewRoute() {
 	require.Len(route6.Handlers, 1)
 
 	route7 := routes[6]
-	require.Equal(fiber.MethodDelete, route7.Method)
-	require.Equal("/budget/:id<min(1)>", route7.Path)
+	require.Equal(fiber.MethodPost, route7.Method)
+	require.Equal("/budget/bill/", route7.Path)
 	require.Len(route7.Handlers, 1)
+
+	route8 := routes[7]
+	require.Equal(fiber.MethodDelete, route8.Method)
+	require.Equal("/budget/:id<min(1)>", route8.Path)
+	require.Len(route8.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

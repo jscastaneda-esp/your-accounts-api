@@ -18,6 +18,7 @@ var (
 	LogApp             logs_app.ILogApp
 	BudgetApp          budgets_app.IBudgetApp
 	BudgetAvailableApp budgets_app.IBudgetAvailableApp
+	BudgetBillApp      budgets_app.IBudgetBillApp
 )
 
 func LoadInstances() {
@@ -34,4 +35,5 @@ func LoadInstances() {
 	LogApp = logs_app.NewLogApp(db.Tm, logRepo)
 	BudgetApp = budgets_app.NewBudgetApp(db.Tm, budgetRepo, budgetAvailableRepo, budgetBillRepo, LogApp)
 	BudgetAvailableApp = budgets_app.NewBudgetAvailableApp(db.Tm, budgetAvailableRepo, LogApp)
+	BudgetBillApp = budgets_app.NewBudgetBillApp(db.Tm, budgetBillRepo, LogApp)
 }

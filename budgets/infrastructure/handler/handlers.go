@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/handler/availables"
+	"your-accounts-api/budgets/infrastructure/handler/bills"
 	"your-accounts-api/budgets/infrastructure/model"
 
 	"your-accounts-api/shared/domain/jwt"
@@ -174,4 +175,5 @@ func NewRoute(router fiber.Router) {
 
 	// Additional routes
 	availables.NewRoute(group)
+	bills.NewRoute(group)
 }

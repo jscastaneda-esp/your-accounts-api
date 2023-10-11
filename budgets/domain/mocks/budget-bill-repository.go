@@ -16,6 +16,44 @@ type BudgetBillRepository struct {
 	mock.Mock
 }
 
+// Delete provides a mock function with given fields: ctx, id
+func (_m *BudgetBillRepository) Delete(ctx context.Context, id uint) error {
+	ret := _m.Called(ctx, id)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Save provides a mock function with given fields: ctx, _a1
+func (_m *BudgetBillRepository) Save(ctx context.Context, _a1 domain.BudgetBill) (uint, error) {
+	ret := _m.Called(ctx, _a1)
+
+	var r0 uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetBill) (uint, error)); ok {
+		return rf(ctx, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, domain.BudgetBill) uint); ok {
+		r0 = rf(ctx, _a1)
+	} else {
+		r0 = ret.Get(0).(uint)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, domain.BudgetBill) error); ok {
+		r1 = rf(ctx, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveAll provides a mock function with given fields: ctx, domains
 func (_m *BudgetBillRepository) SaveAll(ctx context.Context, domains []domain.BudgetBill) error {
 	ret := _m.Called(ctx, domains)

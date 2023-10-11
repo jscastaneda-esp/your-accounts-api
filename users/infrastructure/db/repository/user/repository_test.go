@@ -13,7 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -42,9 +42,8 @@ func (suite *TestSuite) SetupSuite() {
 	require.NoError(err)
 	suite.mock.MatchExpectationsInOrder(false)
 
-	DB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      db,
-		SkipInitializeWithVersion: true,
+	DB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -88,9 +87,9 @@ func (suite *TestSuite) TestSaveSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`created_at`,`updated_at`,`uid`,`email`) VALUES (?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users" ("created_at","updated_at","uid","email") VALUES ($1,$2,$3,$4) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.uid, suite.email).
-		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(999)))
 	suite.mock.ExpectCommit()
 	user := domain.User{
 		UID:   suite.uid,
@@ -109,7 +108,7 @@ func (suite *TestSuite) TestSaveError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`created_at`,`updated_at`,`uid`,`email`) VALUES (?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "users" ("created_at","updated_at","uid","email") VALUES ($1,$2,$3,$4) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.uid, suite.email).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
@@ -131,7 +130,7 @@ func (suite *TestSuite) TestSearchByExampleSuccess() {
 		Email: suite.email,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."uid" = $1 AND "users"."email" = $2 ORDER BY "users"."id" LIMIT 1`)).
 		WithArgs(suite.uid, suite.email).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "updated_at", "uid", "email"}).
@@ -153,7 +152,7 @@ func (suite *TestSuite) TestSearchByExampleError() {
 		Email: suite.email,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ? ORDER BY `users`.`id` LIMIT 1")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE "users"."uid" = $1 AND "users"."email" = $2 ORDER BY "users"."id" LIMIT 1`)).
 		WithArgs(suite.uid, suite.email).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -170,7 +169,7 @@ func (suite *TestSuite) TestExistsByExampleSuccessTrue() {
 		Email: suite.email,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "users" WHERE "users"."uid" = $1 AND "users"."email" = $2`)).
 		WithArgs(suite.uid, suite.email).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
@@ -187,7 +186,7 @@ func (suite *TestSuite) TestExistsByExampleSuccessFalse() {
 		Email: suite.email,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "users" WHERE "users"."uid" = $1 AND "users"."email" = $2`)).
 		WithArgs(suite.uid, suite.email).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -203,7 +202,7 @@ func (suite *TestSuite) TestExistsByExampleSuccessOnlyUIDTrue() {
 		UID: suite.uid,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ?")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "users" WHERE "users"."uid" = $1`)).
 		WithArgs(suite.uid).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
@@ -220,7 +219,7 @@ func (suite *TestSuite) TestExistsByExampleError() {
 		Email: suite.email,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`uid` = ? AND `users`.`email` = ?")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "users" WHERE "users"."uid" = $1 AND "users"."email" = $2`)).
 		WithArgs(suite.uid, suite.email).
 		WillReturnError(gorm.ErrInvalidField)
 
