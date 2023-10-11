@@ -12,7 +12,7 @@ import (
 	shared "your-accounts-api/shared/infrastructure/db/entity"
 	users "your-accounts-api/users/infrastructure/db/entity"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -35,7 +35,7 @@ func NewDB() {
 		)
 
 		slog.Info("Init connection to database")
-		if DB, err = gorm.Open(mysql.Open(config.DATABASE_DSN), &gorm.Config{
+		if DB, err = gorm.Open(postgres.Open(config.DATABASE_DSN), &gorm.Config{
 			Logger: newLogger,
 		}); err != nil {
 			log.Fatal(err)

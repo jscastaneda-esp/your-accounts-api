@@ -124,3 +124,19 @@ func NewCreateAvailableResponse(id uint) CreateAvailableResponse {
 		IDResponse: model.NewIDResponse(id),
 	}
 }
+
+type CreateBillRequest struct {
+	Description string                    `json:"description" validate:"required,max=200"`
+	Category    domain.BudgetBillCategory `json:"category" validate:"required,oneof='house' 'entertainment' 'personal' 'vehicle_transportation' 'education' 'services' 'financial' 'saving' 'others'"`
+	BudgetId    uint                      `json:"budgetId" validate:"required,min=1"`
+}
+
+type CreateBillResponse struct {
+	model.IDResponse
+}
+
+func NewCreateBillResponse(id uint) CreateBillResponse {
+	return CreateBillResponse{
+		IDResponse: model.NewIDResponse(id),
+	}
+}

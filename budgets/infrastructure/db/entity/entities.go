@@ -39,5 +39,5 @@ type BudgetBill struct {
 	DueDate     uint8                     `gorm:"not null;default:0"`
 	Complete    bool                      `gorm:"not null;default:false"`
 	BudgetId    uint                      `gorm:"not null"`
-	Category    domain.BudgetBillCategory `gorm:"not null;type:enum('house', 'entertainment', 'personal', 'vehicle_transportation', 'education', 'services', 'financial', 'saving', 'others')"`
+	Category    domain.BudgetBillCategory `gorm:"not null"`
 }

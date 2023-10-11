@@ -39,6 +39,37 @@ definitions:
       id:
         type: integer
     type: object
+  model.CreateBillRequest:
+    properties:
+      budgetId:
+        minimum: 1
+        type: integer
+      category:
+        allOf:
+        - $ref: '#/definitions/domain.BudgetBillCategory'
+        enum:
+        - house
+        - entertainment
+        - personal
+        - vehicle_transportation
+        - education
+        - services
+        - financial
+        - saving
+        - others
+      description:
+        maxLength: 200
+        type: string
+    required:
+    - budgetId
+    - category
+    - description
+    type: object
+  model.CreateBillResponse:
+    properties:
+      id:
+        type: integer
+    type: object
   model.LoginRequest:
     properties:
       email:
@@ -402,6 +433,49 @@ paths:
           schema:
             type: string
       summary: Create available for budget
+      tags:
+      - budget
+  /api/v1/budget/bill/:
+    post:
+      consumes:
+      - application/json
+      description: create a new bill for budget
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Bill data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateBillRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.CreateBillResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create bill for budget
       tags:
       - budget
   /api/v1/log/{id}/code/{code}:

@@ -16,7 +16,7 @@ type BudgetBill struct {
 //go:generate mockery --name BudgetBillRepository --filename budget-bill-repository.go
 type BudgetBillRepository interface {
 	persistent.TransactionRepository[BudgetBillRepository]
-	// persistent.SaveRepository[BudgetBill]
+	persistent.SaveRepository[BudgetBill]
 	persistent.SaveAllRepository[BudgetBill]
-	// persistent.DeleteRepository
+	persistent.DeleteRepository
 }

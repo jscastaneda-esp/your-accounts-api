@@ -14,7 +14,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -37,7 +37,7 @@ func (suite *TestSuite) SetupSuite() {
 	suite.detail = map[string]any{
 		"test": "test",
 	}
-	jsonStr, err := json.Marshal(suite.detail)
+	jsonStr, _ := json.Marshal(suite.detail)
 	suite.detailStr = string(jsonStr)
 	suite.code = domain.Budget
 	suite.resourceId = 1
@@ -45,13 +45,13 @@ func (suite *TestSuite) SetupSuite() {
 	require := require.New(suite.T())
 
 	var db *sql.DB
+	var err error
 	db, suite.mock, err = sqlmock.New()
 	require.NoError(err)
 	suite.mock.MatchExpectationsInOrder(false)
 
-	DB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      db,
-		SkipInitializeWithVersion: true,
+	DB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -95,9 +95,9 @@ func (suite *TestSuite) TestSaveSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `logs` (`created_at`,`description`,`detail`,`code`,`resource_id`) VALUES (?,?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "logs" ("created_at","description","detail","code","resource_id") VALUES ($1,$2,$3,$4,$5) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, suite.description, suite.detailStr, suite.code, suite.resourceId).
-		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(999)))
 	suite.mock.ExpectCommit()
 	log := domain.Log{
 		Description: suite.description,
@@ -118,7 +118,7 @@ func (suite *TestSuite) TestSaveError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `logs` (`created_at`,`description`,`detail`,`code`,`resource_id`) VALUES (?,?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "logs" ("created_at","description","detail","code","resource_id") VALUES ($1,$2,$3,$4,$5) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, suite.description, "{}", suite.code, suite.resourceId).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
@@ -141,7 +141,7 @@ func (suite *TestSuite) TestSearchAllByExampleSuccess() {
 		ResourceId: suite.resourceId,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `logs` WHERE `logs`.`code` = ? AND `logs`.`resource_id` = ? ORDER BY created_at desc LIMIT 20")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "logs" WHERE "logs"."code" = $1 AND "logs"."resource_id" = $2 ORDER BY created_at desc LIMIT 20`)).
 		WithArgs(suite.code, suite.resourceId).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "description", "detail", "code", "resource_id"}).
@@ -173,7 +173,7 @@ func (suite *TestSuite) TestSearchAllByExampleError() {
 		ResourceId: suite.resourceId,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `logs` WHERE `logs`.`code` = ? AND `logs`.`resource_id` = ? ORDER BY created_at desc LIMIT 20")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "logs" WHERE "logs"."code" = $1 AND "logs"."resource_id" = $2 ORDER BY created_at desc LIMIT 20`)).
 		WithArgs(suite.code, suite.resourceId).
 		WillReturnError(gorm.ErrRecordNotFound)
 

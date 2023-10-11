@@ -13,7 +13,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -44,9 +44,8 @@ func (suite *TestSuite) SetupSuite() {
 	require.NoError(err)
 	suite.mock.MatchExpectationsInOrder(false)
 
-	DB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn:                      db,
-		SkipInitializeWithVersion: true,
+	DB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
 	}), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -88,9 +87,9 @@ func (suite *TestSuite) TestSaveSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `user_tokens` (`created_at`,`token`,`user_id`,`expires_at`) VALUES (?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "user_tokens" ("created_at","token","user_id","expires_at") VALUES ($1,$2,$3,$4) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, suite.token, suite.userId, suite.expiresAt).
-		WillReturnResult(sqlmock.NewResult(int64(999), 1))
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(int64(999)))
 	suite.mock.ExpectCommit()
 	userToken := domain.UserToken{
 		Token:     suite.token,
@@ -110,7 +109,7 @@ func (suite *TestSuite) TestSaveError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta("INSERT INTO `user_tokens` (`created_at`,`token`,`user_id`,`expires_at`) VALUES (?,?,?,?)")).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "user_tokens" ("created_at","token","user_id","expires_at") VALUES ($1,$2,$3,$4) RETURNING "id"`)).
 		WithArgs(test_utils.AnyTime{}, suite.token, suite.userId, suite.expiresAt).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
@@ -139,7 +138,7 @@ func (suite *TestSuite) TestSearchByExampleSuccess() {
 		ExpiresAt: suite.expiresAt,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`token` = ? AND `user_tokens`.`user_id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_tokens" WHERE "user_tokens"."token" = $1 AND "user_tokens"."user_id" = $2 ORDER BY "user_tokens"."id" LIMIT 1`)).
 		WithArgs(suite.token, suite.userId).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "token", "user_id", "created_at", "expires_at"}).
@@ -160,7 +159,7 @@ func (suite *TestSuite) TestSearchByExampleError() {
 		UserId: suite.userId,
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta("SELECT * FROM `user_tokens` WHERE `user_tokens`.`token` = ? AND `user_tokens`.`user_id` = ? ORDER BY `user_tokens`.`id` LIMIT 1")).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "user_tokens" WHERE "user_tokens"."token" = $1 AND "user_tokens"."user_id" = $2 ORDER BY "user_tokens"."id" LIMIT 1`)).
 		WithArgs(suite.token, suite.userId).
 		WillReturnError(gorm.ErrRecordNotFound)
 

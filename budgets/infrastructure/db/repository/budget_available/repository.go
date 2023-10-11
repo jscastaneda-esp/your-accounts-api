@@ -45,6 +45,10 @@ func (r *gormRepository) Save(ctx context.Context, available domain.BudgetAvaila
 }
 
 func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.BudgetAvailable) error {
+	if len(availables) == 0 {
+		return nil
+	}
+
 	models := []*entity.BudgetAvailable{}
 	for _, available := range availables {
 		model := new(entity.BudgetAvailable)

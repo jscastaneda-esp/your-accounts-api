@@ -243,6 +243,71 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/budget/bill/": {
+            "post": {
+                "description": "create a new bill for budget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Create bill for budget",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Bill data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateBillRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateBillResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/budget/{id}": {
             "get": {
                 "description": "read budget by ID",
@@ -596,6 +661,50 @@ const docTemplate = `{
             }
         },
         "model.CreateAvailableResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.CreateBillRequest": {
+            "type": "object",
+            "required": [
+                "budgetId",
+                "category",
+                "description"
+            ],
+            "properties": {
+                "budgetId": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "category": {
+                    "enum": [
+                        "house",
+                        "entertainment",
+                        "personal",
+                        "vehicle_transportation",
+                        "education",
+                        "services",
+                        "financial",
+                        "saving",
+                        "others"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.BudgetBillCategory"
+                        }
+                    ]
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 200
+                }
+            }
+        },
+        "model.CreateBillResponse": {
             "type": "object",
             "properties": {
                 "id": {
