@@ -301,6 +301,71 @@
                 }
             }
         },
+        "/api/v1/budget/bill/transaction": {
+            "put": {
+                "description": "create a new transaction for bill of the budget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Create transaction for bill of the budget",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Bill transaction data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.CreateBillTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/budget/{id}": {
             "get": {
                 "description": "read budget by ID",
@@ -702,6 +767,27 @@
             "properties": {
                 "id": {
                     "type": "integer"
+                }
+            }
+        },
+        "model.CreateBillTransactionRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "billId",
+                "description"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "billId": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "description": {
+                    "type": "string",
+                    "maxLength": 500
                 }
             }
         },

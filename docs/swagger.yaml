@@ -70,6 +70,21 @@ definitions:
       id:
         type: integer
     type: object
+  model.CreateBillTransactionRequest:
+    properties:
+      amount:
+        type: number
+      billId:
+        minimum: 1
+        type: integer
+      description:
+        maxLength: 500
+        type: string
+    required:
+    - amount
+    - billId
+    - description
+    type: object
   model.LoginRequest:
     properties:
       email:
@@ -476,6 +491,49 @@ paths:
           schema:
             type: string
       summary: Create bill for budget
+      tags:
+      - budget
+  /api/v1/budget/bill/transaction:
+    put:
+      consumes:
+      - application/json
+      description: create a new transaction for bill of the budget
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Bill transaction data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.CreateBillTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create transaction for bill of the budget
       tags:
       - budget
   /api/v1/log/{id}/code/{code}:

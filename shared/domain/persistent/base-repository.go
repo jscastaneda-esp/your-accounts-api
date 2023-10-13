@@ -14,11 +14,11 @@ type SearchRepository[D any] interface {
 	Search(ctx context.Context, id uint) (*D, error)
 }
 
-type SearchByExample[D any] interface {
+type SearchByExampleRepository[D any] interface {
 	SearchByExample(ctx context.Context, example D) (*D, error)
 }
 
-type SearchAllByExample[D any] interface {
+type SearchAllByExampleRepository[D any] interface {
 	SearchAllByExample(ctx context.Context, example D) ([]D, error)
 }
 

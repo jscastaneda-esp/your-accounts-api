@@ -25,6 +25,6 @@ type BudgetRepository interface {
 	persistent.TransactionRepository[BudgetRepository]
 	persistent.SaveRepository[Budget]
 	persistent.SearchRepository[Budget]
-	persistent.SearchAllByExample[Budget]
+	persistent.SearchAllByExampleRepository[Budget]
 	persistent.DeleteRepository
 }

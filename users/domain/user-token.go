@@ -16,5 +16,5 @@ type UserToken struct {
 type UserTokenRepository interface {
 	persistent.TransactionRepository[UserTokenRepository]
 	persistent.SaveRepository[UserToken]
-	persistent.SearchByExample[UserToken]
+	persistent.SearchByExampleRepository[UserToken]
 }

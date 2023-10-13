@@ -14,10 +14,14 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 type TestBudgetBillSuite struct {
 	suite.Suite
+	id                     uint
+	description            string
+	category               domain.BudgetBillCategory
 	budgetId               uint
 	mockTransactionManager *mocks_shared.TransactionManager
 	mockBudgetBillRepo     *mocks.BudgetBillRepository
@@ -27,6 +31,9 @@ type TestBudgetBillSuite struct {
 }
 
 func (suite *TestBudgetBillSuite) SetupSuite() {
+	suite.id = 1
+	suite.description = "Test"
+	suite.category = domain.Education
 	suite.budgetId = 1
 	suite.ctx = context.Background()
 }
@@ -80,7 +87,7 @@ func (suite *TestBudgetBillSuite) TestCreateErrorTransaction() {
 
 func (suite *TestBudgetBillSuite) TestCreateError() {
 	require := require.New(suite.T())
-	errExpected := errors.New("Error in creation available")
+	errExpected := errors.New("Error in creation bill")
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
@@ -92,6 +99,60 @@ func (suite *TestBudgetBillSuite) TestCreateError() {
 
 	require.EqualError(errExpected, err.Error())
 	require.Zero(res)
+}
+
+func (suite *TestBudgetBillSuite) TestCreateTransactionSuccess() {
+	require := require.New(suite.T())
+	payment := float64(0)
+	billExpected := domain.BudgetBill{
+		ID:          &suite.id,
+		Description: &suite.description,
+		Payment:     &payment,
+		Category:    &suite.category,
+		BudgetId:    &suite.budgetId,
+	}
+	suite.mockBudgetBillRepo.On("Search", suite.ctx, suite.id).Return(&billExpected, nil)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	})
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.BudgetBill, suite.id, mock.Anything, nil).Return(nil)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo)
+	suite.mockBudgetBillRepo.On("Save", suite.ctx, mock.Anything).Return(suite.id, nil)
+
+	err := suite.app.CreateTransaction(suite.ctx, "Trans 1", float64(10000), suite.id)
+
+	require.NoError(err)
+}
+
+func (suite *TestBudgetBillSuite) TestCreateTransactionErrorSearch() {
+	require := require.New(suite.T())
+	suite.mockBudgetBillRepo.On("Search", suite.ctx, suite.id).Return(nil, gorm.ErrRecordNotFound)
+
+	err := suite.app.CreateTransaction(suite.ctx, "Trans 1", float64(10000), suite.id)
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+}
+
+func (suite *TestBudgetBillSuite) TestCreateTransactionErrorCreateLog() {
+	require := require.New(suite.T())
+	payment := float64(0)
+	billExpected := domain.BudgetBill{
+		ID:          &suite.id,
+		Description: &suite.description,
+		Payment:     &payment,
+		Category:    &suite.category,
+		BudgetId:    &suite.budgetId,
+	}
+	errExpected := errors.New("Error in creation project log")
+	suite.mockBudgetBillRepo.On("Search", suite.ctx, suite.id).Return(&billExpected, nil)
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	})
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.BudgetBill, suite.id, mock.Anything, nil).Return(errExpected)
+
+	err := suite.app.CreateTransaction(suite.ctx, "Trans 1", float64(10000), suite.id)
+
+	require.EqualError(errExpected, err.Error())
 }
 
 func TestTestBudgetBillSuite(t *testing.T) {
