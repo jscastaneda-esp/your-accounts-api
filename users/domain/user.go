@@ -15,6 +15,6 @@ type User struct {
 type UserRepository interface {
 	persistent.TransactionRepository[UserRepository]
 	persistent.SaveRepository[User]
-	persistent.SearchByExample[User]
+	persistent.SearchByExampleRepository[User]
 	ExistsByExample(ctx context.Context, example User) (bool, error)
 }

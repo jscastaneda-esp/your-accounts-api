@@ -88,6 +88,48 @@ func (suite *TestSuite) TestWithTransactionSuccessExists() {
 	require.Equal(suite.repository, repo)
 }
 
+func (suite *TestSuite) TestSearchSuccess() {
+	require := require.New(suite.T())
+	now := time.Now()
+	billExpected := domain.BudgetBill{
+		ID:          &suite.id,
+		Description: &suite.description,
+		Amount:      &suite.amount,
+		BudgetId:    &suite.budgetId,
+		Category:    &suite.category,
+	}
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."id" = $1 ORDER BY "budget_bills"."id" LIMIT 1`)).
+		WithArgs(suite.id).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"id", "created_at", "updated_at", "description", "amount", "payment", "due_date", "complete", "budget_id", "category"}).
+			AddRow(billExpected.ID, now.Add(-1*time.Hour), now, billExpected.Description, billExpected.Amount, float64(0), uint8(0), false, billExpected.BudgetId, billExpected.Category),
+		)
+
+	res, err := suite.repository.Search(context.Background(), suite.id)
+
+	require.NoError(err)
+	require.NotNil(res)
+	require.Equal(*billExpected.ID, *res.ID)
+	require.Equal(*billExpected.Description, *res.Description)
+	require.Equal(*billExpected.Amount, *res.Amount)
+	require.Equal(*billExpected.BudgetId, *res.BudgetId)
+	require.Equal(*billExpected.Category, *res.Category)
+}
+
+func (suite *TestSuite) TestSearchError() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."id" = $1 ORDER BY "budget_bills"."id" LIMIT 1`)).
+		WithArgs(suite.id).
+		WillReturnError(gorm.ErrInvalidField)
+
+	res, err := suite.repository.Search(context.Background(), suite.id)
+
+	require.EqualError(gorm.ErrInvalidField, err.Error())
+	require.Nil(res)
+}
+
 func (suite *TestSuite) TestSaveNewSuccess() {
 	require := require.New(suite.T())
 
@@ -116,7 +158,7 @@ func (suite *TestSuite) TestSaveExistsSuccess() {
 	now := time.Now()
 	dueDate := uint8(1)
 	complete := true
-	budgetExpected := domain.BudgetBill{
+	billExpected := domain.BudgetBill{
 		ID:          &suite.id,
 		Description: &suite.description,
 		Amount:      &suite.amount,
@@ -128,7 +170,7 @@ func (suite *TestSuite) TestSaveExistsSuccess() {
 		WithArgs(suite.id).
 		WillReturnRows(sqlmock.
 			NewRows([]string{"id", "created_at", "updated_at", "description", "amount", "payment", "due_date", "complete", "budget_id", "category"}).
-			AddRow(budgetExpected.ID, now.Add(-1*time.Hour), now, budgetExpected.Description, budgetExpected.Amount, float64(0), uint8(0), false, budgetExpected.BudgetId, budgetExpected.Category),
+			AddRow(billExpected.ID, now.Add(-1*time.Hour), now, billExpected.Description, billExpected.Amount, float64(0), uint8(0), false, billExpected.BudgetId, billExpected.Category),
 		)
 	suite.mock.ExpectBegin()
 	suite.mock.

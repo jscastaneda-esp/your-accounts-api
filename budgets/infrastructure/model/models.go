@@ -140,3 +140,9 @@ func NewCreateBillResponse(id uint) CreateBillResponse {
 		IDResponse: model.NewIDResponse(id),
 	}
 }
+
+type CreateBillTransactionRequest struct {
+	Description string  `json:"description" validate:"required,max=500"`
+	Amount      float64 `json:"amount" validate:"required"`
+	BillId      uint    `json:"billId" validate:"required,min=1"`
+}

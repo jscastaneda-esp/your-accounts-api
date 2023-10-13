@@ -38,6 +38,20 @@ func (_m *IBudgetBillApp) Create(ctx context.Context, description string, catego
 	return r0, r1
 }
 
+// CreateTransaction provides a mock function with given fields: ctx, description, amount, billId
+func (_m *IBudgetBillApp) CreateTransaction(ctx context.Context, description string, amount float64, billId uint) error {
+	ret := _m.Called(ctx, description, amount, billId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, float64, uint) error); ok {
+		r0 = rf(ctx, description, amount, billId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewIBudgetBillApp interface {
 	mock.TestingT
 	Cleanup(func())

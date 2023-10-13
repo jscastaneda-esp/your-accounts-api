@@ -18,11 +18,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiM
 
 ### Read
 GET http://localhost:8080/api/v1/budget
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MDczMTc5LCJpYXQiOjE2OTY5ODY3Nzl9.hIOFzvhTag1g-XS8lSRPPhM5qkrGNlAC-xBWUqn9aTs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MjQ4ODYzLCJpYXQiOjE2OTcxNjI0NjN9.Fic-gTMJ9GqZczIdAn88vQDGmPw8QEv6YXjob7hyCL0
 
 ### Read By ID
-GET http://localhost:8080/api/v1/budget/7
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MDczMTc5LCJpYXQiOjE2OTY5ODY3Nzl9.hIOFzvhTag1g-XS8lSRPPhM5qkrGNlAC-xBWUqn9aTs
+GET http://localhost:8080/api/v1/budget/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MjQ4ODYzLCJpYXQiOjE2OTcxNjI0NjN9.Fic-gTMJ9GqZczIdAn88vQDGmPw8QEv6YXjob7hyCL0
 
 ### Delete
 DELETE http://localhost:8080/api/v1/budget/7
@@ -41,10 +41,21 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiM
 ### Create Bill
 POST http://localhost:8080/api/v1/budget/bill
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MDczMTc5LCJpYXQiOjE2OTY5ODY3Nzl9.hIOFzvhTag1g-XS8lSRPPhM5qkrGNlAC-xBWUqn9aTs
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MjQ4ODYzLCJpYXQiOjE2OTcxNjI0NjN9.Fic-gTMJ9GqZczIdAn88vQDGmPw8QEv6YXjob7hyCL0
 
 {
     "description": "Pago 1",
     "category": "house",
     "budgetId": 1
+}
+
+### Create Bill Transaction
+PUT http://localhost:8080/api/v1/budget/bill/transaction
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwidWlkIjoiMTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIiLCJlbWFpbCI6ImpjYWF0YW5lZGFlc3BAZ21haWwuY29tIiwiZXhwIjoxNjk3MjQ4ODYzLCJpYXQiOjE2OTcxNjI0NjN9.Fic-gTMJ9GqZczIdAn88vQDGmPw8QEv6YXjob7hyCL0
+
+{
+    "description": "Transacción 1",
+    "amount": 10000,
+    "billId": 4
 }

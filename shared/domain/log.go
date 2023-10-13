@@ -18,5 +18,5 @@ type Log struct {
 type LogRepository interface {
 	persistent.TransactionRepository[LogRepository]
 	persistent.SaveRepository[Log]
-	persistent.SearchAllByExample[Log]
+	persistent.SearchAllByExampleRepository[Log]
 }

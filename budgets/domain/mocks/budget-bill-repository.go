@@ -68,6 +68,32 @@ func (_m *BudgetBillRepository) SaveAll(ctx context.Context, domains []domain.Bu
 	return r0
 }
 
+// Search provides a mock function with given fields: ctx, id
+func (_m *BudgetBillRepository) Search(ctx context.Context, id uint) (*domain.BudgetBill, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 *domain.BudgetBill
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) (*domain.BudgetBill, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, uint) *domain.BudgetBill); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.BudgetBill)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, uint) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // WithTransaction provides a mock function with given fields: tx
 func (_m *BudgetBillRepository) WithTransaction(tx persistent.Transaction) domain.BudgetBillRepository {
 	ret := _m.Called(tx)
