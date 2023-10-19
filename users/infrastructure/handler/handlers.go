@@ -2,8 +2,8 @@ package handler
 
 import (
 	"errors"
-	"fmt"
-	"log/slog"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
@@ -40,7 +40,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	id, err := ctrl.app.Create(c.UserContext(), request.UID, request.Email)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error sign up user: %v\n", err))
+		log.Error("Error sign up user:", err)
 		if errors.Is(err, application.ErrUserAlreadyExists) {
 			return fiber.NewError(fiber.StatusConflict, err.Error())
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -73,7 +73,7 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 
 	token, err := ctrl.app.Login(c.UserContext(), request.UID, request.Email)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error authenticate user: %v\n", err))
+		log.Error("Error authenticate user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
 		}

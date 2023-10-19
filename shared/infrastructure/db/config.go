@@ -1,10 +1,11 @@
 package db
 
 import (
-	"log"
-	"log/slog"
+	golog "log"
 	"os"
 	"time"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	budgets "your-accounts-api/budgets/infrastructure/db/entity"
 	"your-accounts-api/shared/domain/persistent"
@@ -25,7 +26,7 @@ func NewDB() {
 	if DB == nil {
 		var err error
 		newLogger := logger.New(
-			log.New(os.Stdout, "\r\n", log.Llongfile+log.LstdFlags),
+			golog.New(os.Stdout, "\r\n", golog.Llongfile+golog.LstdFlags),
 			logger.Config{
 				SlowThreshold:             200 * time.Millisecond,
 				LogLevel:                  logger.Info,
@@ -34,7 +35,7 @@ func NewDB() {
 			},
 		)
 
-		slog.Info("Init connection to database")
+		log.Info("Init connection to database")
 		if DB, err = gorm.Open(postgres.Open(config.DATABASE_DSN), &gorm.Config{
 			Logger: newLogger,
 		}); err != nil {

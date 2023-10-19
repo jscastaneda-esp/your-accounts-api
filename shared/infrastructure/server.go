@@ -3,13 +3,13 @@ package infrastructure
 import (
 	"errors"
 	"fmt"
-	"log"
-	"log/slog"
 	"reflect"
 	"runtime"
 	"strings"
 	"time"
 	"your-accounts-api/shared/infrastructure/config"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -39,7 +39,7 @@ func (s *Server) AddRoute(route any) {
 }
 
 func (s *Server) Listen() *fiber.App {
-	slog.Info("Listening server")
+	log.Info("Listening server")
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -114,7 +114,7 @@ Response: ${%s}
 	}
 
 	if s.testing {
-		slog.Info(fmt.Sprintf("Listen server on port %s\n", config.PORT))
+		log.Info("Listen server on port", config.PORT)
 		return app
 	}
 

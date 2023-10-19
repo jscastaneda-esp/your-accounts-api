@@ -2,10 +2,11 @@ package infrastructure
 
 import (
 	"io"
-	"log/slog"
 	"net/http/httptest"
 	"testing"
 	"your-accounts-api/shared/infrastructure/config"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ func (suite *TestSuite) TestAddRouteSuccess() {
 		},
 	})
 	server.AddRoute(Router(func(_ fiber.Router) {
-		slog.Info("Test")
+		log.Info("Test")
 	}))
 
 	require.NotEmpty(server.routes)

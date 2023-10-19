@@ -1,12 +1,12 @@
 package bills
 
 import (
-	"fmt"
-	"log/slog"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/model"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -38,7 +38,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 
 	id, err := ctrl.app.Create(c.UserContext(), request.Description, request.Category, request.BudgetId)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating bill: %v\n", err))
+		log.Error("Error creating bill:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error creating bill")
 	}
 
@@ -68,7 +68,7 @@ func (ctrl *controller) createTransaction(c *fiber.Ctx) error {
 
 	err := ctrl.app.CreateTransaction(c.UserContext(), request.Description, request.Amount, request.BillId)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating bill transaction: %v\n", err))
+		log.Error("Error creating bill transaction:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error creating bill transaction")
 	}
 

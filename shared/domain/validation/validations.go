@@ -8,10 +8,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type VariableTypes interface {
-	bool | string | int | int8 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
-}
-
 type ErrorResponse struct {
 	Field      string `json:"field"`
 	Constraint string `json:"constraint"`
@@ -36,7 +32,7 @@ func ValidateStruct(s any) []*ErrorResponse {
 	return getErrors(err)
 }
 
-func ValidateVariable[T VariableTypes](field T, constraint string) []*ErrorResponse {
+func ValidateVariable(field any, constraint string) []*ErrorResponse {
 	err := validate.Var(field, constraint)
 	return getErrors(err)
 }
