@@ -10,11 +10,10 @@ import (
 	"your-accounts-api/shared/application"
 	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/domain/utils/convert"
 )
 
-var (
-	ErrIncompleteData = errors.New("incomplete data")
-)
+var ErrIncompleteData = errors.New("incomplete data")
 
 type Change struct {
 	ID      uint
@@ -167,91 +166,6 @@ func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]domain.B
 	return budgets, nil
 }
 
-func (app *budgetApp) changeMain(ctx context.Context, budgetId uint, change Change) ChangeResult {
-	var err error
-
-	switch change.Action {
-	case shared.Update:
-		// TODO Pendiente
-	default:
-		err = errors.New("invalid action")
-	}
-
-	return ChangeResult{change, err}
-}
-
-func (app *budgetApp) changeAvailable(ctx context.Context, budgetId uint, change Change) ChangeResult {
-	var err error
-
-	switch change.Action {
-	case shared.Update:
-		// TODO Pendiente
-	case shared.Delete:
-		if change.Detail["name"] == nil {
-			err = ErrIncompleteData
-		} else {
-			err = app.tm.Transaction(func(tx persistent.Transaction) error {
-				var err error
-				budgetAvailableRepo := app.budgetAvailableRepo.WithTransaction(tx)
-				err = budgetAvailableRepo.Delete(ctx, change.ID)
-				if err != nil {
-					return err
-				}
-
-				description := fmt.Sprintf("Se elimino el disponible %s", change.Detail["name"])
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, nil, tx)
-			})
-		}
-	}
-
-	return ChangeResult{change, err}
-}
-
-func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Change) ChangeResult {
-	var err error
-
-	switch change.Action {
-	case shared.Update:
-		// TODO Pendiente
-	case shared.Delete:
-		if change.Detail["name"] == nil {
-			err = ErrIncompleteData
-		} else {
-			err = app.tm.Transaction(func(tx persistent.Transaction) error {
-				var err error
-				budgetBillRepo := app.budgetBillRepo.WithTransaction(tx)
-				err = budgetBillRepo.Delete(ctx, change.ID)
-				if err != nil {
-					return err
-				}
-
-				description := fmt.Sprintf("Se elimino el pago %s", change.Detail["name"])
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, nil, tx)
-			})
-		}
-	}
-
-	return ChangeResult{change, err}
-}
-
-func (app *budgetApp) changeWorker(ctx context.Context, budgetId uint, changes <-chan Change, results chan<- ChangeResult, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	for change := range changes {
-		var changeResult ChangeResult
-		switch change.Section {
-		case domain.Main:
-			changeResult = app.changeMain(ctx, budgetId, change)
-		case domain.Available:
-			changeResult = app.changeAvailable(ctx, budgetId, change)
-		case domain.Bill:
-			changeResult = app.changeBill(ctx, budgetId, change)
-		}
-
-		results <- changeResult
-	}
-}
-
 func (app *budgetApp) Changes(ctx context.Context, id uint, changes []Change) []ChangeResult {
 	changesChan := make(chan Change, len(changes))
 	resultsChan := make(chan ChangeResult)
@@ -286,9 +200,284 @@ func (app *budgetApp) Delete(ctx context.Context, id uint) error {
 		return err
 	}
 
-	return app.tm.Transaction(func(tx persistent.Transaction) error {
-		return app.budgetRepo.Delete(ctx, *budget.ID)
-	})
+	return app.budgetRepo.Delete(ctx, *budget.ID)
+}
+
+func (app *budgetApp) changeWorker(ctx context.Context, budgetId uint, changes <-chan Change, results chan<- ChangeResult, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for change := range changes {
+		var changeResult ChangeResult
+		switch change.Section {
+		case domain.Main:
+			changeResult = app.changeMain(ctx, budgetId, change)
+		case domain.Available:
+			changeResult = app.changeAvailable(ctx, budgetId, change)
+		case domain.Bill:
+			changeResult = app.changeBill(ctx, budgetId, change)
+		}
+
+		results <- changeResult
+	}
+}
+
+func (app *budgetApp) changeMain(ctx context.Context, budgetId uint, change Change) ChangeResult {
+	var err error
+
+	switch change.Action {
+	case shared.Update:
+		if change.Detail == nil || len(change.Detail) == 0 {
+			err = ErrIncompleteData
+		} else {
+			err = app.tm.Transaction(func(tx persistent.Transaction) error {
+				budget := domain.Budget{
+					ID: &change.ID,
+				}
+
+				if change.Detail["name"] != nil {
+					name := fmt.Sprint(change.Detail["name"])
+					budget.Name = &name
+				}
+
+				if change.Detail["year"] != nil {
+					value, err := convert.AsUint64(change.Detail["year"])
+					if err != nil {
+						return err
+					}
+
+					year := uint16(value)
+					budget.Year = &year
+				}
+
+				if change.Detail["month"] != nil {
+					value, err := convert.AsUint64(change.Detail["month"])
+					if err != nil {
+						return err
+					}
+
+					month := uint8(value)
+					budget.Month = &month
+				}
+
+				if change.Detail["fixedIncome"] != nil {
+					fixedIncome, err := convert.AsFloat64(change.Detail["fixedIncome"])
+					if err != nil {
+						return err
+					}
+
+					budget.FixedIncome = &fixedIncome
+				}
+
+				if change.Detail["additionalIncome"] != nil {
+					additionalIncome, err := convert.AsFloat64(change.Detail["additionalIncome"])
+					if err != nil {
+						return err
+					}
+
+					budget.AdditionalIncome = &additionalIncome
+				}
+
+				if change.Detail["totalPending"] != nil {
+					totalPending, err := convert.AsFloat64(change.Detail["totalPending"])
+					if err != nil {
+						return err
+					}
+
+					budget.TotalPending = &totalPending
+				}
+
+				if change.Detail["totalAvailable"] != nil {
+					totalAvailable, err := convert.AsFloat64(change.Detail["totalAvailable"])
+					if err != nil {
+						return err
+					}
+
+					budget.TotalAvailable = &totalAvailable
+				}
+
+				if change.Detail["totalSaving"] != nil {
+					totalSaving, err := convert.AsFloat64(change.Detail["totalSaving"])
+					if err != nil {
+						return err
+					}
+
+					budget.TotalSaving = &totalSaving
+				}
+
+				if change.Detail["pendingBills"] != nil {
+					value, err := convert.AsInt64(change.Detail["pendingBills"])
+					if err != nil {
+						return err
+					}
+
+					pendingBills := uint8(value)
+					budget.PendingBills = &pendingBills
+				}
+
+				budgetRepo := app.budgetRepo.WithTransaction(tx)
+				_, err := budgetRepo.Save(ctx, budget)
+				if err != nil {
+					return err
+				}
+
+				description := "Se actualiza la información principal"
+				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+			})
+		}
+	}
+
+	return ChangeResult{change, err}
+}
+
+func (app *budgetApp) changeAvailable(ctx context.Context, budgetId uint, change Change) ChangeResult {
+	var err error
+
+	switch change.Action {
+	case shared.Update:
+		if change.Detail == nil || len(change.Detail) == 0 {
+			err = ErrIncompleteData
+		} else {
+			err = app.tm.Transaction(func(tx persistent.Transaction) error {
+				available := domain.BudgetAvailable{
+					ID: &change.ID,
+				}
+
+				if change.Detail["name"] != nil {
+					name := fmt.Sprint(change.Detail["name"])
+					available.Name = &name
+				}
+
+				if change.Detail["amount"] != nil {
+					amount, err := convert.AsFloat64(change.Detail["amount"])
+					if err != nil {
+						return err
+					}
+
+					available.Amount = &amount
+				}
+
+				budgetAvailableRepo := app.budgetAvailableRepo.WithTransaction(tx)
+				_, err := budgetAvailableRepo.Save(ctx, available)
+				if err != nil {
+					return err
+				}
+
+				description := "Se actualizaron los disponibles"
+				change.Detail["availableId"] = change.ID
+				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+			})
+		}
+	case shared.Delete:
+		if change.Detail == nil || change.Detail["name"] == nil {
+			err = ErrIncompleteData
+		} else {
+			err = app.tm.Transaction(func(tx persistent.Transaction) error {
+				budgetAvailableRepo := app.budgetAvailableRepo.WithTransaction(tx)
+				if err := budgetAvailableRepo.Delete(ctx, change.ID); err != nil {
+					return err
+				}
+
+				description := fmt.Sprintf("Se elimino el disponible %s", change.Detail["name"])
+				change.Detail["availableId"] = change.ID
+				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+			})
+		}
+	}
+
+	return ChangeResult{change, err}
+}
+
+func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Change) ChangeResult {
+	var err error
+
+	switch change.Action {
+	case shared.Update:
+		if change.Detail == nil || len(change.Detail) == 0 {
+			err = ErrIncompleteData
+		} else {
+			err = app.tm.Transaction(func(tx persistent.Transaction) error {
+				budget := domain.BudgetBill{
+					ID: &change.ID,
+				}
+
+				if change.Detail["description"] != nil {
+					description := fmt.Sprint(change.Detail["description"])
+					budget.Description = &description
+				}
+
+				if change.Detail["amount"] != nil {
+					amount, err := convert.AsFloat64(change.Detail["amount"])
+					if err != nil {
+						return err
+					}
+
+					budget.Amount = &amount
+				}
+
+				if change.Detail["payment"] != nil {
+					payment, err := convert.AsFloat64(change.Detail["payment"])
+					if err != nil {
+						return err
+					}
+
+					budget.Payment = &payment
+				}
+
+				if change.Detail["dueDate"] != nil {
+					value, err := convert.AsUint64(change.Detail["dueDate"])
+					if err != nil {
+						return err
+					}
+
+					dueDate := uint8(value)
+					budget.DueDate = &dueDate
+				}
+
+				if change.Detail["complete"] != nil {
+					complete, err := convert.AsBool(change.Detail["complete"])
+					if err != nil {
+						return err
+					}
+
+					budget.Complete = &complete
+				}
+
+				if change.Detail["category"] != nil {
+					category := domain.BudgetBillCategory(fmt.Sprint(change.Detail["category"]))
+					budget.Category = &category
+				}
+
+				budgetBillRepo := app.budgetBillRepo.WithTransaction(tx)
+				_, err := budgetBillRepo.Save(ctx, budget)
+				if err != nil {
+					return err
+				}
+
+				description := "Se actualizaron los pagos"
+				change.Detail["billId"] = change.ID
+				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+			})
+		}
+	case shared.Delete:
+		if change.Detail == nil || change.Detail["description"] == nil {
+			err = ErrIncompleteData
+		} else {
+			err = app.tm.Transaction(func(tx persistent.Transaction) error {
+				var err error
+				budgetBillRepo := app.budgetBillRepo.WithTransaction(tx)
+				err = budgetBillRepo.Delete(ctx, change.ID)
+				if err != nil {
+					return err
+				}
+
+				description := fmt.Sprintf("Se elimino el pago %s", change.Detail["description"])
+				change.Detail["billId"] = change.ID
+				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+			})
+		}
+	}
+
+	return ChangeResult{change, err}
 }
 
 func NewBudgetApp(

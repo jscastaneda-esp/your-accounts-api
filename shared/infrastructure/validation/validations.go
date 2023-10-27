@@ -9,9 +9,7 @@ import (
 )
 
 func Validate(c *fiber.Ctx, request any) bool {
-	if err := c.BodyParser(request); err != nil {
-		log.Error("Error request body parser:", err)
-		c.Status(fiber.StatusBadRequest)
+	if !parser(c, request) {
 		return false
 	}
 
@@ -24,14 +22,22 @@ func Validate(c *fiber.Ctx, request any) bool {
 }
 
 func ValidateSlice(c *fiber.Ctx, request any, constraint string) bool {
-	if err := c.BodyParser(request); err != nil {
-		log.Error("Error request body parser:", err)
-		c.Status(fiber.StatusBadRequest)
+	if !parser(c, request) {
 		return false
 	}
 
 	if errors := validation.ValidateVariable(request, constraint); errors != nil {
 		c.Status(fiber.StatusUnprocessableEntity).JSON(errors)
+		return false
+	}
+
+	return true
+}
+
+func parser(c *fiber.Ctx, request any) bool {
+	if err := c.BodyParser(request); err != nil {
+		log.Error("Error request body parser:", err)
+		c.Status(fiber.StatusBadRequest)
 		return false
 	}
 

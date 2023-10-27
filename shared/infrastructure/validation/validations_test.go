@@ -88,6 +88,64 @@ func (suite *TestSuite) TestValidateErrorValidate() {
 	require.Equal(expectedBody, suite.fastCtx.Response.Body())
 }
 
+func (suite *TestSuite) TestValidateSliceSuccess() {
+	require := require.New(suite.T())
+	test := []TestStruct{
+		{
+			Data: "Test",
+		},
+	}
+	body, err := json.Marshal(&test)
+	require.NoError(err)
+	suite.fastCtx.Request.Header.SetContentType(fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+	mapper := []TestStruct{}
+
+	result := ValidateSlice(suite.ctx, &mapper, "min=1,dive,required")
+
+	require.True(result)
+	require.Equal(len(test), len(mapper))
+	require.Equal(test[0], mapper[0])
+	require.Equal(fiber.StatusOK, suite.fastCtx.Response.StatusCode())
+}
+
+func (suite *TestSuite) TestValidateSliceErrorBodyParser() {
+	require := require.New(suite.T())
+	suite.fastCtx.Request.Header.SetContentType(fiber.MIMEApplicationJSON)
+	mapper := []TestStruct{}
+
+	result := ValidateSlice(suite.ctx, &mapper, "min=1")
+
+	require.False(result)
+	require.Empty(mapper)
+	require.Equal(fiber.StatusBadRequest, suite.fastCtx.Response.StatusCode())
+}
+
+func (suite *TestSuite) TestValidateSliceErrorValidate() {
+	require := require.New(suite.T())
+	test := []TestStruct{}
+	body, err := json.Marshal(&test)
+	require.NoError(err)
+	suite.fastCtx.Request.Header.SetContentType(fiber.MIMEApplicationJSON)
+	suite.fastCtx.Request.SetBody(body)
+	mapper := []TestStruct{}
+	validationErrors := []*validation.ErrorResponse{
+		{
+			Field:      "",
+			Constraint: "min=1",
+		},
+	}
+	expectedBody, err := json.Marshal(validationErrors)
+	require.NoError(err)
+
+	result := ValidateSlice(suite.ctx, &mapper, "min=1")
+
+	require.False(result)
+	require.Empty(mapper)
+	require.Equal(fiber.StatusUnprocessableEntity, suite.fastCtx.Response.StatusCode())
+	require.Equal(expectedBody, suite.fastCtx.Response.Body())
+}
+
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }

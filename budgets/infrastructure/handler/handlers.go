@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 
 	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain/utils/convert"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
 
@@ -161,12 +162,7 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 
 	changes := []application.Change{}
 	for _, item := range request {
-		changes = append(changes, application.Change{
-			ID:      item.ID,
-			Section: item.Section,
-			Action:  item.Action,
-			Detail:  item.Detail,
-		})
+		changes = append(changes, application.Change(item))
 	}
 
 	results := ctrl.app.Changes(c.UserContext(), uint(id), changes)
@@ -176,7 +172,9 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 			log.Errorf("Error processing change %v in budget: %s", result.Change, result.Err.Error())
 
 			if errors.Is(result.Err, application.ErrIncompleteData) {
-				errs = append(errs, model.NewChangeResponse(result.Change, "Datos incompletos"))
+				errs = append(errs, model.NewChangeResponse(result.Change, "Incomplete data"))
+			} else if errors.Is(result.Err, convert.ErrValueIncompatibleType) {
+				errs = append(errs, model.NewChangeResponse(result.Change, "Incompatible data type"))
 			} else {
 				errs = append(errs, model.NewChangeResponse(result.Change, "Error processing change"))
 			}
