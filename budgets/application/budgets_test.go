@@ -10,6 +10,7 @@ import (
 	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
+	"your-accounts-api/shared/domain/utils/convert"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -409,6 +410,317 @@ func (suite *TestBudgetSuite) TestFindByUserIdError() {
 	require.Nil(res)
 }
 
+func (suite *TestBudgetSuite) TestChangesSuccess() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Main,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"name":             "Test 1",
+				"year":             2023,
+				"month":            1,
+				"fixedIncome":      10000,
+				"additionalIncome": 0,
+				"totalPending":     8000.0,
+				"totalAvailable":   10000.0,
+				"totalSaving":      2000,
+				"pendingBills":     1,
+			},
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Available,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"name":   "Test 1",
+				"amount": 10000,
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Available,
+			Action:  shared.Delete,
+			Detail: map[string]any{
+				"name": "Test 2",
+			},
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Bill,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"description": "Test 1",
+				"amount":      8000,
+				"payment":     0,
+				"dueDate":     1,
+				"complete":    false,
+				"category":    "education",
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Bill,
+			Action:  shared.Delete,
+			Detail: map[string]any{
+				"description": "Test 2",
+			},
+		},
+	}
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	}).Times(5)
+	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
+	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo).Times(2)
+	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
+	suite.mockBudgetAvailableRepo.On("Delete", suite.ctx, mock.Anything).Return(nil)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo).Times(2)
+	suite.mockBudgetBillRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
+	suite.mockBudgetBillRepo.On("Delete", suite.ctx, mock.Anything).Return(nil)
+	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil).Times(5)
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 5)
+
+	for _, result := range results {
+		require.NoError(result.Err)
+	}
+}
+
+func (suite *TestBudgetSuite) TestChangesErrorData() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Main,
+			Action:  shared.Update,
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Available,
+			Action:  shared.Update,
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Available,
+			Action:  shared.Delete,
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Bill,
+			Action:  shared.Update,
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Bill,
+			Action:  shared.Delete,
+		},
+	}
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 5)
+
+	for _, result := range results {
+		require.EqualError(ErrIncompleteData, result.Err.Error())
+	}
+}
+
+func (suite *TestBudgetSuite) TestChangesErrorAction() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Main,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"name": "Test 1",
+			},
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Available,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"name": "Test 1",
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Available,
+			Action:  shared.Delete,
+			Detail: map[string]any{
+				"name": "Test 2",
+			},
+		},
+		{
+			ID:      uint(1),
+			Section: domain.Bill,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"description": "Test 1",
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Bill,
+			Action:  shared.Delete,
+			Detail: map[string]any{
+				"description": "Test 2",
+			},
+		},
+	}
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	}).Times(5)
+	suite.mockBudgetRepo.On("WithTransaction", nil).Return(suite.mockBudgetRepo)
+	suite.mockBudgetRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), gorm.ErrRecordNotFound)
+	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo).Times(2)
+	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), gorm.ErrRecordNotFound)
+	suite.mockBudgetAvailableRepo.On("Delete", suite.ctx, mock.Anything).Return(gorm.ErrRecordNotFound)
+	suite.mockBudgetBillRepo.On("WithTransaction", nil).Return(suite.mockBudgetBillRepo).Times(2)
+	suite.mockBudgetBillRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), gorm.ErrRecordNotFound)
+	suite.mockBudgetBillRepo.On("Delete", suite.ctx, mock.Anything).Return(gorm.ErrRecordNotFound)
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 5)
+
+	for _, result := range results {
+		require.EqualError(gorm.ErrRecordNotFound, result.Err.Error())
+	}
+}
+
+func (suite *TestBudgetSuite) TestChangesErrorInvalidDataTypeMain() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Main,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"year": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Main,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"fixedIncome": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+		{
+			ID:      uint(3),
+			Section: domain.Main,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"pendingBills": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+	}
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	}).Times(3)
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 3)
+
+	for _, result := range results {
+		require.EqualError(convert.ErrValueIncompatibleType, result.Err.Error())
+	}
+}
+
+func (suite *TestBudgetSuite) TestChangesErrorInvalidDataTypeAvailable() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Available,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"amount": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+	}
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	})
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 1)
+
+	for _, result := range results {
+		require.EqualError(convert.ErrValueIncompatibleType, result.Err.Error())
+	}
+}
+
+func (suite *TestBudgetSuite) TestChangesErrorInvalidDataTypeBill() {
+	require := require.New(suite.T())
+	changes := []Change{
+		{
+			ID:      uint(1),
+			Section: domain.Bill,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"amount": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+		{
+			ID:      uint(2),
+			Section: domain.Bill,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"dueDate": map[string]any{
+					"invalid": 1,
+				},
+			},
+		},
+		{
+			ID:      uint(3),
+			Section: domain.Bill,
+			Action:  shared.Update,
+			Detail: map[string]any{
+				"complete": map[string]any{
+					"invalid": false,
+				},
+			},
+		},
+	}
+	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
+		return fc(nil)
+	}).Times(3)
+
+	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
+
+	require.NotEmpty(results)
+	require.Len(results, 3)
+
+	for _, result := range results {
+		require.EqualError(convert.ErrValueIncompatibleType, result.Err.Error())
+	}
+}
+
 func (suite *TestBudgetSuite) TestDeleteSuccess() {
 	require := require.New(suite.T())
 	name := "Test"
@@ -422,9 +734,6 @@ func (suite *TestBudgetSuite) TestDeleteSuccess() {
 		UserId: &suite.userId,
 	}
 	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
-		return fc(nil)
-	})
 	suite.mockBudgetRepo.On("Delete", suite.ctx, *budgetExpected.ID).Return(nil)
 
 	err := suite.app.Delete(suite.ctx, suite.budgetId)
@@ -456,9 +765,6 @@ func (suite *TestBudgetSuite) TestDeleteError() {
 	}
 	errExpected := errors.New("Error find budget by id")
 	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
-	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
-		return fc(nil)
-	})
 	suite.mockBudgetRepo.On("Delete", suite.ctx, *budgetExpected.ID).Return(errExpected)
 
 	err := suite.app.Delete(suite.ctx, suite.budgetId)

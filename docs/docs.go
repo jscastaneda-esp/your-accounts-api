@@ -432,6 +432,88 @@ const docTemplate = `{
                     }
                 }
             },
+            "put": {
+                "description": "receive changes associated to a budget",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "budget"
+                ],
+                "summary": "Receive changes in budget",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Budget ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Changes data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ChangeRequest"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.ChangeResponse"
+                            }
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "Delete an budget by ID",
                 "produces": [
@@ -683,6 +765,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "domain.Action": {
+            "type": "string",
+            "enum": [
+                "update",
+                "delete"
+            ],
+            "x-enum-varnames": [
+                "Update",
+                "Delete"
+            ]
+        },
         "domain.BudgetBillCategory": {
             "type": "string",
             "enum": [
@@ -707,6 +800,71 @@ const docTemplate = `{
                 "Saving",
                 "Others"
             ]
+        },
+        "domain.BudgetSection": {
+            "type": "string",
+            "enum": [
+                "main",
+                "available",
+                "bill"
+            ],
+            "x-enum-varnames": [
+                "Main",
+                "Available",
+                "Bill"
+            ]
+        },
+        "model.ChangeRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "id",
+                "section"
+            ],
+            "properties": {
+                "action": {
+                    "enum": [
+                        "update",
+                        "delete"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.Action"
+                        }
+                    ]
+                },
+                "detail": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "id": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "section": {
+                    "enum": [
+                        "main",
+                        "available",
+                        "bill"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/domain.BudgetSection"
+                        }
+                    ]
+                }
+            }
+        },
+        "model.ChangeResponse": {
+            "type": "object",
+            "properties": {
+                "change": {
+                    "$ref": "#/definitions/model.ChangeRequest"
+                },
+                "error": {
+                    "type": "string"
+                }
+            }
         },
         "model.CreateAvailableRequest": {
             "type": "object",

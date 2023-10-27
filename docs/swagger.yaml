@@ -1,5 +1,13 @@
 basePath: /
 definitions:
+  domain.Action:
+    enum:
+    - update
+    - delete
+    type: string
+    x-enum-varnames:
+    - Update
+    - Delete
   domain.BudgetBillCategory:
     enum:
     - house
@@ -22,6 +30,49 @@ definitions:
     - Financial
     - Saving
     - Others
+  domain.BudgetSection:
+    enum:
+    - main
+    - available
+    - bill
+    type: string
+    x-enum-varnames:
+    - Main
+    - Available
+    - Bill
+  model.ChangeRequest:
+    properties:
+      action:
+        allOf:
+        - $ref: '#/definitions/domain.Action'
+        enum:
+        - update
+        - delete
+      detail:
+        additionalProperties: {}
+        type: object
+      id:
+        minimum: 1
+        type: integer
+      section:
+        allOf:
+        - $ref: '#/definitions/domain.BudgetSection'
+        enum:
+        - main
+        - available
+        - bill
+    required:
+    - action
+    - id
+    - section
+    type: object
+  model.ChangeResponse:
+    properties:
+      change:
+        $ref: '#/definitions/model.ChangeRequest'
+      error:
+        type: string
+    type: object
   model.CreateAvailableRequest:
     properties:
       budgetId:
@@ -405,6 +456,61 @@ paths:
           schema:
             type: string
       summary: Read budget by ID
+      tags:
+      - budget
+    put:
+      consumes:
+      - application/json
+      description: receive changes associated to a budget
+      parameters:
+      - description: Access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Changes data
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/model.ChangeRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "422":
+          description: Unprocessable Entity
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            items:
+              $ref: '#/definitions/model.ChangeResponse'
+            type: array
+      summary: Receive changes in budget
       tags:
       - budget
   /api/v1/budget/available/:

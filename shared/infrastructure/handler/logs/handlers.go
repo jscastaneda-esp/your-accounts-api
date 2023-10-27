@@ -2,11 +2,12 @@ package logs
 
 import (
 	"fmt"
-	"log/slog"
 	"your-accounts-api/shared/application"
 	"your-accounts-api/shared/domain"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/model"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -33,25 +34,25 @@ type controller struct {
 func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 	resourceId, err := c.ParamsInt("id")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting param 'id': %v\n", err))
+		log.Error("Error getting param 'id':", err)
 		return fiber.ErrBadRequest
 	}
 
 	code := c.Params("code")
 	if code == "" {
-		slog.Error("Error getting param 'code'")
+		log.Error("Error getting param 'code'")
 		return fiber.ErrBadRequest
 	}
 
 	logs, err := ctrl.app.FindLogsByProject(c.UserContext(), domain.CodeLog(code), uint(resourceId))
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error reading logs by resource and code: %v\n", err))
+		log.Error("Error reading logs by resource and code:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by resource and code")
 	}
 
 	response := make([]*model.ReadLogsResponse, 0)
-	for _, log := range logs {
-		response = append(response, model.NewReadLogsResponse(log))
+	for _, logItem := range logs {
+		response = append(response, model.NewReadLogsResponse(logItem))
 	}
 
 	return c.JSON(response)

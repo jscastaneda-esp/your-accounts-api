@@ -2,14 +2,15 @@ package handler
 
 import (
 	"errors"
-	"fmt"
-	"log/slog"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/handler/availables"
 	"your-accounts-api/budgets/infrastructure/handler/bills"
 	"your-accounts-api/budgets/infrastructure/model"
 
+	"github.com/gofiber/fiber/v2/log"
+
 	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain/utils/convert"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
 
@@ -52,13 +53,13 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 	} else {
 		id, err = ctrl.app.Clone(c.UserContext(), userData.ID, *request.CloneId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			slog.Error(fmt.Sprintf("Clone ID %d not found\n", *request.CloneId))
+			log.Errorf("Clone ID %d not found", *request.CloneId)
 			return fiber.NewError(fiber.StatusNotFound, "Error creating budget. Clone ID not found")
 		}
 	}
 
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error creating budget: %v\n", err))
+		log.Error("Error creating budget:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error creating budget")
 	}
 
@@ -84,7 +85,7 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 
 	budgets, err := ctrl.app.FindByUserId(c.UserContext(), userData.ID)
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error reading budgets by user: %v\n", err))
+		log.Error("Error reading budgets by user:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading budgets by user")
 	}
 
@@ -113,13 +114,13 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 func (ctrl *controller) readById(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting param 'id': %v\n", err))
+		log.Error("Error getting param 'id':", err)
 		return fiber.ErrBadRequest
 	}
 
 	budget, err := ctrl.app.FindById(c.UserContext(), uint(id))
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error reading budget by id: %v\n", err))
+		log.Error("Error reading budget by id:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
 		}
@@ -128,6 +129,64 @@ func (ctrl *controller) readById(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(model.NewReadByIDResponse(budget))
+}
+
+// BudgetChangesHandler godoc
+//
+//	@Summary		Receive changes in budget
+//	@Description	receive changes associated to a budget
+//	@Tags			budget
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization		header		string					true	"Access token"
+//	@Param			id					path		uint					true	"Budget ID"
+//	@Param			request				body		[]model.ChangeRequest	true	"Changes data"
+//	@Success		200					{string}	string
+//	@Failure		400					{string}	string
+//	@Failure		401					{string}	string
+//	@Failure		404					{string}	string
+//	@Failure		422					{string}	string
+//	@Failure		500					{array}		model.ChangeResponse
+//	@Router			/api/v1/budget/{id}	[put]
+func (ctrl *controller) changes(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		log.Error("Error getting param 'id':", err)
+		return fiber.ErrBadRequest
+	}
+
+	request := []model.ChangeRequest{}
+	if ok := validation.ValidateSlice(c, &request, "min=1,dive,required"); !ok {
+		return nil
+	}
+
+	changes := []application.Change{}
+	for _, item := range request {
+		changes = append(changes, application.Change(item))
+	}
+
+	results := ctrl.app.Changes(c.UserContext(), uint(id), changes)
+	errs := []model.ChangeResponse{}
+	for _, result := range results {
+		if result.Err != nil {
+			log.Errorf("Error processing change %v in budget: %s", result.Change, result.Err.Error())
+
+			if errors.Is(result.Err, application.ErrIncompleteData) {
+				errs = append(errs, model.NewChangeResponse(result.Change, "Incomplete data"))
+			} else if errors.Is(result.Err, convert.ErrValueIncompatibleType) {
+				errs = append(errs, model.NewChangeResponse(result.Change, "Incompatible data type"))
+			} else {
+				errs = append(errs, model.NewChangeResponse(result.Change, "Error processing change"))
+			}
+		}
+	}
+
+	if len(errs) > 0 {
+		log.Error("Error processing changes in budget")
+		return c.Status(fiber.StatusInternalServerError).JSON(errs)
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }
 
 // BudgetDeleteHandler godoc
@@ -147,14 +206,14 @@ func (ctrl *controller) readById(c *fiber.Ctx) error {
 func (ctrl *controller) delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error getting param 'id': %v\n", err))
+		log.Error("Error getting param 'id':", err)
 		return fiber.ErrBadRequest
 	}
 
 	err = ctrl.app.Delete(c.UserContext(), uint(id))
 	if err != nil {
-		slog.Error(fmt.Sprintf("Error deleting budget: %v\n", err))
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error("Error deleting budget:", err)
 			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
 		}
 
@@ -171,6 +230,7 @@ func NewRoute(router fiber.Router) {
 	group.Post("/", controller.create)
 	group.Get("/", controller.read)
 	group.Get("/:id<min(1)>", controller.readById)
+	group.Put("/:id<min(1)>", controller.changes)
 	group.Delete("/:id<min(1)>", controller.delete)
 
 	// Additional routes

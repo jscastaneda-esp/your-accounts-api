@@ -1,9 +1,10 @@
 package config
 
 import (
-	"log"
-	"log/slog"
+	golog "log"
 	"os"
+
+	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/joho/godotenv"
 )
@@ -20,9 +21,9 @@ var (
 )
 
 func LoadVariables() {
-	log.SetFlags(log.Llongfile + log.LstdFlags)
+	golog.SetFlags(golog.Llongfile + golog.LstdFlags)
 	if _, err := os.Stat(".env"); err == nil {
-		slog.Info("Load .env file")
+		log.Info("Load .env file")
 		err = godotenv.Load()
 		if err != nil {
 			log.Fatal("Error loading .env file: ", err)

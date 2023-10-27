@@ -1,7 +1,9 @@
 package model
 
 import (
+	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/domain"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/infrastructure/model"
 )
 
@@ -145,4 +147,28 @@ type CreateBillTransactionRequest struct {
 	Description string  `json:"description" validate:"required,max=500"`
 	Amount      float64 `json:"amount" validate:"required"`
 	BillId      uint    `json:"billId" validate:"required,min=1"`
+}
+
+type ChangeRequest struct {
+	ID      uint                 `json:"id" validate:"required,min=1"`
+	Section domain.BudgetSection `json:"section" validate:"required,oneof='main' 'available' 'bill'"`
+	Action  shared.Action        `json:"action" validate:"required,oneof='update' 'delete'"`
+	Detail  map[string]any       `json:"detail"`
+}
+
+type ChangeResponse struct {
+	Change ChangeRequest `json:"change"`
+	Error  string        `json:"error"`
+}
+
+func NewChangeResponse(change application.Change, err string) ChangeResponse {
+	return ChangeResponse{
+		Change: ChangeRequest{
+			ID:      change.ID,
+			Section: change.Section,
+			Action:  change.Action,
+			Detail:  change.Detail,
+		},
+		Error: err,
+	}
 }

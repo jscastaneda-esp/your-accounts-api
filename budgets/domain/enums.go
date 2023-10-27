@@ -13,3 +13,11 @@ const (
 	Saving                 BudgetBillCategory = "saving"
 	Others                 BudgetBillCategory = "others"
 )
+
+type BudgetSection string
+
+const (
+	Main      BudgetSection = "main"
+	Available BudgetSection = "available"
+	Bill      BudgetSection = "bill"
+)
