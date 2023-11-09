@@ -1,9 +1,11 @@
 package model
 
-import "your-accounts-api/shared/infrastructure/model"
+import (
+	"time"
+	"your-accounts-api/shared/infrastructure/model"
+)
 
 type CreateRequest struct {
-	UID   string `json:"uid" validate:"required,min=28,max=32"`
 	Email string `json:"email" validate:"required,email"`
 }
 
@@ -22,11 +24,13 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	Token     string `json:"token"`
+	ExpiresAt int64  `json:"expiresAt"`
 }
 
-func NewLoginResponse(token string) *LoginResponse {
+func NewLoginResponse(token string, expiresAt time.Time) *LoginResponse {
 	return &LoginResponse{
-		Token: token,
+		Token:     token,
+		ExpiresAt: expiresAt.UnixMilli(),
 	}
 }

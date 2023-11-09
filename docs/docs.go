@@ -959,23 +959,20 @@ const docTemplate = `{
         "model.LoginRequest": {
             "type": "object",
             "required": [
-                "email",
-                "uid"
+                "email"
             ],
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "uid": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "minLength": 28
                 }
             }
         },
         "model.LoginResponse": {
             "type": "object",
             "properties": {
+                "expiresAt": {
+                    "type": "integer"
+                },
                 "token": {
                     "type": "string"
                 }
@@ -1127,17 +1124,11 @@ const docTemplate = `{
         "your-accounts-api_users_infrastructure_model.CreateRequest": {
             "type": "object",
             "required": [
-                "email",
-                "uid"
+                "email"
             ],
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "uid": {
-                    "type": "string",
-                    "maxLength": 32,
-                    "minLength": 28
                 }
             }
         },

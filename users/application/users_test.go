@@ -17,7 +17,6 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uid                    string
 	email                  string
 	token                  string
 	mockTransactionManager *mocks_shared.TransactionManager
@@ -25,11 +24,10 @@ type TestSuite struct {
 	mockUserTokenRepo      *mocks.UserTokenRepository
 	app                    IUserApp
 	ctx                    context.Context
-	originalJwtGenerate    func(id uint, uid string, email string) (string, time.Time, error)
+	originalJwtGenerate    func(id uint, email string) (string, time.Time, error)
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.uid = "test"
 	suite.email = "example@exaple.com"
 	suite.token = "<token>"
 	suite.ctx = context.Background()
@@ -47,74 +45,39 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestCreateSuccess() {
 	require := require.New(suite.T())
 	user := domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
-	}).Return(false, nil)
 	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
 		Email: suite.email,
 	}).Return(false, nil)
 	suite.mockUserRepo.On("Save", suite.ctx, user).Return(uint(999), nil)
 
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
+	res, err := suite.app.Create(suite.ctx, suite.email)
 
 	require.NoError(err)
 	require.Equal(res, uint(999))
 }
 
-func (suite *TestSuite) TestCreateErrorExistsByUID() {
+func (suite *TestSuite) TestCreateErrorExists() {
 	require := require.New(suite.T())
 	errExpected := errors.New("Not exists")
 	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
+		Email: suite.email,
 	}).Return(false, errExpected)
 
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
+	res, err := suite.app.Create(suite.ctx, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Zero(res)
 }
 
-func (suite *TestSuite) TestCreateExistsByUID() {
+func (suite *TestSuite) TestCreateExistsTrue() {
 	require := require.New(suite.T())
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
-	}).Return(true, nil)
-
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
-
-	require.EqualError(ErrUserAlreadyExists, err.Error())
-	require.Zero(res)
-}
-
-func (suite *TestSuite) TestCreateErrorExistsByEmail() {
-	require := require.New(suite.T())
-	errExpected := errors.New("Not exists")
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
-	}).Return(false, nil)
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		Email: suite.email,
-	}).Return(false, errExpected)
-
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
-
-	require.EqualError(errExpected, err.Error())
-	require.Zero(res)
-}
-
-func (suite *TestSuite) TestCreateExistsByEmail() {
-	require := require.New(suite.T())
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
-	}).Return(false, nil)
 	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
 		Email: suite.email,
 	}).Return(true, nil)
 
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
+	res, err := suite.app.Create(suite.ctx, suite.email)
 
 	require.EqualError(ErrUserAlreadyExists, err.Error())
 	require.Zero(res)
@@ -123,19 +86,15 @@ func (suite *TestSuite) TestCreateExistsByEmail() {
 func (suite *TestSuite) TestCreateErrorCreate() {
 	require := require.New(suite.T())
 	user := domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	errExpected := errors.New("not created")
-	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
-		UID: suite.uid,
-	}).Return(false, nil)
 	suite.mockUserRepo.On("ExistsByExample", suite.ctx, domain.User{
 		Email: suite.email,
 	}).Return(false, nil)
 	suite.mockUserRepo.On("Save", suite.ctx, user).Return(uint(0), errExpected)
 
-	res, err := suite.app.Create(suite.ctx, suite.uid, suite.email)
+	res, err := suite.app.Create(suite.ctx, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Zero(res)
@@ -145,82 +104,79 @@ func (suite *TestSuite) TestLoginSuccess() {
 	require := require.New(suite.T())
 	userExpected := &domain.User{
 		ID:    999,
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	expiresAt := time.Now().Add(1 * time.Hour)
-	jwtGenerate = func(id uint, uid string, email string) (string, time.Time, error) {
+	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
 
-	token, err := suite.app.Login(suite.ctx, suite.uid, suite.email)
+	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
 	require.NoError(err)
 	require.Equal(suite.token, token)
+	require.Equal(expiresAt, expires)
 }
 
 func (suite *TestSuite) TestLoginErrorFind() {
 	require := require.New(suite.T())
 	errExpected := errors.New("Not exists")
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}).Return(nil, errExpected)
 
-	token, err := suite.app.Login(suite.ctx, suite.uid, suite.email)
+	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Empty(token)
+	require.Empty(expires)
 }
 
 func (suite *TestSuite) TestLoginErrorJWTGenerate() {
 	require := require.New(suite.T())
 	userExpected := &domain.User{
 		ID:    999,
-		UID:   suite.uid,
 		Email: suite.email,
 	}
-	jwtGenerate = func(id uint, uid string, email string) (string, time.Time, error) {
+	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
 		return "", time.Time{}, jwt.ErrInvalidToken
 	}
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}).Return(userExpected, nil)
 
-	token, err := suite.app.Login(suite.ctx, suite.uid, suite.email)
+	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
 	require.EqualError(jwt.ErrInvalidToken, err.Error())
 	require.Empty(token)
+	require.Empty(expires)
 }
 
 func (suite *TestSuite) TestLoginErrorCreateUserToken() {
 	require := require.New(suite.T())
 	userExpected := &domain.User{
 		ID:    999,
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	expiresAt := time.Now().Add(1 * time.Hour)
-	jwtGenerate = func(id uint, uid string, email string) (string, time.Time, error) {
+	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
 	errExpected := errors.New("Error constraint")
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
-		UID:   suite.uid,
 		Email: suite.email,
 	}).Return(userExpected, nil)
 	suite.mockUserTokenRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 
-	token, err := suite.app.Login(suite.ctx, suite.uid, suite.email)
+	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
 	require.EqualError(errExpected, err.Error())
 	require.Empty(token)
+	require.Empty(expires)
 }
 
 func TestTestSuite(t *testing.T) {

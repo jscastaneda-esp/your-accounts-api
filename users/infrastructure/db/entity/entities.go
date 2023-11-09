@@ -8,8 +8,6 @@ import (
 
 type User struct {
 	entity.BaseModel
-	entity.BaseUpdateModel
-	UID        string           `gorm:"not null;size:32;unique"`
 	Email      string           `gorm:"not null;unique"`
 	Budgets    []budgets.Budget `gorm:"foreignKey:UserId"`
 	UserTokens []UserToken      `gorm:"foreignKey:UserId"`

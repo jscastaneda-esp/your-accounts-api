@@ -20,7 +20,6 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.UserR
 
 func (r *gormRepository) Save(ctx context.Context, user domain.User) (uint, error) {
 	model := &entity.User{
-		UID:   user.UID,
 		Email: user.Email,
 	}
 
@@ -33,7 +32,6 @@ func (r *gormRepository) Save(ctx context.Context, user domain.User) (uint, erro
 
 func (r *gormRepository) SearchByExample(ctx context.Context, example domain.User) (*domain.User, error) {
 	where := &entity.User{
-		UID:   example.UID,
 		Email: example.Email,
 	}
 	model := new(entity.User)
@@ -43,7 +41,6 @@ func (r *gormRepository) SearchByExample(ctx context.Context, example domain.Use
 
 	return &domain.User{
 		ID:    model.ID,
-		UID:   model.UID,
 		Email: model.Email,
 	}, nil
 }
@@ -51,10 +48,6 @@ func (r *gormRepository) SearchByExample(ctx context.Context, example domain.Use
 func (r *gormRepository) ExistsByExample(ctx context.Context, example domain.User) (bool, error) {
 	var count int64
 	where := new(entity.User)
-	if example.UID != "" {
-		where.UID = example.UID
-	}
-
 	if example.Email != "" {
 		where.Email = example.Email
 	}
