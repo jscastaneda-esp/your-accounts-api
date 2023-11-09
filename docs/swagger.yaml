@@ -140,16 +140,13 @@ definitions:
     properties:
       email:
         type: string
-      uid:
-        maxLength: 32
-        minLength: 28
-        type: string
     required:
     - email
-    - uid
     type: object
   model.LoginResponse:
     properties:
+      expiresAt:
+        type: integer
       token:
         type: string
     type: object
@@ -251,13 +248,8 @@ definitions:
     properties:
       email:
         type: string
-      uid:
-        maxLength: 32
-        minLength: 28
-        type: string
     required:
     - email
-    - uid
     type: object
   your-accounts-api_users_infrastructure_model.CreateResponse:
     properties:

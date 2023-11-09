@@ -4,6 +4,7 @@ package mocks
 
 import (
 	context "context"
+	time "time"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -13,23 +14,23 @@ type IUserApp struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: ctx, uid, email
-func (_m *IUserApp) Create(ctx context.Context, uid string, email string) (uint, error) {
-	ret := _m.Called(ctx, uid, email)
+// Create provides a mock function with given fields: ctx, email
+func (_m *IUserApp) Create(ctx context.Context, email string) (uint, error) {
+	ret := _m.Called(ctx, email)
 
 	var r0 uint
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (uint, error)); ok {
-		return rf(ctx, uid, email)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (uint, error)); ok {
+		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) uint); ok {
-		r0 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(0).(func(context.Context, string) uint); ok {
+		r0 = rf(ctx, email)
 	} else {
 		r0 = ret.Get(0).(uint)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -37,28 +38,35 @@ func (_m *IUserApp) Create(ctx context.Context, uid string, email string) (uint,
 	return r0, r1
 }
 
-// Login provides a mock function with given fields: ctx, uid, email
-func (_m *IUserApp) Login(ctx context.Context, uid string, email string) (string, error) {
-	ret := _m.Called(ctx, uid, email)
+// Login provides a mock function with given fields: ctx, email
+func (_m *IUserApp) Login(ctx context.Context, email string) (string, time.Time, error) {
+	ret := _m.Called(ctx, email)
 
 	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
-		return rf(ctx, uid, email)
+	var r1 time.Time
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (string, time.Time, error)); ok {
+		return rf(ctx, email)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = rf(ctx, email)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, uid, email)
+	if rf, ok := ret.Get(1).(func(context.Context, string) time.Time); ok {
+		r1 = rf(ctx, email)
 	} else {
-		r1 = ret.Error(1)
+		r1 = ret.Get(1).(time.Time)
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, string) error); ok {
+		r2 = rf(ctx, email)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 type mockConstructorTestingTNewIUserApp interface {

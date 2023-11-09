@@ -3,7 +3,6 @@ POST http://localhost:8080/user
 Content-Type: application/json
 
 {
-    "uid": "12345678901234567890123456789012",
     "email": "jcaatanedaesp@gmail.com"
 }
 
@@ -12,6 +11,5 @@ POST http://localhost:8080/login
 Content-Type: application/json
 
 {
-    "uid": "12345678901234567890123456789012",
     "email": "jcaatanedaesp@gmail.com"
 }

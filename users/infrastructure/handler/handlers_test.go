@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http/httptest"
 	"testing"
+	"time"
 	"your-accounts-api/shared/domain/validation"
 	"your-accounts-api/users/application"
 	"your-accounts-api/users/application/mocks"
@@ -20,7 +21,6 @@ import (
 
 type TestSuite struct {
 	suite.Suite
-	uid   string
 	email string
 	token string
 	app   *fiber.App
@@ -28,7 +28,6 @@ type TestSuite struct {
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.uid = "01234567890123456789012345678901"
 	suite.email = "example@exaple.com"
 	suite.token = "<token>"
 }
@@ -47,12 +46,11 @@ func (suite *TestSuite) SetupTest() {
 func (suite *TestSuite) TestCreate201() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(1), nil)
+	suite.mock.On("Create", mock.Anything, requestBody.Email).Return(uint(1), nil)
 	expectedBody, err := json.Marshal(model.NewCreateResponse(uint(1)))
 	require.NoError(err)
 
@@ -83,12 +81,11 @@ func (suite *TestSuite) TestCreate400() {
 func (suite *TestSuite) TestCreate409() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(0), application.ErrUserAlreadyExists)
+	suite.mock.On("Create", mock.Anything, requestBody.Email).Return(uint(0), application.ErrUserAlreadyExists)
 	expectedErr := []byte(application.ErrUserAlreadyExists.Error())
 
 	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
@@ -106,15 +103,14 @@ func (suite *TestSuite) TestCreate409() {
 func (suite *TestSuite) TestCreate422() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
-		UID:   "invalid",
-		Email: suite.email,
+		Email: "invalid",
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "uid",
-			Constraint: "min=28",
+			Field:      "email",
+			Constraint: "email",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
@@ -135,12 +131,11 @@ func (suite *TestSuite) TestCreate422() {
 func (suite *TestSuite) TestCreate500() {
 	require := require.New(suite.T())
 	requestBody := &model.CreateRequest{
-		UID:   suite.uid,
 		Email: suite.email,
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Create", mock.Anything, requestBody.UID, requestBody.Email).Return(uint(0), gorm.ErrInvalidField)
+	suite.mock.On("Create", mock.Anything, requestBody.Email).Return(uint(0), gorm.ErrInvalidField)
 	expectedErr := []byte("Error sign up user")
 
 	request := httptest.NewRequest(fiber.MethodPost, "/user", bytes.NewReader(body))
@@ -159,14 +154,14 @@ func (suite *TestSuite) TestLogin200() {
 	require := require.New(suite.T())
 	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
-			UID:   suite.uid,
 			Email: suite.email,
 		},
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return(suite.token, nil)
-	expectedBody, err := json.Marshal(model.NewLoginResponse(suite.token))
+	expiresAt := time.Now()
+	suite.mock.On("Login", mock.Anything, suite.email).Return(suite.token, expiresAt, nil)
+	expectedBody, err := json.Marshal(model.NewLoginResponse(suite.token, expiresAt))
 	require.NoError(err)
 
 	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
@@ -197,13 +192,12 @@ func (suite *TestSuite) TestLogin401() {
 	require := require.New(suite.T())
 	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
-			UID:   suite.uid,
 			Email: suite.email,
 		},
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrRecordNotFound)
+	suite.mock.On("Login", mock.Anything, suite.email).Return("", time.Time{}, gorm.ErrRecordNotFound)
 	expectedErr := []byte("Invalid credentials")
 
 	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))
@@ -222,16 +216,15 @@ func (suite *TestSuite) TestLogin422() {
 	require := require.New(suite.T())
 	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
-			UID:   "invalid",
-			Email: suite.email,
+			Email: "invalid",
 		},
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "uid",
-			Constraint: "min=28",
+			Field:      "email",
+			Constraint: "email",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
@@ -253,13 +246,12 @@ func (suite *TestSuite) TestLogin500() {
 	require := require.New(suite.T())
 	requestBody := &model.LoginRequest{
 		CreateRequest: model.CreateRequest{
-			UID:   suite.uid,
 			Email: suite.email,
 		},
 	}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
-	suite.mock.On("Login", mock.Anything, suite.uid, suite.email).Return("", gorm.ErrInvalidField)
+	suite.mock.On("Login", mock.Anything, suite.email).Return("", time.Time{}, gorm.ErrInvalidField)
 	expectedErr := []byte("Error authenticate user")
 
 	request := httptest.NewRequest(fiber.MethodPost, "/login", bytes.NewReader(body))

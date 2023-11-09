@@ -7,7 +7,6 @@ import (
 
 type User struct {
 	ID    uint
-	UID   string
 	Email string
 }
 

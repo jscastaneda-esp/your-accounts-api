@@ -38,7 +38,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 		return nil
 	}
 
-	id, err := ctrl.app.Create(c.UserContext(), request.UID, request.Email)
+	id, err := ctrl.app.Create(c.UserContext(), request.Email)
 	if err != nil {
 		log.Error("Error sign up user:", err)
 		if errors.Is(err, application.ErrUserAlreadyExists) {
@@ -71,7 +71,7 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 		return nil
 	}
 
-	token, err := ctrl.app.Login(c.UserContext(), request.UID, request.Email)
+	token, expiresAt, err := ctrl.app.Login(c.UserContext(), request.Email)
 	if err != nil {
 		log.Error("Error authenticate user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -81,7 +81,7 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error authenticate user")
 	}
 
-	return c.JSON(model.NewLoginResponse(token))
+	return c.JSON(model.NewLoginResponse(token, expiresAt))
 }
 
 func NewRoute(router fiber.Router) {

@@ -17,7 +17,7 @@ type TestSuite struct {
 func (suite *TestSuite) TestJwtGenerateSuccess() {
 	require := require.New(suite.T())
 
-	token, _, err := JwtGenerate(1, "test", "test")
+	token, _, err := JwtGenerate(1, "test@test.test")
 
 	require.NoError(err)
 	require.NotEmpty(token)
