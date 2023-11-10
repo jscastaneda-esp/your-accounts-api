@@ -16,7 +16,6 @@ type Budget struct {
 	TotalPending     float64           `gorm:"not null;default:0"`
 	TotalAvailable   float64           `gorm:"not null;default:0"`
 	PendingBills     uint8             `gorm:"not null;default:0"`
-	TotalSaving      float64           `gorm:"not null;default:0"`
 	UserId           uint              `gorm:"not null"`
 	BudgetAvailables []BudgetAvailable `gorm:"foreignKey:BudgetId"`
 	BudgetBills      []BudgetBill      `gorm:"foreignKey:BudgetId"`

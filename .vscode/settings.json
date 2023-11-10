@@ -23,49 +23,23 @@
   },
   "sqltools.connections": [
     {
-      "mysqlOptions": {
-        "authProtocol": "default",
-        "enableSsl": "Disabled"
+      "pgOptions": {
+        "ssl": true
       },
       "previewLimit": 50,
-      "server": "containers-us-west-186.railway.app",
-      "port": 5977,
-      "driver": "MySQL",
+      "server": "localhost",
+      "driver": "PostgreSQL",
       "name": "YourAccounts",
       "group": "Production",
-      "database": "railway",
-      "username": "root",
-      "password": "gT8uFgTrdVEBUz5da7se"
+      "connectString": "postgres://fl0user:f2dR1vLmjklK@ep-aged-brook-75582498.us-east-2.aws.neon.fl0.io:5432/your-accounts?sslmode=require"
     },
     {
-      "mysqlOptions": {
-        "authProtocol": "default",
-        "enableSsl": "Disabled"
-      },
       "previewLimit": 50,
-      "server": "containers-us-west-101.railway.app",
-      "port": 8038,
-      "driver": "MySQL",
+      "server": "localhost",
+      "driver": "PostgreSQL",
       "name": "YourAccounts",
-      "group": "Preview",
-      "username": "root",
-      "database": "railway",
-      "password": "PlKcYtiXlLbtwxw4GGCp"
-    },
-    {
-      "mysqlOptions": {
-        "authProtocol": "default",
-        "enableSsl": "Disabled"
-      },
-      "previewLimit": 50,
-      "server": "192.168.1.8",
-      "port": 3306,
-      "driver": "MySQL",
-      "name": "YourAccounts",
-      "group": "Local",
-      "username": "root",
-      "password": "test",
-      "database": "youraccounts"
+      "group": "Dev",
+      "connectString": "postgres://postgres.kxgdzcsrqxlkqzbxkhos:Y0uR4CcoUn7sAp1*@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
     }
   ]
 }

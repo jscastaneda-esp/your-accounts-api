@@ -423,10 +423,6 @@ func (suite *TestBudgetSuite) TestChangesSuccess() {
 				"month":            1,
 				"fixedIncome":      10000,
 				"additionalIncome": 0,
-				"totalPending":     8000.0,
-				"totalAvailable":   10000.0,
-				"totalSaving":      2000,
-				"pendingBills":     1,
 			},
 		},
 		{
@@ -453,7 +449,6 @@ func (suite *TestBudgetSuite) TestChangesSuccess() {
 			Detail: map[string]any{
 				"description": "Test 1",
 				"amount":      8000,
-				"payment":     0,
 				"dueDate":     1,
 				"complete":    false,
 				"category":    "education",
@@ -465,6 +460,55 @@ func (suite *TestBudgetSuite) TestChangesSuccess() {
 			Action:  shared.Delete,
 			Detail: map[string]any{
 				"description": "Test 2",
+			},
+		},
+	}
+	name := "Test"
+	year := uint16(1)
+	month := uint8(1)
+	ids := []uint{1, 2}
+	names := []string{"Test 1", "Test 2"}
+	categories := []domain.BudgetBillCategory{domain.Education, domain.Financial}
+	zeroFloat := 0.0
+	zeroBool := false
+	budgetExpected := &domain.Budget{
+		ID:     &suite.budgetId,
+		Name:   &name,
+		Year:   &year,
+		Month:  &month,
+		UserId: &suite.userId,
+		BudgetAvailables: []domain.BudgetAvailable{
+			{
+				ID:       &ids[0],
+				Name:     &names[0],
+				Amount:   &zeroFloat,
+				BudgetId: &suite.budgetId,
+			},
+			{
+				ID:       &ids[1],
+				Name:     &names[1],
+				Amount:   &zeroFloat,
+				BudgetId: &suite.budgetId,
+			},
+		},
+		BudgetBills: []domain.BudgetBill{
+			{
+				ID:          &ids[0],
+				Description: &names[0],
+				Amount:      &zeroFloat,
+				Payment:     &zeroFloat,
+				Complete:    &zeroBool,
+				Category:    &categories[0],
+				BudgetId:    &suite.budgetId,
+			},
+			{
+				ID:          &ids[1],
+				Description: &names[1],
+				Amount:      &zeroFloat,
+				Payment:     &zeroFloat,
+				Complete:    &zeroBool,
+				Category:    &categories[1],
+				BudgetId:    &suite.budgetId,
 			},
 		},
 	}
@@ -480,6 +524,7 @@ func (suite *TestBudgetSuite) TestChangesSuccess() {
 	suite.mockBudgetBillRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
 	suite.mockBudgetBillRepo.On("Delete", suite.ctx, mock.Anything).Return(nil)
 	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil).Times(5)
+	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(budgetExpected, nil)
 
 	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
 
@@ -620,25 +665,15 @@ func (suite *TestBudgetSuite) TestChangesErrorInvalidDataTypeMain() {
 				},
 			},
 		},
-		{
-			ID:      uint(3),
-			Section: domain.Main,
-			Action:  shared.Update,
-			Detail: map[string]any{
-				"pendingBills": map[string]any{
-					"invalid": 1,
-				},
-			},
-		},
 	}
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
-	}).Times(3)
+	}).Times(2)
 
 	results := suite.app.Changes(suite.ctx, suite.budgetId, changes)
 
 	require.NotEmpty(results)
-	require.Len(results, 3)
+	require.Len(results, 2)
 
 	for _, result := range results {
 		require.EqualError(convert.ErrValueIncompatibleType, result.Err.Error())

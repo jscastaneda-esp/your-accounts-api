@@ -93,8 +93,8 @@ func (suite *TestSuite) TestSaveNewSuccess() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "budgets" ("created_at","updated_at","name","year","month","fixed_income","additional_income","total_pending","total_available","pending_bills","total_saving","user_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.userId).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "budgets" ("created_at","updated_at","name","year","month","fixed_income","additional_income","total_pending","total_available","pending_bills","user_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, suite.userId).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(uint(999)))
 	suite.mock.ExpectCommit()
 	budget := domain.Budget{
@@ -127,13 +127,13 @@ func (suite *TestSuite) TestSaveExistsSuccess() {
 		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budgets" WHERE "budgets"."id" = $1 ORDER BY "budgets"."id" LIMIT 1`)).
 		WithArgs(suite.id).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending", "total_available", "pending_bills", "total_saving", "user_id"}).
-			AddRow(budgetExpected.ID, now.Add(-1*time.Hour), now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPending, budgetExpected.TotalAvailable, budgetExpected.PendingBills, budgetExpected.TotalSaving, budgetExpected.UserId),
+			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending", "total_available", "pending_bills", "user_id"}).
+			AddRow(budgetExpected.ID, now.Add(-1*time.Hour), now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPending, budgetExpected.TotalAvailable, budgetExpected.PendingBills, budgetExpected.UserId),
 		)
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectExec(regexp.QuoteMeta(`UPDATE "budgets" SET "created_at"=$1,"updated_at"=$2,"name"=$3,"year"=$4,"month"=$5,"fixed_income"=$6,"additional_income"=$7,"total_pending"=$8,"total_available"=$9,"pending_bills"=$10,"total_saving"=$11,"user_id"=$12 WHERE "id" = $13`)).
-		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, zeroFloat, zeroFloat, zeroFloat, zeroFloat, zeroUInt, zeroFloat, suite.userId, suite.id).
+		ExpectExec(regexp.QuoteMeta(`UPDATE "budgets" SET "created_at"=$1,"updated_at"=$2,"name"=$3,"year"=$4,"month"=$5,"fixed_income"=$6,"additional_income"=$7,"total_pending"=$8,"total_available"=$9,"pending_bills"=$10,"user_id"=$11 WHERE "id" = $12`)).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, zeroFloat, zeroFloat, zeroFloat, zeroFloat, zeroUInt, suite.userId, suite.id).
 		WillReturnResult(sqlmock.NewResult(int64(999), 1))
 	suite.mock.ExpectCommit()
 	budget := domain.Budget{
@@ -145,7 +145,6 @@ func (suite *TestSuite) TestSaveExistsSuccess() {
 		AdditionalIncome: &zeroFloat,
 		TotalAvailable:   &zeroFloat,
 		TotalPending:     &zeroFloat,
-		TotalSaving:      &zeroFloat,
 		PendingBills:     &zeroUInt,
 		UserId:           &suite.userId,
 	}
@@ -184,8 +183,8 @@ func (suite *TestSuite) TestSaveError() {
 
 	suite.mock.ExpectBegin()
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "budgets" ("created_at","updated_at","name","year","month","fixed_income","additional_income","total_pending","total_available","pending_bills","total_saving","user_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, float64(0), suite.userId).
+		ExpectQuery(regexp.QuoteMeta(`INSERT INTO "budgets" ("created_at","updated_at","name","year","month","fixed_income","additional_income","total_pending","total_available","pending_bills","user_id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(test_utils.AnyTime{}, test_utils.AnyTime{}, suite.name, suite.year, suite.month, float64(0), float64(0), float64(0), float64(0), 0, suite.userId).
 		WillReturnError(gorm.ErrInvalidField)
 	suite.mock.ExpectRollback()
 	budget := domain.Budget{
@@ -256,8 +255,8 @@ func (suite *TestSuite) TestSearchSuccess() {
 		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budgets" WHERE "budgets"."id" = $1 ORDER BY "budgets"."id" LIMIT 1`)).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.
-			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending", "total_available", "pending_bills", "total_saving", "user_id"}).
-			AddRow(budgetExpected.ID, now, now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPending, budgetExpected.TotalAvailable, budgetExpected.PendingBills, budgetExpected.TotalSaving, budgetExpected.UserId),
+			NewRows([]string{"id", "created_at", "updated_at", "name", "year", "month", "fixed_income", "additional_income", "total_pending", "total_available", "pending_bills", "user_id"}).
+			AddRow(budgetExpected.ID, now, now, budgetExpected.Name, budgetExpected.Year, budgetExpected.Month, budgetExpected.FixedIncome, budgetExpected.AdditionalIncome, budgetExpected.TotalPending, budgetExpected.TotalAvailable, budgetExpected.PendingBills, budgetExpected.UserId),
 		)
 
 	budget, err := suite.repository.Search(context.Background(), *budgetExpected.ID)

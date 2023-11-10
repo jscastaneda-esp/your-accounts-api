@@ -1092,9 +1092,6 @@ const docTemplate = `{
                 "totalPending": {
                     "type": "number"
                 },
-                "totalSaving": {
-                    "type": "number"
-                },
                 "year": {
                     "type": "integer"
                 }

@@ -10,45 +10,45 @@ jobs:
     name: Test and lint
     uses: jscastaneda-esp/your-accounts-api/.github/workflows/ci.yml@main
 
-  deploy:
-    name: Deploy in preview
-    needs: test
-    runs-on: ubuntu-latest
-    environment:
-      name: Preview
-      url: https://your-accounts-api-preview.up.railway.app/
-    if: "${{ (!contains(github.event.pull_request.body, '[skip ci]') && !contains(github.ref_name, 'main')) }}"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Use Node 18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-      - name: Install Railway
-        run: npm i -g @railway/cli
-      - id: deploy
-        name: Deploy to Railway
-        run: |
-          response=$(railway up)
-          echo "$response"
-          inspectorUrl=$(echo "$response" | grep "Build Logs:" | sed 's/Build Logs://' | awk '{print $1}')
-          echo "INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      - name: Comment PR
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            This pull request has been deployed to Railway.
+  # deploy:
+  #   name: Deploy in preview
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: Preview
+  #     url: https://your-accounts-api-preview.up.railway.app/
+  #   if: "${{ (!contains(github.event.pull_request.body, '[skip ci]') && !contains(github.ref_name, 'main')) }}"
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Use Node 18
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18.x
+  #     - name: Install Railway
+  #       run: npm i -g @railway/cli
+  #     - id: deploy
+  #       name: Deploy to Railway
+  #       run: |
+  #         response=$(railway up)
+  #         echo "$response"
+  #         inspectorUrl=$(echo "$response" | grep "Build Logs:" | sed 's/Build Logs://' | awk '{print $1}')
+  #         echo "INSPECTOR_URL=$inspectorUrl" >> $GITHUB_OUTPUT
+  #       env:
+  #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  #     - name: Comment PR
+  #       uses: thollander/actions-comment-pull-request@v2
+  #       with:
+  #         message: |
+  #           This pull request has been deployed to Railway.
 
-            <table>
-              <tr>
-                <td><strong>✅ Preview:</strong></td>
-                <td><a href='https://your-accounts-api-preview.up.railway.app/' target='_blank'>Verify</a></td>
-                <td><strong>🔍 Inspect:</strong></td>
-                <td><a href='${{ steps.deploy.outputs.INSPECTOR_URL }}' target='_blank'>To Inspect</a></td>
-              </tr>
-            </table>
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-          comment_tag: "railway-deploy"
+  #           <table>
+  #             <tr>
+  #               <td><strong>✅ Preview:</strong></td>
+  #               <td><a href='https://your-accounts-api-preview.up.railway.app/' target='_blank'>Verify</a></td>
+  #               <td><strong>🔍 Inspect:</strong></td>
+  #               <td><a href='${{ steps.deploy.outputs.INSPECTOR_URL }}' target='_blank'>To Inspect</a></td>
+  #             </tr>
+  #           </table>
+  #         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+  #         comment_tag: "railway-deploy"
