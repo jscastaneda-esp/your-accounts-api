@@ -193,7 +193,6 @@ func (suite *TestSuite) TestRead200() {
 			Month:          &month,
 			TotalAvailable: &zeroFloat,
 			TotalPending:   &zeroFloat,
-			TotalSaving:    &zeroFloat,
 			PendingBills:   &zeroUInt,
 		},
 		{
@@ -203,7 +202,6 @@ func (suite *TestSuite) TestRead200() {
 			Month:          &month,
 			TotalAvailable: &zeroFloat,
 			TotalPending:   &zeroFloat,
-			TotalSaving:    &zeroFloat,
 			PendingBills:   &zeroUInt,
 		},
 	}

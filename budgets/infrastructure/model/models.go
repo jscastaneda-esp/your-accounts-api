@@ -42,7 +42,6 @@ type ReadResponse struct {
 	ReadBudgetResponse
 	TotalAvailable float64 `json:"totalAvailable"`
 	TotalPending   float64 `json:"totalPending"`
-	TotalSaving    float64 `json:"totalSaving"`
 	PendingBills   uint8   `json:"pendingBills"`
 }
 
@@ -51,7 +50,6 @@ func NewReadResponse(budget domain.Budget) ReadResponse {
 		ReadBudgetResponse: NewReadBudgetResponse(*budget.ID, *budget.Name, *budget.Year, *budget.Month),
 		TotalAvailable:     *budget.TotalAvailable,
 		TotalPending:       *budget.TotalPending,
-		TotalSaving:        *budget.TotalSaving,
 		PendingBills:       *budget.PendingBills,
 	}
 }

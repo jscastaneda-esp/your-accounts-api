@@ -58,10 +58,6 @@ func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, 
 		model.TotalAvailable = *budget.TotalAvailable
 	}
 
-	if budget.TotalSaving != nil {
-		model.TotalSaving = *budget.TotalSaving
-	}
-
 	if budget.PendingBills != nil {
 		model.PendingBills = *budget.PendingBills
 	}
@@ -114,7 +110,6 @@ func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, e
 		AdditionalIncome: &model.AdditionalIncome,
 		TotalPending:     &model.TotalPending,
 		TotalAvailable:   &model.TotalAvailable,
-		TotalSaving:      &model.TotalSaving,
 		PendingBills:     &model.PendingBills,
 		UserId:           &model.UserId,
 		BudgetAvailables: availables,
@@ -127,7 +122,7 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 		UserId: *example.UserId,
 	}
 	var models []entity.Budget
-	if err := r.db.WithContext(ctx).Where(where).Find(&models).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(where).Order("created_at desc").Limit(12).Find(&models).Error; err != nil {
 		return nil, err
 	}
 
@@ -143,7 +138,6 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 			AdditionalIncome: &modelC.AdditionalIncome,
 			TotalPending:     &modelC.TotalPending,
 			TotalAvailable:   &modelC.TotalAvailable,
-			TotalSaving:      &modelC.TotalSaving,
 			PendingBills:     &modelC.PendingBills,
 			UserId:           &modelC.UserId,
 		})

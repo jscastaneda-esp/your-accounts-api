@@ -187,11 +187,16 @@ func (app *budgetApp) Changes(ctx context.Context, id uint, changes []Change) []
 	}()
 
 	changeResults := []ChangeResult{}
+	resultsWithError := 0
 	for result := range resultsChan {
 		changeResults = append(changeResults, result)
+
+		if result.Err != nil {
+			resultsWithError += 1
+		}
 	}
 
-	return changeResults
+	return app.updateTotals(ctx, id, changeResults, resultsWithError)
 }
 
 func (app *budgetApp) Delete(ctx context.Context, id uint) error {
@@ -275,43 +280,6 @@ func (app *budgetApp) changeMain(ctx context.Context, budgetId uint, change Chan
 					}
 
 					budget.AdditionalIncome = &additionalIncome
-				}
-
-				if change.Detail["totalPending"] != nil {
-					totalPending, err := convert.AsFloat64(change.Detail["totalPending"])
-					if err != nil {
-						return err
-					}
-
-					budget.TotalPending = &totalPending
-				}
-
-				if change.Detail["totalAvailable"] != nil {
-					totalAvailable, err := convert.AsFloat64(change.Detail["totalAvailable"])
-					if err != nil {
-						return err
-					}
-
-					budget.TotalAvailable = &totalAvailable
-				}
-
-				if change.Detail["totalSaving"] != nil {
-					totalSaving, err := convert.AsFloat64(change.Detail["totalSaving"])
-					if err != nil {
-						return err
-					}
-
-					budget.TotalSaving = &totalSaving
-				}
-
-				if change.Detail["pendingBills"] != nil {
-					value, err := convert.AsInt64(change.Detail["pendingBills"])
-					if err != nil {
-						return err
-					}
-
-					pendingBills := uint8(value)
-					budget.PendingBills = &pendingBills
 				}
 
 				budgetRepo := app.budgetRepo.WithTransaction(tx)
@@ -414,15 +382,6 @@ func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Chan
 					budget.Amount = &amount
 				}
 
-				if change.Detail["payment"] != nil {
-					payment, err := convert.AsFloat64(change.Detail["payment"])
-					if err != nil {
-						return err
-					}
-
-					budget.Payment = &payment
-				}
-
 				if change.Detail["dueDate"] != nil {
 					value, err := convert.AsUint64(change.Detail["dueDate"])
 					if err != nil {
@@ -478,6 +437,50 @@ func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Chan
 	}
 
 	return ChangeResult{change, err}
+}
+
+func (app *budgetApp) updateTotals(ctx context.Context, id uint, changeResults []ChangeResult, resultsWithError int) []ChangeResult {
+	if len(changeResults) > resultsWithError {
+		budget, err := app.budgetRepo.Search(ctx, id)
+		if err != nil {
+			changeResults = append(changeResults, ChangeResult{
+				Err: err,
+			})
+		} else {
+			totalAvailable := 0.0
+			for _, available := range budget.BudgetAvailables {
+				totalAvailable += *available.Amount
+			}
+			budget.TotalAvailable = &totalAvailable
+
+			totalPending := 0.0
+			pendingBills := uint8(0)
+			for _, bill := range budget.BudgetBills {
+				pending := *bill.Amount - *bill.Payment
+				if !*bill.Complete {
+					if pending < 0 {
+						pending = 0
+					}
+					totalPending += pending
+				}
+
+				if *bill.Amount > *bill.Payment && !*bill.Complete {
+					pendingBills += 1
+				}
+			}
+			budget.TotalPending = &totalPending
+			budget.PendingBills = &pendingBills
+
+			_, err := app.budgetRepo.Save(ctx, *budget)
+			if err != nil {
+				changeResults = append(changeResults, ChangeResult{
+					Err: err,
+				})
+			}
+		}
+	}
+
+	return changeResults
 }
 
 func NewBudgetApp(

@@ -13,7 +13,6 @@ type Budget struct {
 	AdditionalIncome *float64
 	TotalPending     *float64
 	TotalAvailable   *float64
-	TotalSaving      *float64
 	PendingBills     *uint8
 	UserId           *uint
 	BudgetAvailables []BudgetAvailable
