@@ -49,7 +49,7 @@ func (suite *TestSuite) TestReadLogs200() {
 		ResourceId:  suite.resourceId,
 		CreatedAt:   time.Now(),
 	}
-	suite.mock.On("FindLogsByProject", mock.Anything, suite.code, suite.resourceId).Return([]domain.Log{result}, nil)
+	suite.mock.On("FindByProject", mock.Anything, suite.code, suite.resourceId).Return([]domain.Log{result}, nil)
 	expectedBody, err := json.Marshal([]*model.ReadLogsResponse{model.NewReadLogsResponse(result)})
 	require.NoError(err)
 
@@ -88,7 +88,7 @@ func (suite *TestSuite) TestReadLogs404_2() {
 
 func (suite *TestSuite) TestReadLogs500() {
 	require := require.New(suite.T())
-	suite.mock.On("FindLogsByProject", mock.Anything, suite.code, suite.resourceId).Return(nil, gorm.ErrInvalidField)
+	suite.mock.On("FindByProject", mock.Anything, suite.code, suite.resourceId).Return(nil, gorm.ErrInvalidField)
 	expectedErr := []byte("Error reading logs by resource and code")
 
 	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/logs/%d/code/%s", suite.resourceId, suite.code), nil)

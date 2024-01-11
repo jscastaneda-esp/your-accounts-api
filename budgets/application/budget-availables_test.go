@@ -42,7 +42,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateSuccess() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("Create", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
 	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(suite.budgetId, nil)
 
@@ -58,7 +58,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateErrorCreateLog() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
+	suite.mockLogApp.On("Create", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(errExpected)
 
 	res, err := suite.app.Create(suite.ctx, "Test", suite.budgetId)
 
@@ -83,7 +83,7 @@ func (suite *TestBudgetAvailableSuite) TestCreateError() {
 	suite.mockTransactionManager.On("Transaction", mock.AnythingOfType("func(persistent.Transaction) error")).Return(func(fc func(persistent.Transaction) error) error {
 		return fc(nil)
 	})
-	suite.mockLogApp.On("CreateLog", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
+	suite.mockLogApp.On("Create", suite.ctx, mock.Anything, shared.Budget, suite.budgetId, mock.Anything, nil).Return(nil)
 	suite.mockBudgetAvailableRepo.On("WithTransaction", nil).Return(suite.mockBudgetAvailableRepo)
 	suite.mockBudgetAvailableRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), errExpected)
 

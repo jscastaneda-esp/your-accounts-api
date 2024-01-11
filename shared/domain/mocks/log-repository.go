@@ -16,6 +16,34 @@ type LogRepository struct {
 	mock.Mock
 }
 
+// DeleteByResourceIdAndIdLessThanLimit provides a mock function with given fields: ctx, resourceId
+func (_m *LogRepository) DeleteByResourceIdAndIdLessThanLimit(ctx context.Context, resourceId uint) error {
+	ret := _m.Called(ctx, resourceId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, uint) error); ok {
+		r0 = rf(ctx, resourceId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteByResourceIdNotExists provides a mock function with given fields: ctx
+func (_m *LogRepository) DeleteByResourceIdNotExists(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, _a1
 func (_m *LogRepository) Save(ctx context.Context, _a1 domain.Log) (uint, error) {
 	ret := _m.Called(ctx, _a1)
@@ -59,6 +87,32 @@ func (_m *LogRepository) SearchAllByExample(ctx context.Context, example domain.
 
 	if rf, ok := ret.Get(1).(func(context.Context, domain.Log) error); ok {
 		r1 = rf(ctx, example)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchResourceIdsWithLimitExceeded provides a mock function with given fields: ctx
+func (_m *LogRepository) SearchResourceIdsWithLimitExceeded(ctx context.Context) ([]uint, error) {
+	ret := _m.Called(ctx)
+
+	var r0 []uint
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]uint, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []uint); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]uint)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

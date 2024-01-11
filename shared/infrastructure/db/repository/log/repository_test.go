@@ -183,6 +183,93 @@ func (suite *TestSuite) TestSearchAllByExampleError() {
 	require.Empty(projects)
 }
 
+func (suite *TestSuite) TestDeleteByResourceIdNotExistsSuccess() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "logs" WHERE resource_id NOT IN (SELECT id FROM budgets) AND resource_id NOT IN (SELECT id FROM budget_bills)`)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
+
+	err := suite.repository.DeleteByResourceIdNotExists(context.Background())
+
+	require.NoError(err)
+}
+
+func (suite *TestSuite) TestDeleteByResourceIdNotExistsError() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "logs" WHERE resource_id NOT IN (SELECT id FROM budgets) AND resource_id NOT IN (SELECT id FROM budget_bills)`)).
+		WillReturnError(gorm.ErrRecordNotFound)
+	suite.mock.ExpectRollback()
+
+	err := suite.repository.DeleteByResourceIdNotExists(context.Background())
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+}
+
+func (suite *TestSuite) TestSearchResourceIdsWithLimitExceededSuccess() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT resource_id FROM logs GROUP BY resource_id HAVING COUNT(resource_id) > $1`)).
+		WithArgs(20).
+		WillReturnRows(sqlmock.
+			NewRows([]string{"resource_id"}).
+			AddRow(uint(1)).
+			AddRow(uint(2)),
+		)
+
+	resourceIds, err := suite.repository.SearchResourceIdsWithLimitExceeded(context.Background())
+
+	require.NoError(err)
+	require.NotNil(resourceIds)
+	require.Len(resourceIds, 2)
+	require.Equal(uint(1), resourceIds[0])
+	require.Equal(uint(2), resourceIds[1])
+}
+
+func (suite *TestSuite) TestSearchResourceIdsWithLimitExceededError() {
+	require := require.New(suite.T())
+	suite.mock.
+		ExpectQuery(regexp.QuoteMeta(`SELECT resource_id FROM logs GROUP BY resource_id HAVING COUNT(resource_id) > $1`)).
+		WithArgs(20).
+		WillReturnError(gorm.ErrRecordNotFound)
+
+	resourceIds, err := suite.repository.SearchResourceIdsWithLimitExceeded(context.Background())
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+	require.Empty(resourceIds)
+}
+
+func (suite *TestSuite) TestDeleteByResourceIdAndIdLessThanLimitSuccess() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "logs" WHERE resource_id = $1 AND id < (SELECT id FROM (SELECT id FROM logs WHERE resource_id = $2 ORDER BY id DESC LIMIT $3) T ORDER BY id ASC LIMIT 1)`)).
+		WithArgs(uint(1), uint(1), 20).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
+
+	err := suite.repository.DeleteByResourceIdAndIdLessThanLimit(context.Background(), uint(1))
+
+	require.NoError(err)
+}
+
+func (suite *TestSuite) TestDeleteByResourceIdAndIdLessThanLimitError() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "logs" WHERE resource_id = $1 AND id < (SELECT id FROM (SELECT id FROM logs WHERE resource_id = $2 ORDER BY id DESC LIMIT $3) T ORDER BY id ASC LIMIT 1)`)).
+		WithArgs(uint(1), uint(1), 20).
+		WillReturnError(gorm.ErrRecordNotFound)
+	suite.mock.ExpectRollback()
+
+	err := suite.repository.DeleteByResourceIdAndIdLessThanLimit(context.Background(), uint(1))
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+}
+
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }

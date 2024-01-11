@@ -26,7 +26,7 @@ func (app *budgetBillApp) Create(ctx context.Context, description string, catego
 	err := app.tm.Transaction(func(tx persistent.Transaction) error {
 		var err error
 		descriptionLog := fmt.Sprintf("Se crea el pago %s", description)
-		err = app.logApp.CreateLog(ctx, descriptionLog, shared.Budget, budgetId, nil, tx)
+		err = app.logApp.Create(ctx, descriptionLog, shared.Budget, budgetId, nil, tx)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func (app *budgetBillApp) CreateTransaction(ctx context.Context, description str
 		detail := map[string]any{
 			"amount": amount,
 		}
-		err = app.logApp.CreateLog(ctx, description, shared.BudgetBill, billId, detail, tx)
+		err = app.logApp.Create(ctx, description, shared.BudgetBill, billId, detail, tx)
 		if err != nil {
 			return err
 		}
