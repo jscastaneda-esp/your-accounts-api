@@ -65,7 +65,7 @@ func (app *budgetApp) Create(ctx context.Context, userId uint, name string) (uin
 			return err
 		}
 
-		return app.logApp.CreateLog(ctx, "Creación", shared.Budget, id, nil, tx)
+		return app.logApp.Create(ctx, "Creación", shared.Budget, id, nil, tx)
 	})
 	if err != nil {
 		return 0, err
@@ -136,7 +136,7 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 			"cloneId":   baseId,
 			"cloneName": *baseBudget.Name,
 		}
-		return app.logApp.CreateLog(ctx, description, shared.Budget, id, detail, tx)
+		return app.logApp.Create(ctx, description, shared.Budget, id, detail, tx)
 	})
 	if err != nil {
 		return 0, err
@@ -289,7 +289,7 @@ func (app *budgetApp) changeMain(ctx context.Context, budgetId uint, change Chan
 				}
 
 				description := "Se actualiza la información principal"
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+				return app.logApp.Create(ctx, description, shared.Budget, budgetId, change.Detail, tx)
 			})
 		}
 	}
@@ -332,7 +332,7 @@ func (app *budgetApp) changeAvailable(ctx context.Context, budgetId uint, change
 
 				description := "Se actualizaron los disponibles"
 				change.Detail["availableId"] = change.ID
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+				return app.logApp.Create(ctx, description, shared.Budget, budgetId, change.Detail, tx)
 			})
 		}
 	case shared.Delete:
@@ -347,7 +347,7 @@ func (app *budgetApp) changeAvailable(ctx context.Context, budgetId uint, change
 
 				description := fmt.Sprintf("Se elimino el disponible %s", change.Detail["name"])
 				change.Detail["availableId"] = change.ID
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+				return app.logApp.Create(ctx, description, shared.Budget, budgetId, change.Detail, tx)
 			})
 		}
 	}
@@ -414,7 +414,7 @@ func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Chan
 
 				description := "Se actualizaron los pagos"
 				change.Detail["billId"] = change.ID
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+				return app.logApp.Create(ctx, description, shared.Budget, budgetId, change.Detail, tx)
 			})
 		}
 	case shared.Delete:
@@ -431,7 +431,7 @@ func (app *budgetApp) changeBill(ctx context.Context, budgetId uint, change Chan
 
 				description := fmt.Sprintf("Se elimino el pago %s", change.Detail["description"])
 				change.Detail["billId"] = change.ID
-				return app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, change.Detail, tx)
+				return app.logApp.Create(ctx, description, shared.Budget, budgetId, change.Detail, tx)
 			})
 		}
 	}

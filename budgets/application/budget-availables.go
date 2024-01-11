@@ -25,7 +25,7 @@ func (app *budgetAvailableApp) Create(ctx context.Context, name string, budgetId
 	err := app.tm.Transaction(func(tx persistent.Transaction) error {
 		var err error
 		description := fmt.Sprintf("Se crea el disponible %s", name)
-		err = app.logApp.CreateLog(ctx, description, shared.Budget, budgetId, nil, tx)
+		err = app.logApp.Create(ctx, description, shared.Budget, budgetId, nil, tx)
 		if err != nil {
 			return err
 		}

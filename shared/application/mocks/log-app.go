@@ -16,8 +16,8 @@ type ILogApp struct {
 	mock.Mock
 }
 
-// CreateLog provides a mock function with given fields: ctx, description, code, resourceId, detail, tx
-func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]interface{}, tx persistent.Transaction) error {
+// Create provides a mock function with given fields: ctx, description, code, resourceId, detail, tx
+func (_m *ILogApp) Create(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]interface{}, tx persistent.Transaction) error {
 	ret := _m.Called(ctx, description, code, resourceId, detail, tx)
 
 	var r0 error
@@ -30,8 +30,36 @@ func (_m *ILogApp) CreateLog(ctx context.Context, description string, code domai
 	return r0
 }
 
-// FindLogsByProject provides a mock function with given fields: ctx, code, resourceId
-func (_m *ILogApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
+// DeleteOld provides a mock function with given fields: ctx
+func (_m *ILogApp) DeleteOld(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteOrphan provides a mock function with given fields: ctx
+func (_m *ILogApp) DeleteOrphan(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// FindByProject provides a mock function with given fields: ctx, code, resourceId
+func (_m *ILogApp) FindByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
 	ret := _m.Called(ctx, code, resourceId)
 
 	var r0 []domain.Log

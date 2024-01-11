@@ -8,8 +8,10 @@ import (
 
 //go:generate mockery --name ILogApp --filename log-app.go
 type ILogApp interface {
-	CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error
-	FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error)
+	Create(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error
+	FindByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error)
+	DeleteOrphan(ctx context.Context) error
+	DeleteOld(ctx context.Context) error
 }
 
 type logApp struct {
@@ -17,7 +19,7 @@ type logApp struct {
 	logRepo domain.LogRepository
 }
 
-func (app *logApp) CreateLog(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error {
+func (app *logApp) Create(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error {
 	projectLogRepo := app.logRepo.WithTransaction(tx)
 	newLog := domain.Log{
 		Description: description,
@@ -33,7 +35,7 @@ func (app *logApp) CreateLog(ctx context.Context, description string, code domai
 	return nil
 }
 
-func (app *logApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
+func (app *logApp) FindByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error) {
 	example := domain.Log{
 		Code:       code,
 		ResourceId: resourceId,
@@ -44,6 +46,39 @@ func (app *logApp) FindLogsByProject(ctx context.Context, code domain.CodeLog, r
 	}
 
 	return logs, nil
+}
+
+func (app *logApp) DeleteOrphan(ctx context.Context) error {
+	err := app.logRepo.DeleteByResourceIdNotExists(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *logApp) DeleteOld(ctx context.Context) error {
+	resourceIds, err := app.logRepo.SearchResourceIdsWithLimitExceeded(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(resourceIds) == 0 {
+		return nil
+	}
+
+	return app.tm.Transaction(func(tx persistent.Transaction) error {
+		logRepo := app.logRepo.WithTransaction(tx)
+
+		for _, resourceId := range resourceIds {
+			err := logRepo.DeleteByResourceIdAndIdLessThanLimit(ctx, resourceId)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 func NewLogApp(tm persistent.TransactionManager, logRepo domain.LogRepository) ILogApp {

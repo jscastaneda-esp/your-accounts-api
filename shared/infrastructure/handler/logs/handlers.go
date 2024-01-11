@@ -44,7 +44,7 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	logs, err := ctrl.app.FindLogsByProject(c.UserContext(), domain.CodeLog(code), uint(resourceId))
+	logs, err := ctrl.app.FindByProject(c.UserContext(), domain.CodeLog(code), uint(resourceId))
 	if err != nil {
 		log.Error("Error reading logs by resource and code:", err)
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by resource and code")

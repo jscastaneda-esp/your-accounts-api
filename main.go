@@ -9,6 +9,7 @@ import (
 	"your-accounts-api/shared/infrastructure/db"
 	"your-accounts-api/shared/infrastructure/handler"
 	"your-accounts-api/shared/infrastructure/injection"
+	"your-accounts-api/shared/infrastructure/schedule"
 	users "your-accounts-api/users/infrastructure/handler"
 )
 
@@ -34,13 +35,14 @@ func main() {
 	config.LoadVariables()
 	db.NewDB()
 	injection.LoadInstances()
-
-	// Init server
 	server := infrastructure.NewServer(false)
 
 	for _, router := range routers {
 		server.AddRoute(router)
 	}
+
+	schedule.Start()
+	defer schedule.Stop()
 
 	server.Listen()
 }

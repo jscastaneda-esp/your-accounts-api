@@ -3,6 +3,7 @@ module your-accounts-api
 go 1.20
 
 require (
+	codnect.io/chrono v1.1.3
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/gofiber/contrib/jwt v1.0.7
