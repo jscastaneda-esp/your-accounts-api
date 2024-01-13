@@ -240,13 +240,13 @@ func (suite *TestSuite) TestSearchSuccess() {
 		},
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_availables" WHERE "budget_availables"."budget_id" = $1`)).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_availables" WHERE "budget_availables"."budget_id" = $1 ORDER BY budget_availables.created_at ASC`)).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
 			AddRow(budgetExpected.BudgetAvailables[0].ID, now, now, budgetExpected.BudgetAvailables[0].Name, budgetExpected.BudgetAvailables[0].Amount, budgetExpected.BudgetAvailables[0].BudgetId).
 			AddRow(budgetExpected.BudgetAvailables[1].ID, now, now, budgetExpected.BudgetAvailables[1].Name, budgetExpected.BudgetAvailables[1].Amount, budgetExpected.BudgetAvailables[1].BudgetId))
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."budget_id" = $1`)).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."budget_id" = $1 ORDER BY budget_bills.created_at ASC`)).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "description", "amount", "payment", "due_date", "complete", "budget_id", "category"}).
 			AddRow(budgetExpected.BudgetBills[0].ID, now, now, budgetExpected.BudgetBills[0].Description, budgetExpected.BudgetBills[0].Amount, budgetExpected.BudgetBills[0].Payment, budgetExpected.BudgetBills[0].DueDate, budgetExpected.BudgetBills[0].Complete, budgetExpected.BudgetAvailables[0].BudgetId, budgetExpected.BudgetBills[0].Category).
