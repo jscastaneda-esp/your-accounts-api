@@ -38,6 +38,20 @@ func (_m *IUserApp) Create(ctx context.Context, email string) (uint, error) {
 	return r0, r1
 }
 
+// DeleteExpired provides a mock function with given fields: ctx
+func (_m *IUserApp) DeleteExpired(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Login provides a mock function with given fields: ctx, email
 func (_m *IUserApp) Login(ctx context.Context, email string) (string, time.Time, error) {
 	ret := _m.Called(ctx, email)

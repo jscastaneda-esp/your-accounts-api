@@ -16,6 +16,20 @@ type UserTokenRepository struct {
 	mock.Mock
 }
 
+// DeleteByExpiresAtGreaterThanNow provides a mock function with given fields: ctx
+func (_m *UserTokenRepository) DeleteByExpiresAtGreaterThanNow(ctx context.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: ctx, _a1
 func (_m *UserTokenRepository) Save(ctx context.Context, _a1 domain.UserToken) (uint, error) {
 	ret := _m.Called(ctx, _a1)

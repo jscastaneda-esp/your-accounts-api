@@ -50,6 +50,14 @@ func (r *gormRepository) SearchByExample(ctx context.Context, example domain.Use
 	}, nil
 }
 
+func (r *gormRepository) DeleteByExpiresAtGreaterThanNow(ctx context.Context) error {
+	if err := r.db.WithContext(ctx).Where("expires_at < NOW()").Delete(&entity.UserToken{}).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewRepository(db *gorm.DB) domain.UserTokenRepository {
 	return &gormRepository{db}
 }
