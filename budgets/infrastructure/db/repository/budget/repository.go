@@ -71,7 +71,11 @@ func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, 
 
 func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, error) {
 	model := new(entity.Budget)
-	if err := r.db.WithContext(ctx).Preload(clause.Associations).First(model, id).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("BudgetAvailables", func(db *gorm.DB) *gorm.DB {
+		return db.Order("budget_availables.created_at ASC")
+	}).Preload("BudgetBills", func(db *gorm.DB) *gorm.DB {
+		return db.Order("budget_bills.created_at ASC")
+	}).First(model, id).Error; err != nil {
 		return nil, err
 	}
 
