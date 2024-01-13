@@ -21,6 +21,7 @@ var (
 type IUserApp interface {
 	Create(ctx context.Context, email string) (uint, error)
 	Login(ctx context.Context, email string) (string, time.Time, error)
+	DeleteExpired(ctx context.Context) error
 }
 
 type userApp struct {
@@ -72,6 +73,15 @@ func (app *userApp) Login(ctx context.Context, email string) (string, time.Time,
 	}
 
 	return token, expiresAt, nil
+}
+
+func (app *userApp) DeleteExpired(ctx context.Context) error {
+	err := app.userTokenRepo.DeleteByExpiresAtGreaterThanNow(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {

@@ -19,7 +19,7 @@ func Start() {
 		if err := injection.LogApp.DeleteOrphan(context.Background()); err != nil {
 			log.Error(err)
 		}
-	}, 12*time.Hour)
+	}, 168*time.Hour)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,12 +28,21 @@ func Start() {
 		if err := injection.LogApp.DeleteOld(context.Background()); err != nil {
 			log.Error(err)
 		}
-	}, 12*time.Hour)
+	}, 168*time.Hour)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tasks = append(tasks, taskCleanLogsOrphan, taskCleanLogsOld)
+	taskCleanTokens, err := taskScheduler.ScheduleAtFixedRate(func(ctx context.Context) {
+		if err := injection.UserApp.DeleteExpired(context.Background()); err != nil {
+			log.Error(err)
+		}
+	}, 168*time.Hour)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tasks = append(tasks, taskCleanLogsOrphan, taskCleanLogsOld, taskCleanTokens)
 }
 
 func Stop() {

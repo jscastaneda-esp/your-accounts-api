@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 type TestSuite struct {
@@ -177,6 +178,24 @@ func (suite *TestSuite) TestLoginErrorCreateUserToken() {
 	require.EqualError(errExpected, err.Error())
 	require.Empty(token)
 	require.Empty(expires)
+}
+
+func (suite *TestSuite) TestDeleteExpiredSuccess() {
+	require := require.New(suite.T())
+	suite.mockUserTokenRepo.On("DeleteByExpiresAtGreaterThanNow", suite.ctx).Return(nil)
+
+	err := suite.app.DeleteExpired(suite.ctx)
+
+	require.NoError(err)
+}
+
+func (suite *TestSuite) TestDeleteExpiredError() {
+	require := require.New(suite.T())
+	suite.mockUserTokenRepo.On("DeleteByExpiresAtGreaterThanNow", suite.ctx).Return(gorm.ErrRecordNotFound)
+
+	err := suite.app.DeleteExpired(suite.ctx)
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
 }
 
 func TestTestSuite(t *testing.T) {

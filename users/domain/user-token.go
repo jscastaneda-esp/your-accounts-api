@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 	"your-accounts-api/shared/domain/persistent"
 )
@@ -17,4 +18,5 @@ type UserTokenRepository interface {
 	persistent.TransactionRepository[UserTokenRepository]
 	persistent.SaveRepository[UserToken]
 	persistent.SearchByExampleRepository[UserToken]
+	DeleteByExpiresAtGreaterThanNow(ctx context.Context) error
 }

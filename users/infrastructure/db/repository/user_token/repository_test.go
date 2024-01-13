@@ -169,6 +169,32 @@ func (suite *TestSuite) TestSearchByExampleError() {
 	require.Nil(res)
 }
 
+func (suite *TestSuite) TestDeleteByExpiresAtGreaterThanNowSuccess() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "user_tokens" WHERE expires_at < NOW()`)).
+		WillReturnResult(sqlmock.NewResult(1, 1))
+	suite.mock.ExpectCommit()
+
+	err := suite.repository.DeleteByExpiresAtGreaterThanNow(context.Background())
+
+	require.NoError(err)
+}
+
+func (suite *TestSuite) TestDeleteByExpiresAtGreaterThanNowError() {
+	require := require.New(suite.T())
+	suite.mock.ExpectBegin()
+	suite.mock.
+		ExpectExec(regexp.QuoteMeta(`DELETE FROM "user_tokens" WHERE expires_at < NOW()`)).
+		WillReturnError(gorm.ErrRecordNotFound)
+	suite.mock.ExpectRollback()
+
+	err := suite.repository.DeleteByExpiresAtGreaterThanNow(context.Background())
+
+	require.EqualError(gorm.ErrRecordNotFound, err.Error())
+}
+
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))
 }
