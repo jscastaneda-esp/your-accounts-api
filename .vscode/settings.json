@@ -20,26 +20,5 @@
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.tabSize": 2
-  },
-  "sqltools.connections": [
-    {
-      "pgOptions": {
-        "ssl": true
-      },
-      "previewLimit": 50,
-      "server": "localhost",
-      "driver": "PostgreSQL",
-      "name": "YourAccounts",
-      "group": "Production",
-      "connectString": "postgres://fl0user:f2dR1vLmjklK@ep-aged-brook-75582498.us-east-2.aws.neon.fl0.io:5432/your-accounts?sslmode=require"
-    },
-    {
-      "previewLimit": 50,
-      "server": "localhost",
-      "driver": "PostgreSQL",
-      "name": "YourAccounts",
-      "group": "Dev",
-      "connectString": "postgres://postgres.kxgdzcsrqxlkqzbxkhos:Y0uR4CcoUn7sAp1*@aws-0-sa-east-1.pooler.supabase.com:6543/postgres"
-    }
-  ]
+  }
 }

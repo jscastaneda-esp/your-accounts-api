@@ -1,15 +1,15 @@
 package logs
 
 import (
-	"fmt"
+	"net/http"
+	"strconv"
 	"your-accounts-api/shared/application"
 	"your-accounts-api/shared/domain"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/model"
 
-	"github.com/gofiber/fiber/v2/log"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type controller struct {
@@ -31,23 +31,23 @@ type controller struct {
 //	@Failure		404								{string}	string
 //	@Failure		500								{string}	string
 //	@Router			/api/v1/log/{id}/code/{code}	[get]
-func (ctrl *controller) readLogs(c *fiber.Ctx) error {
-	resourceId, err := c.ParamsInt("id")
+func (ctrl *controller) readLogs(c echo.Context) error {
+	resourceId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Error("Error getting param 'id':", err)
-		return fiber.ErrBadRequest
+		return echo.ErrBadRequest
 	}
 
-	code := c.Params("code")
+	code := c.Param("code")
 	if code == "" {
 		log.Error("Error getting param 'code'")
-		return fiber.ErrBadRequest
+		return echo.ErrBadRequest
 	}
 
-	logs, err := ctrl.app.FindByProject(c.UserContext(), domain.CodeLog(code), uint(resourceId))
+	logs, err := ctrl.app.FindByProject(c.Request().Context(), domain.CodeLog(code), uint(resourceId))
 	if err != nil {
 		log.Error("Error reading logs by resource and code:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by resource and code")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error reading logs by resource and code")
 	}
 
 	response := make([]*model.ReadLogsResponse, 0)
@@ -55,12 +55,12 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 		response = append(response, model.NewReadLogsResponse(logItem))
 	}
 
-	return c.JSON(response)
+	return c.JSON(http.StatusOK, response)
 }
 
-func NewRoute(router fiber.Router) {
+func NewRoute(api *echo.Group) {
 	controller := &controller{injection.LogApp}
 
-	group := router.Group("/log")
-	group.Get(fmt.Sprintf("/:id<min(1)>/code/:code<regex(^(%s|%s)$)>", domain.Budget, domain.BudgetBill), controller.readLogs)
+	group := api.Group("/log")
+	group.GET("/:id/code/:code", controller.readLogs)
 }

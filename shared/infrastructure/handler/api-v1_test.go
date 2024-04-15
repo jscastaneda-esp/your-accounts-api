@@ -3,80 +3,71 @@ package handler
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"your-accounts-api/shared/infrastructure/config"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"github.com/valyala/fasthttp"
 )
 
 type TestSuite struct {
 	suite.Suite
-	fastCtx *fasthttp.RequestCtx
-	ctx     *fiber.Ctx
 }
 
 func (suite *TestSuite) SetupSuite() {
-	suite.fastCtx = new(fasthttp.RequestCtx)
+	e := echo.New()
 
-	app := fiber.New()
-	suite.ctx = app.AcquireCtx(suite.fastCtx)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Test")
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Test")
 	})
 
-	logsRouter = func(router fiber.Router) {
-		router.Get("/project/", func(c *fiber.Ctx) error {
-			return c.SendString("Project")
+	logsRouter = func(router *echo.Echo) {
+		router.GET("/project/", func(c echo.Context) error {
+			return c.String(http.StatusOK, "Project")
 		})
 	}
 
-	budgetsRouter = func(router fiber.Router) {
-		router.Get("/budget/", func(c *fiber.Ctx) error {
-			return c.SendString("Budget")
+	budgetsRouter = func(router *echo.Echo) {
+		router.GET("/budget/", func(c echo.Context) error {
+			return c.String(http.StatusOK, "Budget")
 		})
 	}
-}
-
-func (suite *TestSuite) SetupTest() {
-	suite.fastCtx.Request.Reset()
-	suite.fastCtx.Response.Reset()
 }
 
 func (suite *TestSuite) TestNewRouteSuccessData() {
 	require := require.New(suite.T())
-	app := fiber.New()
+	e := echo.New()
 
-	NewRoute(app)
+	NewRoute(e)
 
-	routes := app.GetRoutes(true)
+	routes := e.GetRoutes(true)
 	require.Len(routes, 4)
 
 	route1 := routes[0]
-	require.Equal(fiber.MethodGet, route1.Method)
+	require.Equal(http.MethodGet, route1.Method)
 	require.Equal("/api/v1/project/", route1.Path)
 	require.Len(route1.Handlers, 1)
 
 	route2 := routes[1]
-	require.Equal(fiber.MethodGet, route2.Method)
+	require.Equal(http.MethodGet, route2.Method)
 	require.Equal("/api/v1/budget/", route2.Path)
 	require.Len(route2.Handlers, 1)
 
 	route3 := routes[2]
-	require.Equal(fiber.MethodHead, route3.Method)
+	require.Equal(http.MethodHead, route3.Method)
 	require.Equal("/api/v1/project/", route3.Path)
 	require.Len(route3.Handlers, 1)
 
 	route4 := routes[3]
-	require.Equal(fiber.MethodHead, route4.Method)
+	require.Equal(http.MethodHead, route4.Method)
 	require.Equal("/api/v1/budget/", route4.Path)
 	require.Len(route4.Handlers, 1)
 
-	middleware := app.GetRoutes()
+	middleware := e.GetRoutes()
 	useFilter := make([]fiber.Route, 0)
 	for _, m := range middleware {
 		if m.Path == "/api/v1" {

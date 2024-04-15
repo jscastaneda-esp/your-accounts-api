@@ -2,19 +2,22 @@ package handler
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/handler/availables"
 	"your-accounts-api/budgets/infrastructure/handler/bills"
 	"your-accounts-api/budgets/infrastructure/model"
 
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 
-	"your-accounts-api/shared/domain/jwt"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/utils/convert"
+	"your-accounts-api/shared/infrastructure"
 	"your-accounts-api/shared/infrastructure/injection"
-	"your-accounts-api/shared/infrastructure/validation"
 
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -38,32 +41,32 @@ type controller struct {
 //	@Failure		422				{string}	string
 //	@Failure		500				{string}	string
 //	@Router			/api/v1/budget/	[post]
-func (ctrl *controller) create(c *fiber.Ctx) error {
+func (ctrl *controller) create(c echo.Context) error {
 	request := new(model.CreateRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	userData := jwt.GetUserData(c)
+	userData := getUserData(c)
 
 	var id uint
 	var err error
 	if request.CloneId == nil {
-		id, err = ctrl.app.Create(c.UserContext(), userData.ID, request.Name)
+		id, err = ctrl.app.Create(c.Request().Context(), userData.ID, request.Name)
 	} else {
-		id, err = ctrl.app.Clone(c.UserContext(), userData.ID, *request.CloneId)
+		id, err = ctrl.app.Clone(c.Request().Context(), userData.ID, *request.CloneId)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Errorf("Clone ID %d not found", *request.CloneId)
-			return fiber.NewError(fiber.StatusNotFound, "Error creating budget. Clone ID not found")
+			return echo.NewHTTPError(http.StatusNotFound, "Error creating budget. Clone ID not found")
 		}
 	}
 
 	if err != nil {
 		log.Error("Error creating budget:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating budget")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error creating budget")
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.NewCreateResponse(id))
+	return c.JSON(http.StatusCreated, model.NewCreateResponse(id))
 }
 
 // BudgetReadByUserHandler godoc
@@ -80,13 +83,13 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		404				{string}	string
 //	@Failure		500				{string}	string
 //	@Router			/api/v1/budget/	[get]
-func (ctrl *controller) read(c *fiber.Ctx) error {
-	userData := jwt.GetUserData(c)
+func (ctrl *controller) read(c echo.Context) error {
+	userData := getUserData(c)
 
-	budgets, err := ctrl.app.FindByUserId(c.UserContext(), userData.ID)
+	budgets, err := ctrl.app.FindByUserId(c.Request().Context(), userData.ID)
 	if err != nil {
 		log.Error("Error reading budgets by user:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error reading budgets by user")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error reading budgets by user")
 	}
 
 	response := make([]model.ReadResponse, 0)
@@ -94,7 +97,7 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 		response = append(response, model.NewReadResponse(budget))
 	}
 
-	return c.JSON(response)
+	return c.JSON(http.StatusOK, response)
 }
 
 // BudgetReadByIdHandler godoc
@@ -111,24 +114,24 @@ func (ctrl *controller) read(c *fiber.Ctx) error {
 //	@Failure		404					{string}	string
 //	@Failure		500					{string}	string
 //	@Router			/api/v1/budget/{id}	[get]
-func (ctrl *controller) readById(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+func (ctrl *controller) readById(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Error("Error getting param 'id':", err)
-		return fiber.ErrBadRequest
+		return echo.ErrBadRequest
 	}
 
-	budget, err := ctrl.app.FindById(c.UserContext(), uint(id))
+	budget, err := ctrl.app.FindById(c.Request().Context(), uint(id))
 	if err != nil {
 		log.Error("Error reading budget by id:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
+			return echo.NewHTTPError(http.StatusNotFound, "Budget ID not found")
 		}
 
-		return fiber.NewError(fiber.StatusInternalServerError, "Error reading projects by user")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error reading projects by user")
 	}
 
-	return c.JSON(model.NewReadByIDResponse(budget))
+	return c.JSON(http.StatusOK, model.NewReadByIDResponse(budget))
 }
 
 // BudgetChangesHandler godoc
@@ -148,16 +151,17 @@ func (ctrl *controller) readById(c *fiber.Ctx) error {
 //	@Failure		422					{string}	string
 //	@Failure		500					{array}		model.ChangeResponse
 //	@Router			/api/v1/budget/{id}	[put]
-func (ctrl *controller) changes(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+func (ctrl *controller) changes(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Error("Error getting param 'id':", err)
-		return fiber.ErrBadRequest
+		return echo.ErrBadRequest
 	}
 
 	request := []model.ChangeRequest{}
-	if ok := validation.ValidateSlice(c, &request, "min=1,dive,required"); !ok {
-		return nil
+	validator := c.Echo().Validator.(*infrastructure.CustomValidator)
+	if err := validator.ValidateVariable(&request, "min=1,dive,required"); err != nil {
+		return err
 	}
 
 	changes := []application.Change{}
@@ -165,7 +169,7 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 		changes = append(changes, application.Change(item))
 	}
 
-	results := ctrl.app.Changes(c.UserContext(), uint(id), changes)
+	results := ctrl.app.Changes(c.Request().Context(), uint(id), changes)
 	errs := []model.ChangeResponse{}
 	for _, result := range results {
 		if result.Err != nil {
@@ -183,10 +187,10 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 
 	if len(errs) > 0 {
 		log.Error("Error processing changes in budget")
-		return c.Status(fiber.StatusInternalServerError).JSON(errs)
+		return c.JSON(http.StatusInternalServerError, errs)
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.NoContent(http.StatusOK)
 }
 
 // BudgetDeleteHandler godoc
@@ -203,35 +207,40 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 //	@Failure		404					{string}	string
 //	@Failure		500					{string}	string
 //	@Router			/api/v1/budget/{id}	[delete]
-func (ctrl *controller) delete(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+func (ctrl *controller) delete(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Error("Error getting param 'id':", err)
-		return fiber.ErrBadRequest
+		return echo.ErrBadRequest
 	}
 
-	err = ctrl.app.Delete(c.UserContext(), uint(id))
+	err = ctrl.app.Delete(c.Request().Context(), uint(id))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error("Error deleting budget:", err)
-			return fiber.NewError(fiber.StatusNotFound, "Budget ID not found")
+			return echo.NewHTTPError(http.StatusNotFound, "Budget ID not found")
 		}
 
-		return fiber.NewError(fiber.StatusInternalServerError, "Error deleting budget")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error deleting budget")
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.NoContent(http.StatusOK)
 }
 
-func NewRoute(router fiber.Router) {
+func getUserData(c echo.Context) *shared.JwtUserClaims {
+	token := c.Get("user").(*jwt.Token)
+	return token.Claims.(*shared.JwtUserClaims)
+}
+
+func NewRoute(api *echo.Group) {
 	controller := &controller{injection.BudgetApp}
 
-	group := router.Group("/budget")
-	group.Post("/", controller.create)
-	group.Get("/", controller.read)
-	group.Get("/:id<min(1)>", controller.readById)
-	group.Put("/:id<min(1)>", controller.changes)
-	group.Delete("/:id<min(1)>", controller.delete)
+	group := api.Group("/budget")
+	group.POST("", controller.create)
+	group.GET("", controller.read)
+	group.GET("/:id", controller.readById)
+	group.PUT("/:id", controller.changes)
+	group.DELETE("/:id", controller.delete)
 
 	// Additional routes
 	availables.NewRoute(group)

@@ -5,14 +5,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/gofiber/fiber/v2/log"
-
 	budgets "your-accounts-api/budgets/infrastructure/db/entity"
 	"your-accounts-api/shared/domain/persistent"
 	"your-accounts-api/shared/infrastructure/config"
 	shared "your-accounts-api/shared/infrastructure/db/entity"
 	users "your-accounts-api/users/infrastructure/db/entity"
 
+	"github.com/labstack/gommon/log"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

@@ -2,15 +2,15 @@ package handler
 
 import (
 	"errors"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 
 	"your-accounts-api/shared/infrastructure/injection"
-	"your-accounts-api/shared/infrastructure/validation"
 	"your-accounts-api/users/application"
 	"your-accounts-api/users/infrastructure/model"
 
-	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -32,23 +32,23 @@ type controller struct {
 //	@Failure		422		{string}	string
 //	@Failure		500		{string}	string
 //	@Router			/user	[post]
-func (ctrl *controller) create(c *fiber.Ctx) error {
+func (ctrl *controller) create(c echo.Context) error {
 	request := new(model.CreateRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	id, err := ctrl.app.Create(c.UserContext(), request.Email)
+	id, err := ctrl.app.Create(c.Request().Context(), request.Email)
 	if err != nil {
 		log.Error("Error sign up user:", err)
 		if errors.Is(err, application.ErrUserAlreadyExists) {
-			return fiber.NewError(fiber.StatusConflict, err.Error())
+			return echo.NewHTTPError(http.StatusConflict, err.Error())
 		} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-			return fiber.NewError(fiber.StatusInternalServerError, "Error sign up user")
+			return echo.NewHTTPError(http.StatusInternalServerError, "Error sign up user")
 		}
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.NewCreateResponse(id))
+	return c.JSON(http.StatusCreated, model.NewCreateResponse(id))
 }
 
 // UserLoginHandler godoc
@@ -65,28 +65,28 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		422		{string}	string
 //	@Failure		500		{string}	string
 //	@Router			/login	[post]
-func (ctrl *controller) login(c *fiber.Ctx) error {
+func (ctrl *controller) login(c echo.Context) error {
 	request := new(model.LoginRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	token, expiresAt, err := ctrl.app.Login(c.UserContext(), request.Email)
+	token, expiresAt, err := ctrl.app.Login(c.Request().Context(), request.Email)
 	if err != nil {
 		log.Error("Error authenticate user:", err)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fiber.NewError(fiber.StatusUnauthorized, "Invalid credentials")
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid credentials")
 		}
 
-		return fiber.NewError(fiber.StatusInternalServerError, "Error authenticate user")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error authenticate user")
 	}
 
-	return c.JSON(model.NewLoginResponse(token, expiresAt))
+	return c.JSON(http.StatusOK, model.NewLoginResponse(token, expiresAt))
 }
 
-func NewRoute(router fiber.Router) {
+func NewRoute(api *echo.Echo) {
 	controller := &controller{injection.UserApp}
 
-	router.Post("/user", controller.create)
-	router.Post("/login", controller.login)
+	api.POST("/user", controller.create)
+	api.POST("/login", controller.login)
 }

@@ -2,12 +2,13 @@ package handler
 
 import (
 	budgets "your-accounts-api/budgets/infrastructure/handler"
-	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain"
 	"your-accounts-api/shared/infrastructure/config"
 	logs "your-accounts-api/shared/infrastructure/handler/logs"
 
-	jwtware "github.com/gofiber/contrib/jwt"
-	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
+	"github.com/labstack/echo/v4"
 )
 
 var (
@@ -15,13 +16,16 @@ var (
 	budgetsRouter = budgets.NewRoute
 )
 
-func NewRoute(app fiber.Router) {
-	api := app.Group("/api/v1")
+func NewRoute(e *echo.Echo) {
+	api := e.Group("/api/v1")
+
 	// Middleware
 	{
-		api.Use(jwtware.New(jwtware.Config{
-			SigningKey: jwtware.SigningKey{Key: []byte(config.JWT_SECRET)},
-			Claims:     new(jwt.JwtUserClaims),
+		api.Use(echojwt.WithConfig(echojwt.Config{
+			SigningKey: []byte(config.JWT_SECRET),
+			NewClaimsFunc: func(c echo.Context) jwt.Claims {
+				return new(domain.JwtUserClaims)
+			},
 		}))
 	}
 

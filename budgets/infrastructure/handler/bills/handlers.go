@@ -1,14 +1,13 @@
 package bills
 
 import (
+	"net/http"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/model"
 	"your-accounts-api/shared/infrastructure/injection"
-	"your-accounts-api/shared/infrastructure/validation"
 
-	"github.com/gofiber/fiber/v2/log"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type controller struct {
@@ -30,19 +29,19 @@ type controller struct {
 //	@Failure		422						{string}	string
 //	@Failure		500						{string}	string
 //	@Router			/api/v1/budget/bill/	[post]
-func (ctrl *controller) create(c *fiber.Ctx) error {
+func (ctrl *controller) create(c echo.Context) error {
 	request := new(model.CreateBillRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	id, err := ctrl.app.Create(c.UserContext(), request.Description, request.Category, request.BudgetId)
+	id, err := ctrl.app.Create(c.Request().Context(), request.Description, request.Category, request.BudgetId)
 	if err != nil {
 		log.Error("Error creating bill:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating bill")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error creating bill")
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.NewCreateBillResponse(id))
+	return c.JSON(http.StatusCreated, model.NewCreateBillResponse(id))
 }
 
 // BudgetBillCreateTransactionHandler godoc
@@ -60,25 +59,25 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		422								{string}	string
 //	@Failure		500								{string}	string
 //	@Router			/api/v1/budget/bill/transaction	[put]
-func (ctrl *controller) createTransaction(c *fiber.Ctx) error {
+func (ctrl *controller) createTransaction(c echo.Context) error {
 	request := new(model.CreateBillTransactionRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	err := ctrl.app.CreateTransaction(c.UserContext(), request.Description, request.Amount, request.BillId)
+	err := ctrl.app.CreateTransaction(c.Request().Context(), request.Description, request.Amount, request.BillId)
 	if err != nil {
 		log.Error("Error creating bill transaction:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating bill transaction")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error creating bill transaction")
 	}
 
-	return c.SendStatus(fiber.StatusOK)
+	return c.NoContent(http.StatusOK)
 }
 
-func NewRoute(router fiber.Router) {
+func NewRoute(api *echo.Group) {
 	controller := &controller{injection.BudgetBillApp}
 
-	group := router.Group("/bill")
-	group.Post("/", controller.create)
-	group.Put("/transaction", controller.createTransaction)
+	group := api.Group("/bill")
+	group.POST("/", controller.create)
+	group.PUT("/transaction", controller.createTransaction)
 }

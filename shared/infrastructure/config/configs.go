@@ -4,9 +4,8 @@ import (
 	golog "log"
 	"os"
 
-	"github.com/gofiber/fiber/v2/log"
-
 	"github.com/joho/godotenv"
+	"github.com/labstack/gommon/log"
 )
 
 const (

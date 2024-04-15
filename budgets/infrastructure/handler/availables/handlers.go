@@ -1,14 +1,13 @@
 package availables
 
 import (
+	"net/http"
 	"your-accounts-api/budgets/application"
 	"your-accounts-api/budgets/infrastructure/model"
 	"your-accounts-api/shared/infrastructure/injection"
-	"your-accounts-api/shared/infrastructure/validation"
 
-	"github.com/gofiber/fiber/v2/log"
-
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type controller struct {
@@ -30,24 +29,24 @@ type controller struct {
 //	@Failure		422							{string}	string
 //	@Failure		500							{string}	string
 //	@Router			/api/v1/budget/available/	[post]
-func (ctrl *controller) create(c *fiber.Ctx) error {
+func (ctrl *controller) create(c echo.Context) error {
 	request := new(model.CreateAvailableRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
+	if err := c.Bind(request); err != nil {
+		return err
 	}
 
-	id, err := ctrl.app.Create(c.UserContext(), request.Name, request.BudgetId)
+	id, err := ctrl.app.Create(c.Request().Context(), request.Name, request.BudgetId)
 	if err != nil {
 		log.Error("Error creating available:", err)
-		return fiber.NewError(fiber.StatusInternalServerError, "Error creating available")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error creating available")
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(model.NewCreateAvailableResponse(id))
+	return c.JSON(http.StatusCreated, model.NewCreateAvailableResponse(id))
 }
 
-func NewRoute(router fiber.Router) {
+func NewRoute(api *echo.Group) {
 	controller := &controller{injection.BudgetAvailableApp}
 
-	group := router.Group("/available")
-	group.Post("/", controller.create)
+	group := api.Group("/available")
+	group.POST("/", controller.create)
 }

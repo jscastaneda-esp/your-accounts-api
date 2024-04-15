@@ -14,18 +14,14 @@
         "eamodio.gitlens",
         "golang.go",
         "r3inbowari.gomodexplorer",
-        "SirTori.indenticator",
         "Tyriar.lorem-ipsum",
         "yzhang.markdown-all-in-one",
         "humao.rest-client",
         "streetsidesoftware.code-spell-checker-spanish",
-        "rafamel.subtle-brackets",
         "Gruntfuggly.todo-tree",
         "github.vscode-github-actions",
         "esbenp.prettier-vscode",
-        "whosydd.go-impl",
-        "mtxr.sqltools",
-        "mtxr.sqltools-driver-mysql"
+        "whosydd.go-impl"
       ],
       "settings": {
         "dotenv.enableAutocloaking": false,

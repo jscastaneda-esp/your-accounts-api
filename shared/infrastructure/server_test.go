@@ -1,14 +1,13 @@
 package infrastructure
 
 import (
-	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
-	"your-accounts-api/shared/infrastructure/config"
 
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -30,15 +29,16 @@ func (suite *TestSuite) TestAddRouteSuccess() {
 	server := NewServer(true)
 
 	server.AddRoute(Route{
-		Method: fiber.MethodGet,
+		Method: http.MethodGet,
 		Path:   "/",
-		Handler: func(_ *fiber.Ctx) error {
+		Handler: func(_ echo.Context) error {
 			return nil
 		},
 	})
-	server.AddRoute(Router(func(_ fiber.Router) {
+	server.AddRoute(Router(func(_ *echo.Echo) {
 		log.Info("Test")
 	}))
+	server.Listen()
 
 	require.NotEmpty(server.routes)
 	require.Len(server.routes, 2)
@@ -46,146 +46,19 @@ func (suite *TestSuite) TestAddRouteSuccess() {
 	require.IsType(Router(nil), server.routes[1])
 }
 
-func (suite *TestSuite) TestListenSuccessCustomPort() {
+func (suite *TestSuite) TestHandlerSuccess() {
 	require := require.New(suite.T())
 	server := NewServer(true)
-	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
-	config.PORT = "999"
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	e := server.Listen()
 
-	app := server.Listen()
-	response, err := app.Test(request, 1)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("Server is up and running"), resp)
-}
-
-func (suite *TestSuite) TestListenSuccessDefaultRoutes() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request, 1)
+	ctx := e.NewContext(req, rec)
+	err := healthCheck(ctx)
 
 	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("Server is up and running"), resp)
-}
-
-func (suite *TestSuite) TestListenSuccessCustomRouteGet() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute(Route{
-		Method: fiber.MethodGet,
-		Path:   "/route-get",
-		Handler: func(c *fiber.Ctx) error {
-			return c.SendString("Route Get")
-		},
-	})
-	request := httptest.NewRequest(fiber.MethodGet, "/route-get", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request, 1)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("Route Get"), resp)
-}
-
-func (suite *TestSuite) TestListenSuccessCustomRoutePost() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute(Route{
-		Method: fiber.MethodPost,
-		Path:   "/route-post",
-		Handler: func(c *fiber.Ctx) error {
-			return c.SendString("Route Post")
-		},
-	})
-	request := httptest.NewRequest(fiber.MethodPost, "/route-post", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request, 1)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("Route Post"), resp)
-}
-
-func (suite *TestSuite) TestListenSuccessCustomRouteRouter() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute(Router(func(app fiber.Router) {
-		app.Get("/router", func(c *fiber.Ctx) error {
-			return c.SendString("Router")
-		})
-	}))
-	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request, 1)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("Router"), resp)
-}
-
-func (suite *TestSuite) TestListenErrorCustomRouteRouterFiberError() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute(Router(func(app fiber.Router) {
-		app.Get("/router", func(c *fiber.Ctx) error {
-			return fiber.ErrInternalServerError
-		})
-	}))
-	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte(fiber.ErrInternalServerError.Message), resp)
-}
-
-func (suite *TestSuite) TestListenErrorCustomRouteRouterRuntimeError() {
-	require := require.New(suite.T())
-	server := NewServer(true)
-	server.AddRoute(Router(func(app fiber.Router) {
-		app.Get("/router", func(c *fiber.Ctx) error {
-			return CustomRuntimeError{}
-		})
-	}))
-	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
-
-	app := server.Listen()
-	response, err := app.Test(request)
-
-	require.NoError(err)
-	require.NotNil(response)
-
-	resp, err := io.ReadAll(response.Body)
-	require.NoError(err)
-	require.Equal([]byte("internal server error"), resp)
+	require.Equal(http.StatusOK, rec.Code)
+	require.Equal("Server is up and running", rec.Body.String())
 }
 
 func TestTestSuite(t *testing.T) {

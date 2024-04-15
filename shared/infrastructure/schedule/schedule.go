@@ -6,7 +6,7 @@ import (
 	"your-accounts-api/shared/infrastructure/injection"
 
 	"codnect.io/chrono"
-	"github.com/gofiber/fiber/v2/log"
+	"github.com/labstack/gommon/log"
 )
 
 var taskScheduler chrono.TaskScheduler
