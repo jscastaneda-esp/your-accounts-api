@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"sync"
 	"your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
 )
@@ -16,6 +17,7 @@ type ILogApp interface {
 type logApp struct {
 	tm      persistent.TransactionManager
 	logRepo domain.LogRepository
+	mu      sync.Mutex
 }
 
 func (app *logApp) Create(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error {
@@ -26,6 +28,9 @@ func (app *logApp) Create(ctx context.Context, description string, code domain.C
 		Code:        code,
 		ResourceId:  resourceId,
 	}
+
+	app.mu.Lock()
+	defer app.mu.Unlock()
 	_, err := projectLogRepo.Save(ctx, newLog)
 	if err != nil {
 		return err
@@ -81,5 +86,8 @@ func (app *logApp) DeleteOld(ctx context.Context) error {
 }
 
 func NewLogApp(tm persistent.TransactionManager, logRepo domain.LogRepository) ILogApp {
-	return &logApp{tm, logRepo}
+	return &logApp{
+		tm:      tm,
+		logRepo: logRepo,
+	}
 }
