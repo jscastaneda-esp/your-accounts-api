@@ -31,11 +31,7 @@ type controller struct {
 //	@Failure		500							{string}	string
 //	@Router			/api/v1/budget/available/	[post]
 func (ctrl *controller) create(c *fiber.Ctx) error {
-	request := new(model.CreateAvailableRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.CreateAvailableRequest)
 	id, err := ctrl.app.Create(c.UserContext(), request.Name, request.BudgetId)
 	if err != nil {
 		log.Error("Error creating available:", err)
@@ -49,5 +45,5 @@ func NewRoute(router fiber.Router) {
 	controller := &controller{injection.BudgetAvailableApp}
 
 	group := router.Group("/available")
-	group.Post("/", controller.create)
+	group.Post("/", validation.RequestBodyValid(model.CreateAvailableRequest{}), controller.create)
 }

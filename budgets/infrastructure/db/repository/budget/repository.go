@@ -69,14 +69,14 @@ func (r *gormRepository) Save(ctx context.Context, budget domain.Budget) (uint, 
 	return model.ID, nil
 }
 
-func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, error) {
+func (r *gormRepository) Search(ctx context.Context, id uint) (domain.Budget, error) {
 	model := new(entity.Budget)
 	if err := r.db.WithContext(ctx).Preload("BudgetAvailables", func(db *gorm.DB) *gorm.DB {
 		return db.Order("budget_availables.id ASC")
 	}).Preload("BudgetBills", func(db *gorm.DB) *gorm.DB {
 		return db.Order("budget_bills.id ASC")
 	}).First(model, id).Error; err != nil {
-		return nil, err
+		return domain.Budget{}, err
 	}
 
 	availables := []domain.BudgetAvailable{}
@@ -105,7 +105,7 @@ func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, e
 		})
 	}
 
-	return &domain.Budget{
+	return domain.Budget{
 		ID:               &model.ID,
 		Name:             &model.Name,
 		Year:             &model.Year,
@@ -122,7 +122,7 @@ func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.Budget, e
 }
 
 func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.Budget) ([]domain.Budget, error) {
-	where := &entity.Budget{
+	where := entity.Budget{
 		UserId: *example.UserId,
 	}
 	var models []entity.Budget

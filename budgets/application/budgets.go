@@ -27,11 +27,10 @@ type ChangeResult struct {
 	Err    error
 }
 
-//go:generate mockery --name IBudgetApp --filename budget-app.go
 type IBudgetApp interface {
 	Create(ctx context.Context, userId uint, name string) (uint, error)
 	Clone(ctx context.Context, userId uint, baseId uint) (uint, error)
-	FindById(ctx context.Context, id uint) (*domain.Budget, error)
+	FindById(ctx context.Context, id uint) (domain.Budget, error)
 	FindByUserId(ctx context.Context, userId uint) ([]domain.Budget, error)
 	Changes(ctx context.Context, id uint, changes []Change) []ChangeResult
 	Delete(ctx context.Context, id uint) error
@@ -145,13 +144,8 @@ func (app *budgetApp) Clone(ctx context.Context, userId uint, baseId uint) (uint
 	return id, nil
 }
 
-func (app *budgetApp) FindById(ctx context.Context, id uint) (*domain.Budget, error) {
-	budget, err := app.budgetRepo.Search(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return budget, nil
+func (app *budgetApp) FindById(ctx context.Context, id uint) (domain.Budget, error) {
+	return app.budgetRepo.Search(ctx, id)
 }
 
 func (app *budgetApp) FindByUserId(ctx context.Context, userId uint) ([]domain.Budget, error) {
@@ -471,7 +465,7 @@ func (app *budgetApp) updateTotals(ctx context.Context, id uint, changeResults [
 			budget.TotalPending = &totalPending
 			budget.PendingBills = &pendingBills
 
-			_, err := app.budgetRepo.Save(ctx, *budget)
+			_, err := app.budgetRepo.Save(ctx, budget)
 			if err != nil {
 				changeResults = append(changeResults, ChangeResult{
 					Err: err,

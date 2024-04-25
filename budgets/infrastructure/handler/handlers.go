@@ -8,8 +8,9 @@ import (
 	"your-accounts-api/budgets/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2/log"
+	"github.com/golang-jwt/jwt/v5"
 
-	"your-accounts-api/shared/domain/jwt"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/utils/convert"
 	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/validation"
@@ -39,12 +40,8 @@ type controller struct {
 //	@Failure		500				{string}	string
 //	@Router			/api/v1/budget/	[post]
 func (ctrl *controller) create(c *fiber.Ctx) error {
-	request := new(model.CreateRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
-	userData := jwt.GetUserData(c)
+	request := c.Locals(validation.RequestBody).(*model.CreateRequest)
+	userData := getUserData(c)
 
 	var id uint
 	var err error
@@ -81,7 +78,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		500				{string}	string
 //	@Router			/api/v1/budget/	[get]
 func (ctrl *controller) read(c *fiber.Ctx) error {
-	userData := jwt.GetUserData(c)
+	userData := getUserData(c)
 
 	budgets, err := ctrl.app.FindByUserId(c.UserContext(), userData.ID)
 	if err != nil {
@@ -140,13 +137,13 @@ func (ctrl *controller) readById(c *fiber.Ctx) error {
 //	@Produce		json
 //	@Param			Authorization		header		string					true	"Access token"
 //	@Param			id					path		uint					true	"Budget ID"
-//	@Param			request				body		[]model.ChangeRequest	true	"Changes data"
+//	@Param			request				body		model.ChangesRequest	true	"Changes data"
 //	@Success		200					{string}	string
 //	@Failure		400					{string}	string
 //	@Failure		401					{string}	string
 //	@Failure		404					{string}	string
 //	@Failure		422					{string}	string
-//	@Failure		500					{array}		model.ChangeResponse
+//	@Failure		500					{object}	model.ChangesResponse
 //	@Router			/api/v1/budget/{id}	[put]
 func (ctrl *controller) changes(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
@@ -155,13 +152,9 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	request := []model.ChangeRequest{}
-	if ok := validation.ValidateSlice(c, &request, "min=1,dive,required"); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.ChangesRequest)
 	changes := []application.Change{}
-	for _, item := range request {
+	for _, item := range request.Changes {
 		changes = append(changes, application.Change(item))
 	}
 
@@ -183,7 +176,9 @@ func (ctrl *controller) changes(c *fiber.Ctx) error {
 
 	if len(errs) > 0 {
 		log.Error("Error processing changes in budget")
-		return c.Status(fiber.StatusInternalServerError).JSON(errs)
+		return c.Status(fiber.StatusInternalServerError).JSON(model.ChangesResponse{
+			Changes: errs,
+		})
 	}
 
 	return c.SendStatus(fiber.StatusOK)
@@ -227,13 +222,18 @@ func NewRoute(router fiber.Router) {
 	controller := &controller{injection.BudgetApp}
 
 	group := router.Group("/budget")
-	group.Post("/", controller.create)
+	group.Post("/", validation.RequestBodyValid(model.CreateRequest{}), controller.create)
 	group.Get("/", controller.read)
 	group.Get("/:id<min(1)>", controller.readById)
-	group.Put("/:id<min(1)>", controller.changes)
+	group.Put("/:id<min(1)>/changes", validation.RequestBodyValid(model.ChangesRequest{}), controller.changes)
 	group.Delete("/:id<min(1)>", controller.delete)
 
 	// Additional routes
 	availables.NewRoute(group)
 	bills.NewRoute(group)
+}
+
+func getUserData(c *fiber.Ctx) *shared.JwtUserClaims {
+	token := c.Locals("user").(*jwt.Token)
+	return token.Claims.(*shared.JwtUserClaims)
 }

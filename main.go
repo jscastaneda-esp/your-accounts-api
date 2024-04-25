@@ -1,5 +1,6 @@
 //go:generate swag fmt
 //go:generate swag init
+//go:generate mockery
 
 package main
 

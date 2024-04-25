@@ -11,11 +11,11 @@ type SaveAllRepository[D any] interface {
 }
 
 type SearchRepository[D any] interface {
-	Search(ctx context.Context, id uint) (*D, error)
+	Search(ctx context.Context, id uint) (D, error)
 }
 
 type SearchByExampleRepository[D any] interface {
-	SearchByExample(ctx context.Context, example D) (*D, error)
+	SearchByExample(ctx context.Context, example D) (D, error)
 }
 
 type SearchAllByExampleRepository[D any] interface {

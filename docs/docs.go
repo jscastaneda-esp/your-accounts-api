@@ -23,29 +23,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/": {
-            "get": {
-                "description": "get the status of server",
-                "produces": [
-                    "text/plain"
-                ],
-                "tags": [
-                    "main"
-                ],
-                "summary": "Show the status of server",
-                "responses": {
-                    "200": {
-                        "description": "Status available",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
         "/api/v1/budget/": {
             "get": {
                 "description": "read budgets associated to an user",
@@ -465,10 +442,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ChangeRequest"
-                            }
+                            "$ref": "#/definitions/model.ChangesRequest"
                         }
                     }
                 ],
@@ -506,10 +480,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/model.ChangeResponse"
-                            }
+                            "$ref": "#/definitions/model.ChangesResponse"
                         }
                     }
                 }
@@ -863,6 +834,32 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "model.ChangesRequest": {
+            "type": "object",
+            "required": [
+                "changes"
+            ],
+            "properties": {
+                "changes": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/model.ChangeRequest"
+                    }
+                }
+            }
+        },
+        "model.ChangesResponse": {
+            "type": "object",
+            "properties": {
+                "changes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ChangeResponse"
+                    }
                 }
             }
         },

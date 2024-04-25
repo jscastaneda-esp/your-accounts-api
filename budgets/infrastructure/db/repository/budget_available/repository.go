@@ -49,7 +49,7 @@ func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.Budget
 		return nil
 	}
 
-	models := []*entity.BudgetAvailable{}
+	models := []entity.BudgetAvailable{}
 	for _, available := range availables {
 		model := new(entity.BudgetAvailable)
 		if available.ID != nil {
@@ -68,10 +68,10 @@ func (r *gormRepository) SaveAll(ctx context.Context, availables []domain.Budget
 			model.Amount = *available.Amount
 		}
 
-		models = append(models, model)
+		models = append(models, *model)
 	}
 
-	if err := r.db.WithContext(ctx).Save(models).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&models).Error; err != nil {
 		return err
 	}
 

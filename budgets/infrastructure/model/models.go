@@ -78,7 +78,7 @@ type ReadByIDResponse struct {
 	Bills            []ReadByIDResponseBill      `json:"bills"`
 }
 
-func NewReadByIDResponse(budget *domain.Budget) ReadByIDResponse {
+func NewReadByIDResponse(budget domain.Budget) ReadByIDResponse {
 	availables := []ReadByIDResponseAvailable{}
 	for _, available := range budget.BudgetAvailables {
 		availables = append(availables, ReadByIDResponseAvailable{
@@ -154,9 +154,17 @@ type ChangeRequest struct {
 	Detail  map[string]any       `json:"detail"`
 }
 
+type ChangesRequest struct {
+	Changes []ChangeRequest `json:"changes" validate:"min=1,dive,required"`
+}
+
 type ChangeResponse struct {
 	Change ChangeRequest `json:"change"`
 	Error  string        `json:"error"`
+}
+
+type ChangesResponse struct {
+	Changes []ChangeResponse
 }
 
 func NewChangeResponse(change application.Change, err string) ChangeResponse {

@@ -41,7 +41,7 @@ func (r *gormRepository) Save(ctx context.Context, log domain.Log) (uint, error)
 }
 
 func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.Log) ([]domain.Log, error) {
-	where := &entity.Log{
+	where := entity.Log{
 		Code:       example.Code,
 		ResourceId: example.ResourceId,
 	}
@@ -66,7 +66,7 @@ func (r *gormRepository) SearchAllByExample(ctx context.Context, example domain.
 }
 
 func (r *gormRepository) DeleteByResourceIdNotExists(ctx context.Context) error {
-	if err := r.db.WithContext(ctx).Where("resource_id NOT IN (SELECT id FROM budgets) AND resource_id NOT IN (SELECT id FROM budget_bills)").Delete(&entity.Log{}).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("resource_id NOT IN (SELECT id FROM budgets) AND resource_id NOT IN (SELECT id FROM budget_bills)").Delete(entity.Log{}).Error; err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func (r *gormRepository) SearchResourceIdsWithLimitExceeded(ctx context.Context)
 }
 
 func (r *gormRepository) DeleteByResourceIdAndIdLessThanLimit(ctx context.Context, resourceId uint) error {
-	if err := r.db.WithContext(ctx).Where("resource_id = @resource_id AND id < (SELECT id FROM (SELECT id FROM logs WHERE resource_id = @resource_id ORDER BY id DESC LIMIT @limit) T ORDER BY id ASC LIMIT 1)", sql.Named("resource_id", resourceId), sql.Named("limit", limit)).Delete(&entity.Log{}).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("resource_id = @resource_id AND id < (SELECT id FROM (SELECT id FROM logs WHERE resource_id = @resource_id ORDER BY id DESC LIMIT @limit) T ORDER BY id ASC LIMIT 1)", sql.Named("resource_id", resourceId), sql.Named("limit", limit)).Delete(entity.Log{}).Error; err != nil {
 		return err
 	}
 

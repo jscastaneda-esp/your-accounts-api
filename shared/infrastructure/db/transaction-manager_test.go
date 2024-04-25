@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"regexp"
 	"testing"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain/persistent"
-	"your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ import (
 type TestSuite struct {
 	suite.Suite
 	mock   sqlmock.Sqlmock
-	mockTx *mocks.Transaction
+	mockTx *mocks_persistent.MockTransaction
 	db     *gorm.DB
 	tm     persistent.TransactionManager
 }
@@ -45,7 +45,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTx = mocks.NewTransaction(suite.T())
+	suite.mockTx = mocks_persistent.NewMockTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {

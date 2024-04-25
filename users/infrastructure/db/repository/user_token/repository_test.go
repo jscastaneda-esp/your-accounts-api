@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 	"time"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain/test_utils"
 	"your-accounts-api/users/domain"
 
@@ -24,7 +24,7 @@ type TestSuite struct {
 	userId     uint
 	expiresAt  time.Time
 	mock       sqlmock.Sqlmock
-	mockTX     *mocks_shared.Transaction
+	mockTX     *mocks_persistent.MockTransaction
 	repository domain.UserTokenRepository
 }
 
@@ -51,7 +51,7 @@ func (suite *TestSuite) SetupSuite() {
 	})
 	require.NoError(err)
 
-	suite.mockTX = mocks_shared.NewTransaction(suite.T())
+	suite.mockTX = mocks_persistent.NewMockTransaction(suite.T())
 	suite.repository = NewRepository(DB)
 }
 
@@ -131,7 +131,7 @@ func (suite *TestSuite) TestSearchByExampleSuccess() {
 		Token:  suite.token,
 		UserId: suite.userId,
 	}
-	userTokenExpected := &domain.UserToken{
+	userTokenExpected := domain.UserToken{
 		ID:        999,
 		Token:     suite.token,
 		UserId:    suite.userId,
@@ -166,7 +166,7 @@ func (suite *TestSuite) TestSearchByExampleError() {
 	res, err := suite.repository.SearchByExample(context.Background(), example)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
-	require.Nil(res)
+	require.Zero(res)
 }
 
 func (suite *TestSuite) TestDeleteByExpiresAtGreaterThanNowSuccess() {

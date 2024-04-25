@@ -2,7 +2,7 @@ package convert
 
 import "strconv"
 
-func AsFloat64(src interface{}) (float64, error) {
+func AsFloat64(src any) (float64, error) {
 	switch v := src.(type) {
 	case int:
 		return float64(v), nil

@@ -2,7 +2,7 @@ package convert
 
 import "strconv"
 
-func AsBool(src interface{}) (bool, error) {
+func AsBool(src any) (bool, error) {
 	switch v := src.(type) {
 	case bool:
 		return v, nil

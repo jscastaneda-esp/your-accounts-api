@@ -9,16 +9,16 @@ import (
 	"net/http/httptest"
 	"testing"
 	"your-accounts-api/budgets/application"
-	"your-accounts-api/budgets/application/mocks"
 	"your-accounts-api/budgets/domain"
 	"your-accounts-api/budgets/infrastructure/model"
+	mocks_application "your-accounts-api/mocks/budgets/application"
 	shared "your-accounts-api/shared/domain"
-	"your-accounts-api/shared/domain/jwt"
 	"your-accounts-api/shared/domain/utils/convert"
-	"your-accounts-api/shared/domain/validation"
+	"your-accounts-api/shared/infrastructure/injection"
+	"your-accounts-api/shared/infrastructure/validation"
 
 	"github.com/gofiber/fiber/v2"
-	go_jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -34,7 +34,7 @@ type TestSuite struct {
 	budgetId uint
 	cloneId  uint
 	app      *fiber.App
-	mock     *mocks.IBudgetApp
+	mock     *mocks_application.MockIBudgetApp
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -47,27 +47,21 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mock = mocks.NewIBudgetApp(suite.T())
-	ctrl := &controller{
-		app: suite.mock,
-	}
-
-	token := &go_jwt.Token{
-		Claims: &jwt.JwtUserClaims{
+	token := &jwt.Token{
+		Claims: &shared.JwtUserClaims{
 			ID: 1,
 		},
 	}
+
+	suite.mock = mocks_application.NewMockIBudgetApp(suite.T())
+	injection.BudgetApp = suite.mock
 
 	suite.app = fiber.New()
 	suite.app.Use(func(c *fiber.Ctx) error {
 		c.Locals("user", token)
 		return c.Next()
 	})
-	suite.app.Post("/", ctrl.create)
-	suite.app.Get("/", ctrl.read)
-	suite.app.Get("/:id<min(1)>", ctrl.readById)
-	suite.app.Put("/:id<min(1)>", ctrl.changes)
-	suite.app.Delete("/:id<min(1)>", ctrl.delete)
+	NewRoute(suite.app)
 }
 
 func (suite *TestSuite) TestCreate201() {
@@ -81,7 +75,7 @@ func (suite *TestSuite) TestCreate201() {
 	expectedBody, err := json.Marshal(model.NewCreateResponse(suite.budgetId))
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/budget/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -96,7 +90,7 @@ func (suite *TestSuite) TestCreate201() {
 func (suite *TestSuite) TestCreate400() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", nil)
+	request := httptest.NewRequest(fiber.MethodPost, "/budget/", nil)
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -114,14 +108,14 @@ func (suite *TestSuite) TestCreate422() {
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "name",
+			Field:      "CreateRequest.name",
 			Constraint: "max=40",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/budget/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -143,7 +137,7 @@ func (suite *TestSuite) TestCreate404() {
 	suite.mock.On("Clone", mock.Anything, mock.Anything, *requestBody.CloneId).Return(uint(0), gorm.ErrRecordNotFound)
 	expectedErr := []byte("Error creating budget. Clone ID not found")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/budget/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -165,9 +159,9 @@ func (suite *TestSuite) TestCreate500() {
 	suite.mock.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 	expectedErr := []byte("Error creating budget")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/budget/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	response, err := suite.app.Test(request, 6000000)
+	response, err := suite.app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -212,7 +206,7 @@ func (suite *TestSuite) TestRead200() {
 	})
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
+	request := httptest.NewRequest(fiber.MethodGet, "/budget/", nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -228,7 +222,7 @@ func (suite *TestSuite) TestRead500() {
 	suite.mock.On("FindByUserId", mock.Anything, mock.Anything).Return(nil, gorm.ErrInvalidField)
 	expectedErr := []byte("Error reading budgets by user")
 
-	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
+	request := httptest.NewRequest(fiber.MethodGet, "/budget/", nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -242,7 +236,7 @@ func (suite *TestSuite) TestRead500() {
 func (suite *TestSuite) TestReadByID200() {
 	require := require.New(suite.T())
 	zeroFloat := 0.0
-	result := &domain.Budget{
+	result := domain.Budget{
 		ID:               &suite.id,
 		Name:             &suite.name,
 		Year:             &suite.year,
@@ -254,7 +248,7 @@ func (suite *TestSuite) TestReadByID200() {
 	expectedBody, err := json.Marshal(model.NewReadByIDResponse(result))
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -268,7 +262,7 @@ func (suite *TestSuite) TestReadByID200() {
 func (suite *TestSuite) TestReadByID404() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/%d", 0), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/budget/%d", 0), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -278,10 +272,10 @@ func (suite *TestSuite) TestReadByID404() {
 
 func (suite *TestSuite) TestReadByID404Find() {
 	require := require.New(suite.T())
-	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(nil, gorm.ErrRecordNotFound)
+	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(domain.Budget{}, gorm.ErrRecordNotFound)
 	expectedErr := []byte("Budget ID not found")
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -294,10 +288,10 @@ func (suite *TestSuite) TestReadByID404Find() {
 
 func (suite *TestSuite) TestReadByID500() {
 	require := require.New(suite.T())
-	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(nil, gorm.ErrInvalidField)
+	suite.mock.On("FindById", mock.Anything, suite.budgetId).Return(domain.Budget{}, gorm.ErrInvalidField)
 	expectedErr := []byte("Error reading projects by user")
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -310,29 +304,31 @@ func (suite *TestSuite) TestReadByID500() {
 
 func (suite *TestSuite) TestChanges200() {
 	require := require.New(suite.T())
-	requestBody := []model.ChangeRequest{
-		{
-			ID:      uint(1),
-			Section: domain.Main,
-			Action:  shared.Update,
-			Detail: map[string]any{
-				"name": "Test",
+	requestBody := model.ChangesRequest{
+		Changes: []model.ChangeRequest{
+			{
+				ID:      uint(1),
+				Section: domain.Main,
+				Action:  shared.Update,
+				Detail: map[string]any{
+					"name": "Test",
+				},
 			},
-		},
-		{
-			ID:      uint(1),
-			Section: domain.Available,
-			Action:  shared.Delete,
-			Detail: map[string]any{
-				"name": "Test",
+			{
+				ID:      uint(1),
+				Section: domain.Available,
+				Action:  shared.Delete,
+				Detail: map[string]any{
+					"name": "Test",
+				},
 			},
-		},
-		{
-			ID:      uint(1),
-			Section: domain.Bill,
-			Action:  shared.Delete,
-			Detail: map[string]any{
-				"description": "Test",
+			{
+				ID:      uint(1),
+				Section: domain.Bill,
+				Action:  shared.Delete,
+				Detail: map[string]any{
+					"description": "Test",
+				},
 			},
 		},
 	}
@@ -340,18 +336,18 @@ func (suite *TestSuite) TestChanges200() {
 	require.NoError(err)
 	resultChanges := []application.ChangeResult{
 		{
-			Change: application.Change(requestBody[0]),
+			Change: application.Change(requestBody.Changes[0]),
 		},
 		{
-			Change: application.Change(requestBody[1]),
+			Change: application.Change(requestBody.Changes[1]),
 		},
 		{
-			Change: application.Change(requestBody[2]),
+			Change: application.Change(requestBody.Changes[2]),
 		},
 	}
 	suite.mock.On("Changes", mock.Anything, mock.Anything, mock.Anything).Return(resultChanges)
 
-	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/%d", suite.budgetId), bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/budget/%d", suite.budgetId), bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -363,7 +359,7 @@ func (suite *TestSuite) TestChanges200() {
 func (suite *TestSuite) TestChanges400() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -374,19 +370,19 @@ func (suite *TestSuite) TestChanges400() {
 
 func (suite *TestSuite) TestChanges422_1() {
 	require := require.New(suite.T())
-	requestBody := []model.ChangeRequest{}
+	requestBody := model.ChangesRequest{}
 	body, err := json.Marshal(requestBody)
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "",
+			Field:      "ChangesRequest.changes",
 			Constraint: "min=1",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/%d", suite.budgetId), bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/budget/%d", suite.budgetId), bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -400,12 +396,14 @@ func (suite *TestSuite) TestChanges422_1() {
 
 func (suite *TestSuite) TestChanges422_2() {
 	require := require.New(suite.T())
-	requestBody := []model.ChangeRequest{
-		{
-			ID:     uint(1),
-			Action: shared.Update,
-			Detail: map[string]any{
-				"name": "Test",
+	requestBody := model.ChangesRequest{
+		Changes: []model.ChangeRequest{
+			{
+				ID:     uint(1),
+				Action: shared.Update,
+				Detail: map[string]any{
+					"name": "Test",
+				},
 			},
 		},
 	}
@@ -413,14 +411,14 @@ func (suite *TestSuite) TestChanges422_2() {
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "section",
+			Field:      "ChangesRequest.changes[0].section",
 			Constraint: "required",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/%d", suite.budgetId), bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/budget/%d", suite.budgetId), bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -434,29 +432,31 @@ func (suite *TestSuite) TestChanges422_2() {
 
 func (suite *TestSuite) TestChanges500() {
 	require := require.New(suite.T())
-	requestBody := []model.ChangeRequest{
-		{
-			ID:      uint(1),
-			Section: domain.Main,
-			Action:  shared.Update,
-			Detail: map[string]any{
-				"name": "Test",
+	requestBody := model.ChangesRequest{
+		Changes: []model.ChangeRequest{
+			{
+				ID:      uint(1),
+				Section: domain.Main,
+				Action:  shared.Update,
+				Detail: map[string]any{
+					"name": "Test",
+				},
 			},
-		},
-		{
-			ID:      uint(1),
-			Section: domain.Available,
-			Action:  shared.Delete,
-			Detail: map[string]any{
-				"name": "Test",
+			{
+				ID:      uint(1),
+				Section: domain.Available,
+				Action:  shared.Delete,
+				Detail: map[string]any{
+					"name": "Test",
+				},
 			},
-		},
-		{
-			ID:      uint(1),
-			Section: domain.Bill,
-			Action:  shared.Delete,
-			Detail: map[string]any{
-				"description": "Test",
+			{
+				ID:      uint(1),
+				Section: domain.Bill,
+				Action:  shared.Delete,
+				Detail: map[string]any{
+					"description": "Test",
+				},
 			},
 		},
 	}
@@ -464,28 +464,30 @@ func (suite *TestSuite) TestChanges500() {
 	require.NoError(err)
 	resultChanges := []application.ChangeResult{
 		{
-			Change: application.Change(requestBody[0]),
+			Change: application.Change(requestBody.Changes[0]),
 			Err:    application.ErrIncompleteData,
 		},
 		{
-			Change: application.Change(requestBody[1]),
+			Change: application.Change(requestBody.Changes[1]),
 			Err:    convert.ErrValueIncompatibleType,
 		},
 		{
-			Change: application.Change(requestBody[2]),
+			Change: application.Change(requestBody.Changes[2]),
 			Err:    errors.New("error"),
 		},
 	}
-	changeResponses := []model.ChangeResponse{
-		model.NewChangeResponse(resultChanges[0].Change, "Incomplete data"),
-		model.NewChangeResponse(resultChanges[1].Change, "Incompatible data type"),
-		model.NewChangeResponse(resultChanges[2].Change, "Error processing change"),
+	responseBody := model.ChangesResponse{
+		Changes: []model.ChangeResponse{
+			model.NewChangeResponse(resultChanges[0].Change, "Incomplete data"),
+			model.NewChangeResponse(resultChanges[1].Change, "Incompatible data type"),
+			model.NewChangeResponse(resultChanges[2].Change, "Error processing change"),
+		},
 	}
-	expectedBody, err := json.Marshal(changeResponses)
+	expectedBody, err := json.Marshal(responseBody)
 	require.NoError(err)
 	suite.mock.On("Changes", mock.Anything, mock.Anything, mock.Anything).Return(resultChanges)
 
-	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/%d", suite.budgetId), bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPut, fmt.Sprintf("/budget/%d", suite.budgetId), bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -501,7 +503,7 @@ func (suite *TestSuite) TestDelete200() {
 	require := require.New(suite.T())
 	suite.mock.On("Delete", mock.Anything, suite.budgetId).Return(nil)
 
-	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -514,7 +516,7 @@ func (suite *TestSuite) TestDelete404() {
 	suite.mock.On("Delete", mock.Anything, suite.budgetId).Return(gorm.ErrRecordNotFound)
 	expectedErr := []byte("Budget ID not found")
 
-	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -530,7 +532,7 @@ func (suite *TestSuite) TestDelete500() {
 	suite.mock.On("Delete", mock.Anything, suite.budgetId).Return(gorm.ErrInvalidField)
 	expectedErr := []byte("Error deleting budget")
 
-	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/%d", suite.budgetId), nil)
+	request := httptest.NewRequest(fiber.MethodDelete, fmt.Sprintf("/budget/%d", suite.budgetId), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -539,66 +541,6 @@ func (suite *TestSuite) TestDelete500() {
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
 	require.Equal(expectedErr, resp)
-}
-
-func (suite *TestSuite) TestNewRoute() {
-	require := require.New(suite.T())
-	app := fiber.New()
-
-	NewRoute(app)
-
-	routes := app.GetRoutes()
-	require.Len(routes, 10)
-
-	route1 := routes[0]
-	require.Equal(fiber.MethodGet, route1.Method)
-	require.Equal("/budget/", route1.Path)
-	require.Len(route1.Handlers, 1)
-
-	route2 := routes[1]
-	require.Equal(fiber.MethodGet, route2.Method)
-	require.Equal("/budget/:id<min(1)>", route2.Path)
-	require.Len(route2.Handlers, 1)
-
-	route3 := routes[2]
-	require.Equal(fiber.MethodHead, route3.Method)
-	require.Equal("/budget/", route3.Path)
-	require.Len(route3.Handlers, 1)
-
-	route4 := routes[3]
-	require.Equal(fiber.MethodHead, route4.Method)
-	require.Equal("/budget/:id<min(1)>", route4.Path)
-	require.Len(route4.Handlers, 1)
-
-	route5 := routes[4]
-	require.Equal(fiber.MethodPost, route5.Method)
-	require.Equal("/budget/", route5.Path)
-	require.Len(route5.Handlers, 1)
-
-	route6 := routes[5]
-	require.Equal(fiber.MethodPost, route6.Method)
-	require.Equal("/budget/available/", route6.Path)
-	require.Len(route6.Handlers, 1)
-
-	route7 := routes[6]
-	require.Equal(fiber.MethodPost, route7.Method)
-	require.Equal("/budget/bill/", route7.Path)
-	require.Len(route7.Handlers, 1)
-
-	route8 := routes[7]
-	require.Equal(fiber.MethodPut, route8.Method)
-	require.Equal("/budget/:id<min(1)>", route8.Path)
-	require.Len(route8.Handlers, 1)
-
-	route9 := routes[8]
-	require.Equal(fiber.MethodPut, route9.Method)
-	require.Equal("/budget/bill/transaction", route9.Path)
-	require.Len(route9.Handlers, 1)
-
-	route10 := routes[9]
-	require.Equal(fiber.MethodDelete, route10.Method)
-	require.Equal("/budget/:id<min(1)>", route10.Path)
-	require.Len(route10.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

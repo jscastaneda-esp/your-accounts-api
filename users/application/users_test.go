@@ -5,11 +5,12 @@ import (
 	"errors"
 	"testing"
 	"time"
-	"your-accounts-api/shared/domain/jwt"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
+	mocks_domain "your-accounts-api/mocks/users/domain"
+	"your-accounts-api/shared/infrastructure/config"
 	"your-accounts-api/users/domain"
-	"your-accounts-api/users/domain/mocks"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,12 +21,13 @@ type TestSuite struct {
 	suite.Suite
 	email                  string
 	token                  string
-	mockTransactionManager *mocks_shared.TransactionManager
-	mockUserRepo           *mocks.UserRepository
-	mockUserTokenRepo      *mocks.UserTokenRepository
+	mockTransactionManager *mocks_persistent.MockTransactionManager
+	mockUserRepo           *mocks_domain.MockUserRepository
+	mockUserTokenRepo      *mocks_domain.MockUserTokenRepository
 	app                    IUserApp
 	ctx                    context.Context
-	originalJwtGenerate    func(id uint, email string) (string, time.Time, error)
+	originalJwtGenerate    func(id uint) (string, time.Time, error)
+	originalJwtSecret      []byte
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -33,13 +35,15 @@ func (suite *TestSuite) SetupSuite() {
 	suite.token = "<token>"
 	suite.ctx = context.Background()
 	suite.originalJwtGenerate = jwtGenerate
+	suite.originalJwtSecret = config.JWT_SECRET
 }
 
 func (suite *TestSuite) SetupTest() {
 	jwtGenerate = suite.originalJwtGenerate
-	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
-	suite.mockUserRepo = mocks.NewUserRepository(suite.T())
-	suite.mockUserTokenRepo = mocks.NewUserTokenRepository(suite.T())
+	config.JWT_SECRET = suite.originalJwtSecret
+	suite.mockTransactionManager = mocks_persistent.NewMockTransactionManager(suite.T())
+	suite.mockUserRepo = mocks_domain.NewMockUserRepository(suite.T())
+	suite.mockUserTokenRepo = mocks_domain.NewMockUserTokenRepository(suite.T())
 	suite.app = NewUserApp(suite.mockTransactionManager, suite.mockUserRepo, suite.mockUserTokenRepo)
 }
 
@@ -101,14 +105,32 @@ func (suite *TestSuite) TestCreateErrorCreate() {
 	require.Zero(res)
 }
 
-func (suite *TestSuite) TestLoginSuccess() {
+func (suite *TestSuite) TestLoginSuccessOri() {
 	require := require.New(suite.T())
-	userExpected := &domain.User{
+	userExpected := domain.User{
+		ID:    999,
+		Email: suite.email,
+	}
+	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
+		Email: suite.email,
+	}).Return(userExpected, nil)
+	suite.mockUserTokenRepo.On("Save", suite.ctx, mock.Anything).Return(uint(0), nil)
+
+	token, expires, err := suite.app.Login(suite.ctx, suite.email)
+
+	require.NoError(err)
+	require.NotEmpty(token)
+	require.NotNil(expires)
+}
+
+func (suite *TestSuite) TestLoginSuccessMock() {
+	require := require.New(suite.T())
+	userExpected := domain.User{
 		ID:    999,
 		Email: suite.email,
 	}
 	expiresAt := time.Now().Add(1 * time.Hour)
-	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
+	jwtGenerate = func(id uint) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
@@ -128,7 +150,7 @@ func (suite *TestSuite) TestLoginErrorFind() {
 	errExpected := errors.New("Not exists")
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
 		Email: suite.email,
-	}).Return(nil, errExpected)
+	}).Return(domain.User{}, errExpected)
 
 	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
@@ -137,14 +159,14 @@ func (suite *TestSuite) TestLoginErrorFind() {
 	require.Empty(expires)
 }
 
-func (suite *TestSuite) TestLoginErrorJWTGenerate() {
+func (suite *TestSuite) TestLoginErrorJWTGenerateMock() {
 	require := require.New(suite.T())
-	userExpected := &domain.User{
+	userExpected := domain.User{
 		ID:    999,
 		Email: suite.email,
 	}
-	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
-		return "", time.Time{}, jwt.ErrInvalidToken
+	jwtGenerate = func(id uint) (string, time.Time, error) {
+		return "", time.Time{}, jwt.ErrInvalidKey
 	}
 	suite.mockUserRepo.On("SearchByExample", suite.ctx, domain.User{
 		Email: suite.email,
@@ -152,19 +174,19 @@ func (suite *TestSuite) TestLoginErrorJWTGenerate() {
 
 	token, expires, err := suite.app.Login(suite.ctx, suite.email)
 
-	require.EqualError(jwt.ErrInvalidToken, err.Error())
+	require.EqualError(jwt.ErrInvalidKey, err.Error())
 	require.Empty(token)
 	require.Empty(expires)
 }
 
 func (suite *TestSuite) TestLoginErrorCreateUserToken() {
 	require := require.New(suite.T())
-	userExpected := &domain.User{
+	userExpected := domain.User{
 		ID:    999,
 		Email: suite.email,
 	}
 	expiresAt := time.Now().Add(1 * time.Hour)
-	jwtGenerate = func(id uint, email string) (string, time.Time, error) {
+	jwtGenerate = func(id uint) (string, time.Time, error) {
 		return suite.token, expiresAt, nil
 	}
 	errExpected := errors.New("Error constraint")

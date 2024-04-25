@@ -9,7 +9,6 @@ import (
 	"your-accounts-api/shared/domain/persistent"
 )
 
-//go:generate mockery --name IBudgetAvailableApp --filename budget-available-app.go
 type IBudgetAvailableApp interface {
 	Create(ctx context.Context, name string, budgetId uint) (uint, error)
 }

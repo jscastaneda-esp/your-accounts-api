@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"testing"
 	"time"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 	"your-accounts-api/shared/domain/test_utils"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -27,12 +27,11 @@ type TestSuite struct {
 	code        domain.CodeLog
 	resourceId  uint
 	mock        sqlmock.Sqlmock
-	mockTX      *mocks_shared.Transaction
+	mockTX      *mocks_persistent.MockTransaction
 	repository  domain.LogRepository
 }
 
 func (suite *TestSuite) SetupSuite() {
-
 	suite.description = "Test"
 	suite.detail = map[string]any{
 		"test": "test",
@@ -61,7 +60,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTX = mocks_shared.NewTransaction(suite.T())
+	suite.mockTX = mocks_persistent.NewMockTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {

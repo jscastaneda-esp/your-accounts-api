@@ -31,11 +31,7 @@ type controller struct {
 //	@Failure		500						{string}	string
 //	@Router			/api/v1/budget/bill/	[post]
 func (ctrl *controller) create(c *fiber.Ctx) error {
-	request := new(model.CreateBillRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.CreateBillRequest)
 	id, err := ctrl.app.Create(c.UserContext(), request.Description, request.Category, request.BudgetId)
 	if err != nil {
 		log.Error("Error creating bill:", err)
@@ -61,11 +57,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		500								{string}	string
 //	@Router			/api/v1/budget/bill/transaction	[put]
 func (ctrl *controller) createTransaction(c *fiber.Ctx) error {
-	request := new(model.CreateBillTransactionRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.CreateBillTransactionRequest)
 	err := ctrl.app.CreateTransaction(c.UserContext(), request.Description, request.Amount, request.BillId)
 	if err != nil {
 		log.Error("Error creating bill transaction:", err)
@@ -79,6 +71,6 @@ func NewRoute(router fiber.Router) {
 	controller := &controller{injection.BudgetBillApp}
 
 	group := router.Group("/bill")
-	group.Post("/", controller.create)
-	group.Put("/transaction", controller.createTransaction)
+	group.Post("/", validation.RequestBodyValid(model.CreateBillRequest{}), controller.create)
+	group.Put("/transaction", validation.RequestBodyValid(model.CreateBillTransactionRequest{}), controller.createTransaction)
 }

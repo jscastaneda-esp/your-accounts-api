@@ -30,16 +30,16 @@ func (r *gormRepository) Save(ctx context.Context, user domain.User) (uint, erro
 	return model.ID, nil
 }
 
-func (r *gormRepository) SearchByExample(ctx context.Context, example domain.User) (*domain.User, error) {
-	where := &entity.User{
+func (r *gormRepository) SearchByExample(ctx context.Context, example domain.User) (domain.User, error) {
+	where := entity.User{
 		Email: example.Email,
 	}
 	model := new(entity.User)
 	if err := r.db.WithContext(ctx).Where(where).First(model).Error; err != nil {
-		return nil, err
+		return domain.User{}, err
 	}
 
-	return &domain.User{
+	return domain.User{
 		ID:    model.ID,
 		Email: model.Email,
 	}, nil
@@ -47,7 +47,7 @@ func (r *gormRepository) SearchByExample(ctx context.Context, example domain.Use
 
 func (r *gormRepository) ExistsByExample(ctx context.Context, example domain.User) (bool, error) {
 	var count int64
-	where := new(entity.User)
+	where := entity.User{}
 	if example.Email != "" {
 		where.Email = example.Email
 	}

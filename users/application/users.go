@@ -5,19 +5,19 @@ import (
 	"errors"
 	"strings"
 	"time"
-	"your-accounts-api/shared/domain/jwt"
+	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
+	"your-accounts-api/shared/infrastructure/config"
 	"your-accounts-api/users/domain"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 	ErrTokenRefreshed    = errors.New("token already refreshed")
-
-	jwtGenerate = jwt.JwtGenerate
 )
 
-//go:generate mockery --name IUserApp --filename user-app.go
 type IUserApp interface {
 	Create(ctx context.Context, email string) (uint, error)
 	Login(ctx context.Context, email string) (string, time.Time, error)
@@ -57,7 +57,7 @@ func (app *userApp) Login(ctx context.Context, email string) (string, time.Time,
 		return "", time.Time{}, err
 	}
 
-	token, expiresAt, err := jwtGenerate(user.ID, strings.ToLower(user.Email))
+	token, expiresAt, err := jwtGenerate(user.ID)
 	if err != nil {
 		return "", time.Time{}, err
 	}
@@ -86,4 +86,22 @@ func (app *userApp) DeleteExpired(ctx context.Context) error {
 
 func NewUserApp(tm persistent.TransactionManager, userRepo domain.UserRepository, userTokenRepo domain.UserTokenRepository) IUserApp {
 	return &userApp{tm, userRepo, userTokenRepo}
+}
+
+var jwtGenerate = func(id uint) (string, time.Time, error) {
+	expiresAt := time.Now().Add(720 * time.Hour)
+	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &shared.JwtUserClaims{
+		ID: id,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	})
+
+	token, err := t.SignedString(config.JWT_SECRET)
+	if err != nil {
+		return "", time.Time{}, err
+	}
+
+	return token, expiresAt, nil
 }

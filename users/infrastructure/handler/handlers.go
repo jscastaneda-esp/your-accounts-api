@@ -33,11 +33,7 @@ type controller struct {
 //	@Failure		500		{string}	string
 //	@Router			/user	[post]
 func (ctrl *controller) create(c *fiber.Ctx) error {
-	request := new(model.CreateRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.CreateRequest)
 	id, err := ctrl.app.Create(c.UserContext(), request.Email)
 	if err != nil {
 		log.Error("Error sign up user:", err)
@@ -66,11 +62,7 @@ func (ctrl *controller) create(c *fiber.Ctx) error {
 //	@Failure		500		{string}	string
 //	@Router			/login	[post]
 func (ctrl *controller) login(c *fiber.Ctx) error {
-	request := new(model.LoginRequest)
-	if ok := validation.Validate(c, request); !ok {
-		return nil
-	}
-
+	request := c.Locals(validation.RequestBody).(*model.LoginRequest)
 	token, expiresAt, err := ctrl.app.Login(c.UserContext(), request.Email)
 	if err != nil {
 		log.Error("Error authenticate user:", err)
@@ -87,6 +79,6 @@ func (ctrl *controller) login(c *fiber.Ctx) error {
 func NewRoute(router fiber.Router) {
 	controller := &controller{injection.UserApp}
 
-	router.Post("/user", controller.create)
-	router.Post("/login", controller.login)
+	router.Post("/user", validation.RequestBodyValid(model.CreateRequest{}), controller.create)
+	router.Post("/login", validation.RequestBodyValid(model.LoginRequest{}), controller.login)
 }

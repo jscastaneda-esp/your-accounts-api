@@ -15,7 +15,6 @@ type Log struct {
 	CreatedAt   time.Time
 }
 
-//go:generate mockery --name LogRepository --filename log-repository.go
 type LogRepository interface {
 	persistent.TransactionRepository[LogRepository]
 	persistent.SaveRepository[Log]
