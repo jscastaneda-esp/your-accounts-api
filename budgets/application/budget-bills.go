@@ -9,7 +9,6 @@ import (
 	"your-accounts-api/shared/domain/persistent"
 )
 
-//go:generate mockery --name IBudgetBillApp --filename budget-bill-app.go
 type IBudgetBillApp interface {
 	Create(ctx context.Context, description string, category domain.BudgetBillCategory, budgetId uint) (uint, error)
 	CreateTransaction(ctx context.Context, description string, amount float64, billId uint) error
@@ -66,7 +65,7 @@ func (app *budgetBillApp) CreateTransaction(ctx context.Context, description str
 		payment := *bill.Payment + amount
 		bill.Payment = &payment
 		budgetBillRepo := app.budgetBillRepo.WithTransaction(tx)
-		_, err = budgetBillRepo.Save(ctx, *bill)
+		_, err = budgetBillRepo.Save(ctx, bill)
 		return err
 	})
 }

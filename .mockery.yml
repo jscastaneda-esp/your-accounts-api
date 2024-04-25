@@ -1,0 +1,33 @@
+with-expecter: True
+dir: mocks/{{ replaceAll .InterfaceDirRelative "internal" "internal_" }} 
+mockname: "Mock{{.InterfaceName}}"
+filename: "mock_{{.InterfaceName}}.go"
+outpkg: "mocks_{{.PackageName}}"
+packages:
+  your-accounts-api/budgets/application:
+    interfaces:
+      IBudgetApp:
+      IBudgetBillApp:
+      IBudgetAvailableApp:
+  your-accounts-api/budgets/domain:
+    interfaces:
+      BudgetRepository:
+      BudgetBillRepository:
+      BudgetAvailableRepository:
+  your-accounts-api/users/application:
+    interfaces:
+      IUserApp:
+  your-accounts-api/users/domain:
+    interfaces:
+      UserRepository:
+      UserTokenRepository:
+  your-accounts-api/shared/application:
+    interfaces:
+      ILogApp:
+  your-accounts-api/shared/domain:
+    interfaces:
+      LogRepository:
+  your-accounts-api/shared/domain/persistent:
+    interfaces:
+      Transaction:
+      TransactionManager:

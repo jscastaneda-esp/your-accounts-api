@@ -50,7 +50,7 @@ func (ctrl *controller) readLogs(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "Error reading logs by resource and code")
 	}
 
-	response := make([]*model.ReadLogsResponse, 0)
+	response := make([]model.ReadLogsResponse, 0)
 	for _, logItem := range logs {
 		response = append(response, model.NewReadLogsResponse(logItem))
 	}

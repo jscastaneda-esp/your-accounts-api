@@ -6,13 +6,14 @@ import (
 	"io"
 	"net/http/httptest"
 	"testing"
-	"your-accounts-api/budgets/application/mocks"
 	"your-accounts-api/budgets/infrastructure/model"
-	"your-accounts-api/shared/domain/jwt"
-	"your-accounts-api/shared/domain/validation"
+	mocks_application "your-accounts-api/mocks/budgets/application"
+	"your-accounts-api/shared/domain"
+	"your-accounts-api/shared/infrastructure/injection"
+	"your-accounts-api/shared/infrastructure/validation"
 
 	"github.com/gofiber/fiber/v2"
-	go_jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -24,7 +25,7 @@ type TestSuite struct {
 	name     string
 	budgetId uint
 	app      *fiber.App
-	mock     *mocks.IBudgetAvailableApp
+	mock     *mocks_application.MockIBudgetAvailableApp
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -33,13 +34,11 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mock = mocks.NewIBudgetAvailableApp(suite.T())
-	ctrl := &controller{
-		app: suite.mock,
-	}
+	suite.mock = mocks_application.NewMockIBudgetAvailableApp(suite.T())
+	injection.BudgetAvailableApp = suite.mock
 
-	token := &go_jwt.Token{
-		Claims: &jwt.JwtUserClaims{
+	token := &jwt.Token{
+		Claims: &domain.JwtUserClaims{
 			ID: 1,
 		},
 	}
@@ -49,7 +48,7 @@ func (suite *TestSuite) SetupTest() {
 		c.Locals("user", token)
 		return c.Next()
 	})
-	suite.app.Post("/", ctrl.create)
+	NewRoute(suite.app)
 }
 
 func (suite *TestSuite) TestCreate201() {
@@ -64,7 +63,7 @@ func (suite *TestSuite) TestCreate201() {
 	expectedBody, err := json.Marshal(model.NewCreateResponse(uint(1)))
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/available/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -79,7 +78,7 @@ func (suite *TestSuite) TestCreate201() {
 func (suite *TestSuite) TestCreate400() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", nil)
+	request := httptest.NewRequest(fiber.MethodPost, "/available/", nil)
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -98,14 +97,14 @@ func (suite *TestSuite) TestCreate422() {
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "name",
+			Field:      "CreateAvailableRequest.name",
 			Constraint: "max=40",
 		},
 	}
 	expectedBody, err := json.Marshal(validationErrors)
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/available/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
 	response, err := suite.app.Test(request)
 
@@ -128,9 +127,9 @@ func (suite *TestSuite) TestCreate500() {
 	suite.mock.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(uint(0), gorm.ErrInvalidField)
 	expectedErr := []byte("Error creating available")
 
-	request := httptest.NewRequest(fiber.MethodPost, "/", bytes.NewReader(body))
+	request := httptest.NewRequest(fiber.MethodPost, "/available/", bytes.NewReader(body))
 	request.Header.Set(fiber.HeaderContentType, fiber.MIMEApplicationJSON)
-	response, err := suite.app.Test(request, 6000000)
+	response, err := suite.app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -138,21 +137,6 @@ func (suite *TestSuite) TestCreate500() {
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
 	require.Equal(expectedErr, resp)
-}
-
-func (suite *TestSuite) TestNewRoute() {
-	require := require.New(suite.T())
-	app := fiber.New()
-
-	NewRoute(app)
-
-	routes := app.GetRoutes()
-	require.Len(routes, 1)
-
-	route1 := routes[0]
-	require.Equal(fiber.MethodPost, route1.Method)
-	require.Equal("/available/", route1.Path)
-	require.Len(route1.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

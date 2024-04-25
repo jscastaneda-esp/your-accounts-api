@@ -10,7 +10,6 @@ type User struct {
 	Email string
 }
 
-//go:generate mockery --name UserRepository --filename user-repository.go
 type UserRepository interface {
 	persistent.TransactionRepository[UserRepository]
 	persistent.SaveRepository[User]

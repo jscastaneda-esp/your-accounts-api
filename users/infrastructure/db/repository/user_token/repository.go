@@ -32,17 +32,17 @@ func (r *gormRepository) Save(ctx context.Context, userToken domain.UserToken) (
 	return model.ID, nil
 }
 
-func (r *gormRepository) SearchByExample(ctx context.Context, example domain.UserToken) (*domain.UserToken, error) {
-	where := &entity.UserToken{
+func (r *gormRepository) SearchByExample(ctx context.Context, example domain.UserToken) (domain.UserToken, error) {
+	where := entity.UserToken{
 		Token:  example.Token,
 		UserId: example.UserId,
 	}
 	model := new(entity.UserToken)
 	if err := r.db.WithContext(ctx).Where(where).First(model).Error; err != nil {
-		return nil, err
+		return domain.UserToken{}, err
 	}
 
-	return &domain.UserToken{
+	return domain.UserToken{
 		ID:        model.ID,
 		Token:     model.Token,
 		UserId:    model.UserId,
@@ -51,7 +51,7 @@ func (r *gormRepository) SearchByExample(ctx context.Context, example domain.Use
 }
 
 func (r *gormRepository) DeleteByExpiresAtGreaterThanNow(ctx context.Context) error {
-	if err := r.db.WithContext(ctx).Where("expires_at < NOW()").Delete(&entity.UserToken{}).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("expires_at < NOW()").Delete(entity.UserToken{}).Error; err != nil {
 		return err
 	}
 

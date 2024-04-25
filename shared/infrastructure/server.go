@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -88,12 +89,15 @@ Response: ${%s}
 			EnableStackTrace: true,
 		}))
 		app.Use(requestid.New())
+		app.Use(healthcheck.New(healthcheck.Config{
+			LivenessEndpoint:  "/",
+			ReadinessEndpoint: "/ready",
+		}))
 	}
 
 	// Routes
 	{
 		//# Root
-		app.Get("/", healthCheck)
 		app.Get("/swagger/*", swagger.HandlerDefault)
 
 		// # Additional
@@ -121,19 +125,6 @@ Response: ${%s}
 	// Listening server
 	log.Fatal(app.Listen(":" + config.PORT))
 	return nil
-}
-
-// HealckCheck godoc
-//
-//	@Summary		Show the status of server
-//	@Description	get the status of server
-//	@Tags			main
-//	@Produce		plain
-//	@Success		200	{string}	string	"Status available"
-//	@Failure		500
-//	@Router			/ [get]
-func healthCheck(c *fiber.Ctx) error {
-	return c.SendString("Server is up and running")
 }
 
 func NewServer(testing bool) *Server {

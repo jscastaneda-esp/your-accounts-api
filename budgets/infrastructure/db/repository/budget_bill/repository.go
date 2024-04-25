@@ -19,13 +19,13 @@ func (r *gormRepository) WithTransaction(tx persistent.Transaction) domain.Budge
 	return db.DefaultWithTransaction[domain.BudgetBillRepository](tx, NewRepository, r)
 }
 
-func (r *gormRepository) Search(ctx context.Context, id uint) (*domain.BudgetBill, error) {
+func (r *gormRepository) Search(ctx context.Context, id uint) (domain.BudgetBill, error) {
 	model := new(entity.BudgetBill)
 	if err := r.db.WithContext(ctx).First(model, id).Error; err != nil {
-		return nil, err
+		return domain.BudgetBill{}, err
 	}
 
-	return &domain.BudgetBill{
+	return domain.BudgetBill{
 		ID:          &model.ID,
 		Description: &model.Description,
 		Amount:      &model.Amount,
@@ -83,7 +83,7 @@ func (r *gormRepository) SaveAll(ctx context.Context, bills []domain.BudgetBill)
 		return nil
 	}
 
-	models := []*entity.BudgetBill{}
+	models := []entity.BudgetBill{}
 	for _, bill := range bills {
 		model := new(entity.BudgetBill)
 		if bill.ID != nil {
@@ -118,10 +118,10 @@ func (r *gormRepository) SaveAll(ctx context.Context, bills []domain.BudgetBill)
 			model.Category = *bill.Category
 		}
 
-		models = append(models, model)
+		models = append(models, *model)
 	}
 
-	if err := r.db.WithContext(ctx).Save(models).Error; err != nil {
+	if err := r.db.WithContext(ctx).Save(&models).Error; err != nil {
 		return err
 	}
 

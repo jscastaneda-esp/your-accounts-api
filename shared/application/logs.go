@@ -6,7 +6,6 @@ import (
 	"your-accounts-api/shared/domain/persistent"
 )
 
-//go:generate mockery --name ILogApp --filename log-app.go
 type ILogApp interface {
 	Create(ctx context.Context, description string, code domain.CodeLog, resourceId uint, detail map[string]any, tx persistent.Transaction) error
 	FindByProject(ctx context.Context, code domain.CodeLog, resourceId uint) ([]domain.Log, error)

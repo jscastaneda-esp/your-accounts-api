@@ -7,9 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"your-accounts-api/shared/domain/validation"
+	mocks_application "your-accounts-api/mocks/users/application"
+	"your-accounts-api/shared/infrastructure/injection"
+	"your-accounts-api/shared/infrastructure/validation"
 	"your-accounts-api/users/application"
-	"your-accounts-api/users/application/mocks"
 	"your-accounts-api/users/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,7 +25,7 @@ type TestSuite struct {
 	email string
 	token string
 	app   *fiber.App
-	mock  *mocks.IUserApp
+	mock  *mocks_application.MockIUserApp
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -33,14 +34,11 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mock = mocks.NewIUserApp(suite.T())
-	ctrl := &controller{
-		app: suite.mock,
-	}
+	suite.mock = mocks_application.NewMockIUserApp(suite.T())
 
+	injection.UserApp = suite.mock
 	suite.app = fiber.New()
-	suite.app.Post("/user", ctrl.create)
-	suite.app.Post("/login", ctrl.login)
+	NewRoute(suite.app)
 }
 
 func (suite *TestSuite) TestCreate201() {
@@ -109,7 +107,7 @@ func (suite *TestSuite) TestCreate422() {
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "email",
+			Field:      "CreateRequest.email",
 			Constraint: "email",
 		},
 	}
@@ -223,7 +221,7 @@ func (suite *TestSuite) TestLogin422() {
 	require.NoError(err)
 	validationErrors := []*validation.ErrorResponse{
 		{
-			Field:      "email",
+			Field:      "LoginRequest.CreateRequest.email",
 			Constraint: "email",
 		},
 	}
@@ -264,26 +262,6 @@ func (suite *TestSuite) TestLogin500() {
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
 	require.Equal(expectedErr, resp)
-}
-
-func (suite *TestSuite) TestNewRoute() {
-	require := require.New(suite.T())
-	app := fiber.New()
-
-	NewRoute(app)
-
-	routes := app.GetRoutes()
-	require.Len(routes, 2)
-
-	route1 := routes[0]
-	require.Equal(fiber.MethodPost, route1.Method)
-	require.Equal("/user", route1.Path)
-	require.Len(route1.Handlers, 1)
-
-	route2 := routes[1]
-	require.Equal(fiber.MethodPost, route2.Method)
-	require.Equal("/login", route2.Path)
-	require.Len(route2.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

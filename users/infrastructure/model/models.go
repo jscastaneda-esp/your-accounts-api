@@ -13,8 +13,8 @@ type CreateResponse struct {
 	model.IDResponse
 }
 
-func NewCreateResponse(id uint) *CreateResponse {
-	return &CreateResponse{
+func NewCreateResponse(id uint) CreateResponse {
+	return CreateResponse{
 		model.NewIDResponse(id),
 	}
 }
@@ -28,8 +28,8 @@ type LoginResponse struct {
 	ExpiresAt int64  `json:"expiresAt"`
 }
 
-func NewLoginResponse(token string, expiresAt time.Time) *LoginResponse {
-	return &LoginResponse{
+func NewLoginResponse(token string, expiresAt time.Time) LoginResponse {
+	return LoginResponse{
 		Token:     token,
 		ExpiresAt: expiresAt.UnixMilli(),
 	}

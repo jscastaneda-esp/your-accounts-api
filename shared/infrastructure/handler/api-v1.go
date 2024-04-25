@@ -2,7 +2,7 @@ package handler
 
 import (
 	budgets "your-accounts-api/budgets/infrastructure/handler"
-	"your-accounts-api/shared/domain/jwt"
+	"your-accounts-api/shared/domain"
 	"your-accounts-api/shared/infrastructure/config"
 	logs "your-accounts-api/shared/infrastructure/handler/logs"
 
@@ -21,7 +21,7 @@ func NewRoute(app fiber.Router) {
 	{
 		api.Use(jwtware.New(jwtware.Config{
 			SigningKey: jwtware.SigningKey{Key: []byte(config.JWT_SECRET)},
-			Claims:     new(jwt.JwtUserClaims),
+			Claims:     new(domain.JwtUserClaims),
 		}))
 	}
 

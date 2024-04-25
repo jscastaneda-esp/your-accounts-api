@@ -73,6 +73,23 @@ definitions:
       error:
         type: string
     type: object
+  model.ChangesRequest:
+    properties:
+      changes:
+        items:
+          $ref: '#/definitions/model.ChangeRequest'
+        minItems: 1
+        type: array
+    required:
+    - changes
+    type: object
+  model.ChangesResponse:
+    properties:
+      changes:
+        items:
+          $ref: '#/definitions/model.ChangeResponse'
+        type: array
+    type: object
   model.CreateAvailableRequest:
     properties:
       budgetId:
@@ -266,21 +283,6 @@ info:
   title: Your Accounts API
   version: "1.0"
 paths:
-  /:
-    get:
-      description: get the status of server
-      produces:
-      - text/plain
-      responses:
-        "200":
-          description: Status available
-          schema:
-            type: string
-        "500":
-          description: Internal Server Error
-      summary: Show the status of server
-      tags:
-      - main
   /api/v1/budget/:
     get:
       description: read budgets associated to an user
@@ -468,9 +470,7 @@ paths:
         name: request
         required: true
         schema:
-          items:
-            $ref: '#/definitions/model.ChangeRequest'
-          type: array
+          $ref: '#/definitions/model.ChangesRequest'
       produces:
       - application/json
       responses:
@@ -497,9 +497,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            items:
-              $ref: '#/definitions/model.ChangeResponse'
-            type: array
+            $ref: '#/definitions/model.ChangesResponse'
       summary: Receive changes in budget
       tags:
       - budget

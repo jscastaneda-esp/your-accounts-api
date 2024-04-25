@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 	"time"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain/test_utils"
 	"your-accounts-api/users/domain"
 
@@ -22,7 +22,7 @@ type TestSuite struct {
 	suite.Suite
 	email      string
 	mock       sqlmock.Sqlmock
-	mockTX     *mocks_shared.Transaction
+	mockTX     *mocks_persistent.MockTransaction
 	repository domain.UserRepository
 }
 
@@ -51,7 +51,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTX = mocks_shared.NewTransaction(suite.T())
+	suite.mockTX = mocks_persistent.NewMockTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -152,7 +152,7 @@ func (suite *TestSuite) TestSearchByExampleError() {
 	user, err := suite.repository.SearchByExample(context.Background(), example)
 
 	require.EqualError(gorm.ErrRecordNotFound, err.Error())
-	require.Nil(user)
+	require.Zero(user)
 }
 
 func (suite *TestSuite) TestExistsByExampleSuccessTrue() {

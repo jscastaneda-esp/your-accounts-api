@@ -11,7 +11,6 @@ type BudgetAvailable struct {
 	BudgetId *uint
 }
 
-//go:generate mockery --name BudgetAvailableRepository --filename budget-available-repository.go
 type BudgetAvailableRepository interface {
 	persistent.TransactionRepository[BudgetAvailableRepository]
 	persistent.SaveRepository[BudgetAvailable]

@@ -53,14 +53,14 @@ func (suite *TestSuite) TestListenSuccessCustomPort() {
 	config.PORT = "999"
 
 	app := server.Listen()
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
 
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
-	require.Equal([]byte("Server is up and running"), resp)
+	require.Equal([]byte("OK"), resp)
 }
 
 func (suite *TestSuite) TestListenSuccessDefaultRoutes() {
@@ -69,14 +69,14 @@ func (suite *TestSuite) TestListenSuccessDefaultRoutes() {
 	request := httptest.NewRequest(fiber.MethodGet, "/", nil)
 
 	app := server.Listen()
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
 
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
-	require.Equal([]byte("Server is up and running"), resp)
+	require.Equal([]byte("OK"), resp)
 }
 
 func (suite *TestSuite) TestListenSuccessCustomRouteGet() {
@@ -92,7 +92,7 @@ func (suite *TestSuite) TestListenSuccessCustomRouteGet() {
 	request := httptest.NewRequest(fiber.MethodGet, "/route-get", nil)
 
 	app := server.Listen()
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -115,7 +115,7 @@ func (suite *TestSuite) TestListenSuccessCustomRoutePost() {
 	request := httptest.NewRequest(fiber.MethodPost, "/route-post", nil)
 
 	app := server.Listen()
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -136,7 +136,7 @@ func (suite *TestSuite) TestListenSuccessCustomRouteRouter() {
 	request := httptest.NewRequest(fiber.MethodGet, "/router", nil)
 
 	app := server.Listen()
-	response, err := app.Test(request, 1)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 	"your-accounts-api/budgets/domain"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain/test_utils"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -26,7 +26,7 @@ type TestSuite struct {
 	month      uint8
 	userId     uint
 	mock       sqlmock.Sqlmock
-	mockTX     *mocks_shared.Transaction
+	mockTX     *mocks_persistent.MockTransaction
 	repository domain.BudgetRepository
 }
 
@@ -59,7 +59,7 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTX = mocks_shared.NewTransaction(suite.T())
+	suite.mockTX = mocks_persistent.NewMockTransaction(suite.T())
 }
 
 func (suite *TestSuite) TearDownTest() {
@@ -240,13 +240,13 @@ func (suite *TestSuite) TestSearchSuccess() {
 		},
 	}
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_availables" WHERE "budget_availables"."budget_id" = $1 ORDER BY budget_availables.created_at ASC`)).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_availables" WHERE "budget_availables"."budget_id" = $1 ORDER BY budget_availables.id ASC`)).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "name", "amount", "budget_id"}).
 			AddRow(budgetExpected.BudgetAvailables[0].ID, now, now, budgetExpected.BudgetAvailables[0].Name, budgetExpected.BudgetAvailables[0].Amount, budgetExpected.BudgetAvailables[0].BudgetId).
 			AddRow(budgetExpected.BudgetAvailables[1].ID, now, now, budgetExpected.BudgetAvailables[1].Name, budgetExpected.BudgetAvailables[1].Amount, budgetExpected.BudgetAvailables[1].BudgetId))
 	suite.mock.
-		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."budget_id" = $1 ORDER BY budget_bills.created_at ASC`)).
+		ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "budget_bills" WHERE "budget_bills"."budget_id" = $1 ORDER BY budget_bills.id ASC`)).
 		WithArgs(budgetExpected.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at", "description", "amount", "payment", "due_date", "complete", "budget_id", "category"}).
 			AddRow(budgetExpected.BudgetBills[0].ID, now, now, budgetExpected.BudgetBills[0].Description, budgetExpected.BudgetBills[0].Amount, budgetExpected.BudgetBills[0].Payment, budgetExpected.BudgetBills[0].DueDate, budgetExpected.BudgetBills[0].Complete, budgetExpected.BudgetAvailables[0].BudgetId, budgetExpected.BudgetBills[0].Category).
@@ -292,7 +292,7 @@ func (suite *TestSuite) TestSearchError() {
 	budget, err := suite.repository.Search(context.Background(), 999)
 
 	require.EqualError(gorm.ErrInvalidField, err.Error())
-	require.Nil(budget)
+	require.Zero(budget)
 }
 
 func (suite *TestSuite) TestSearchAllByExampleSuccess() {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"your-accounts-api/budgets/domain/mocks"
-	mocks_logs "your-accounts-api/shared/application/mocks"
+	mocks_domain "your-accounts-api/mocks/budgets/domain"
+	mocks_application "your-accounts-api/mocks/shared/application"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -18,9 +18,9 @@ import (
 type TestBudgetAvailableSuite struct {
 	suite.Suite
 	budgetId                uint
-	mockTransactionManager  *mocks_shared.TransactionManager
-	mockBudgetAvailableRepo *mocks.BudgetAvailableRepository
-	mockLogApp              *mocks_logs.ILogApp
+	mockTransactionManager  *mocks_persistent.MockTransactionManager
+	mockBudgetAvailableRepo *mocks_domain.MockBudgetAvailableRepository
+	mockLogApp              *mocks_application.MockILogApp
 	app                     IBudgetAvailableApp
 	ctx                     context.Context
 }
@@ -31,9 +31,9 @@ func (suite *TestBudgetAvailableSuite) SetupSuite() {
 }
 
 func (suite *TestBudgetAvailableSuite) SetupTest() {
-	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
-	suite.mockBudgetAvailableRepo = mocks.NewBudgetAvailableRepository(suite.T())
-	suite.mockLogApp = mocks_logs.NewILogApp(suite.T())
+	suite.mockTransactionManager = mocks_persistent.NewMockTransactionManager(suite.T())
+	suite.mockBudgetAvailableRepo = mocks_domain.NewMockBudgetAvailableRepository(suite.T())
+	suite.mockLogApp = mocks_application.NewMockILogApp(suite.T())
 	suite.app = NewBudgetAvailableApp(suite.mockTransactionManager, suite.mockBudgetAvailableRepo, suite.mockLogApp)
 }
 

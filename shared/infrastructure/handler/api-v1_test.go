@@ -98,10 +98,10 @@ func (suite *TestSuite) TestNewRouteSuccessRequest() {
 	request := httptest.NewRequest(fiber.MethodGet, "/api/v1/project", nil)
 	request.Header.Set(fiber.HeaderAuthorization, fmt.Sprintf("Bearer %s", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.UWfppjZwV_hQ4PU5O9ds7s9jxK4l6u6PDmAHkoVuFpg"))
 	app := fiber.New()
-	config.JWT_SECRET = "aSecret"
+	config.JWT_SECRET = []byte("aSecret")
 
 	NewRoute(app)
-	response, err := app.Test(request, 10)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -116,10 +116,10 @@ func (suite *TestSuite) TestNewRouteErrorUnauthorized() {
 	request := httptest.NewRequest(fiber.MethodGet, "/api/v1/budget", nil)
 	request.Header.Set(fiber.HeaderAuthorization, fmt.Sprintf("Bearer %s", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.UWfppjZwV_hQ4PU5O9ds7s9jxK4l6u6PDmAHkoVuFpg"))
 	app := fiber.New()
-	config.JWT_SECRET = "other"
+	config.JWT_SECRET = []byte("other")
 
 	NewRoute(app)
-	response, err := app.Test(request, 10)
+	response, err := app.Test(request)
 
 	require.NoError(err)
 	require.NotNil(response)
@@ -129,23 +129,6 @@ func (suite *TestSuite) TestNewRouteErrorUnauthorized() {
 	require.NoError(err)
 	require.Equal([]byte("Invalid or expired JWT"), resp)
 }
-
-// func (suite *TestSuite) TestNewRouteErrorBadRequest() {
-// 	require := require.New(suite.T())
-// 	request := httptest.NewRequest(fiber.MethodGet, "/api/v1", nil)
-// 	app := fiber.New()
-
-// 	NewRoute(app)
-// 	response, err := app.Test(request, 10000)
-
-// 	require.NoError(err)
-// 	require.NotNil(response)
-// 	require.Equal(fiber.StatusBadRequest, response.StatusCode)
-
-// 	resp, err := io.ReadAll(response.Body)
-// 	require.NoError(err)
-// 	require.Equal([]byte("Missing or malformed JWT"), resp)
-// }
 
 func TestTestSuite(t *testing.T) {
 	suite.Run(t, new(TestSuite))

@@ -7,8 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-	"your-accounts-api/shared/application/mocks"
+	mocks_application "your-accounts-api/mocks/shared/application"
 	"your-accounts-api/shared/domain"
+	"your-accounts-api/shared/infrastructure/injection"
 	"your-accounts-api/shared/infrastructure/model"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,7 +24,7 @@ type TestSuite struct {
 	code       domain.CodeLog
 	resourceId uint
 	app        *fiber.App
-	mock       *mocks.ILogApp
+	mock       *mocks_application.MockILogApp
 }
 
 func (suite *TestSuite) SetupSuite() {
@@ -32,13 +33,11 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mock = mocks.NewILogApp(suite.T())
-	ctrl := &controller{
-		app: suite.mock,
-	}
+	suite.mock = mocks_application.NewMockILogApp(suite.T())
+	injection.LogApp = suite.mock
 
 	suite.app = fiber.New()
-	suite.app.Get(fmt.Sprintf("/logs/:id<min(1)>/code/:code<regex(^(%s|%s)$)>", domain.Budget, domain.BudgetBill), ctrl.readLogs)
+	NewRoute(suite.app)
 }
 
 func (suite *TestSuite) TestReadLogs200() {
@@ -50,10 +49,10 @@ func (suite *TestSuite) TestReadLogs200() {
 		CreatedAt:   time.Now(),
 	}
 	suite.mock.On("FindByProject", mock.Anything, suite.code, suite.resourceId).Return([]domain.Log{result}, nil)
-	expectedBody, err := json.Marshal([]*model.ReadLogsResponse{model.NewReadLogsResponse(result)})
+	expectedBody, err := json.Marshal([]model.ReadLogsResponse{model.NewReadLogsResponse(result)})
 	require.NoError(err)
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/logs/%d/code/%s", suite.resourceId, suite.code), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/log/%d/code/%s", suite.resourceId, suite.code), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -78,7 +77,7 @@ func (suite *TestSuite) TestReadLogs404_1() {
 func (suite *TestSuite) TestReadLogs404_2() {
 	require := require.New(suite.T())
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/logs/%d/code/%s", suite.resourceId, ""), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/log/%d/code/%s", suite.resourceId, ""), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -91,7 +90,7 @@ func (suite *TestSuite) TestReadLogs500() {
 	suite.mock.On("FindByProject", mock.Anything, suite.code, suite.resourceId).Return(nil, gorm.ErrInvalidField)
 	expectedErr := []byte("Error reading logs by resource and code")
 
-	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/logs/%d/code/%s", suite.resourceId, suite.code), nil)
+	request := httptest.NewRequest(fiber.MethodGet, fmt.Sprintf("/log/%d/code/%s", suite.resourceId, suite.code), nil)
 	response, err := suite.app.Test(request)
 
 	require.NoError(err)
@@ -100,26 +99,6 @@ func (suite *TestSuite) TestReadLogs500() {
 	resp, err := io.ReadAll(response.Body)
 	require.NoError(err)
 	require.Equal(expectedErr, resp)
-}
-
-func (suite *TestSuite) TestNewRoute() {
-	require := require.New(suite.T())
-	app := fiber.New()
-
-	NewRoute(app)
-
-	routes := app.GetRoutes()
-	require.Len(routes, 2)
-
-	route1 := routes[0]
-	require.Equal(fiber.MethodGet, route1.Method)
-	require.Equal(fmt.Sprintf("/log/:id<min(1)>/code/:code<regex(^(%s|%s)$)>", domain.Budget, domain.BudgetBill), route1.Path)
-	require.Len(route1.Handlers, 1)
-
-	route2 := routes[1]
-	require.Equal(fiber.MethodHead, route2.Method)
-	require.Equal(fmt.Sprintf("/log/:id<min(1)>/code/:code<regex(^(%s|%s)$)>", domain.Budget, domain.BudgetBill), route2.Path)
-	require.Len(route2.Handlers, 1)
 }
 
 func TestTestSuite(t *testing.T) {

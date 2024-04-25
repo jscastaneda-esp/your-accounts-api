@@ -5,11 +5,11 @@ import (
 	"errors"
 	"testing"
 	"your-accounts-api/budgets/domain"
-	"your-accounts-api/budgets/domain/mocks"
-	mocks_logs "your-accounts-api/shared/application/mocks"
+	mocks_domain "your-accounts-api/mocks/budgets/domain"
+	mocks_application "your-accounts-api/mocks/shared/application"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	shared "your-accounts-api/shared/domain"
 	"your-accounts-api/shared/domain/persistent"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 	"your-accounts-api/shared/domain/utils/convert"
 
 	"github.com/stretchr/testify/mock"
@@ -22,11 +22,11 @@ type TestBudgetSuite struct {
 	suite.Suite
 	budgetId                uint
 	userId                  uint
-	mockTransactionManager  *mocks_shared.TransactionManager
-	mockBudgetRepo          *mocks.BudgetRepository
-	mockBudgetAvailableRepo *mocks.BudgetAvailableRepository
-	mockBudgetBillRepo      *mocks.BudgetBillRepository
-	mockLogApp              *mocks_logs.ILogApp
+	mockTransactionManager  *mocks_persistent.MockTransactionManager
+	mockBudgetRepo          *mocks_domain.MockBudgetRepository
+	mockBudgetAvailableRepo *mocks_domain.MockBudgetAvailableRepository
+	mockBudgetBillRepo      *mocks_domain.MockBudgetBillRepository
+	mockLogApp              *mocks_application.MockILogApp
 	app                     IBudgetApp
 	ctx                     context.Context
 }
@@ -38,11 +38,11 @@ func (suite *TestBudgetSuite) SetupSuite() {
 }
 
 func (suite *TestBudgetSuite) SetupTest() {
-	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
-	suite.mockBudgetRepo = mocks.NewBudgetRepository(suite.T())
-	suite.mockBudgetAvailableRepo = mocks.NewBudgetAvailableRepository(suite.T())
-	suite.mockBudgetBillRepo = mocks.NewBudgetBillRepository(suite.T())
-	suite.mockLogApp = mocks_logs.NewILogApp(suite.T())
+	suite.mockTransactionManager = mocks_persistent.NewMockTransactionManager(suite.T())
+	suite.mockBudgetRepo = mocks_domain.NewMockBudgetRepository(suite.T())
+	suite.mockBudgetAvailableRepo = mocks_domain.NewMockBudgetAvailableRepository(suite.T())
+	suite.mockBudgetBillRepo = mocks_domain.NewMockBudgetBillRepository(suite.T())
+	suite.mockLogApp = mocks_application.NewMockILogApp(suite.T())
 	suite.app = NewBudgetApp(suite.mockTransactionManager, suite.mockBudgetRepo, suite.mockBudgetAvailableRepo, suite.mockBudgetBillRepo, suite.mockLogApp)
 }
 
@@ -110,7 +110,7 @@ func (suite *TestBudgetSuite) TestCloneSuccess() {
 	year := uint16(1)
 	month := uint8(1)
 	category := domain.Education
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -154,7 +154,7 @@ func (suite *TestBudgetSuite) TestCloneErrorSearch() {
 	require := require.New(suite.T())
 	baseId := uint(999)
 	errExpected := errors.New("Error find budget by id")
-	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(nil, errExpected)
+	suite.mockBudgetRepo.On("Search", suite.ctx, baseId).Return(domain.Budget{}, errExpected)
 
 	res, err := suite.app.Clone(suite.ctx, suite.userId, baseId)
 
@@ -168,7 +168,7 @@ func (suite *TestBudgetSuite) TestCloneErrorSaveAvailables() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -197,7 +197,7 @@ func (suite *TestBudgetSuite) TestCloneErrorSaveBills() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -228,7 +228,7 @@ func (suite *TestBudgetSuite) TestCloneErrorCreateLog() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -260,7 +260,7 @@ func (suite *TestBudgetSuite) TestCloneErrorSave() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -287,7 +287,7 @@ func (suite *TestBudgetSuite) TestCloneErrorTransaction() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &baseId,
 		Name:   &name,
 		Year:   &year,
@@ -312,7 +312,7 @@ func (suite *TestBudgetSuite) TestFindByIdSuccess() {
 	ids := []uint{1, 2}
 	names := []string{"Test 1", "Test 2"}
 	categories := []domain.BudgetBillCategory{domain.Education, domain.Financial}
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &suite.budgetId,
 		Name:   &name,
 		Year:   &year,
@@ -355,7 +355,7 @@ func (suite *TestBudgetSuite) TestFindByIdSuccess() {
 
 func (suite *TestBudgetSuite) TestFindByIdError() {
 	require := require.New(suite.T())
-	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(nil, gorm.ErrRecordNotFound)
+	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(domain.Budget{}, gorm.ErrRecordNotFound)
 
 	res, err := suite.app.FindById(suite.ctx, suite.budgetId)
 
@@ -471,7 +471,7 @@ func (suite *TestBudgetSuite) TestChangesSuccess() {
 	categories := []domain.BudgetBillCategory{domain.Education, domain.Financial}
 	zeroFloat := 0.0
 	zeroBool := false
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &suite.budgetId,
 		Name:   &name,
 		Year:   &year,
@@ -761,7 +761,7 @@ func (suite *TestBudgetSuite) TestDeleteSuccess() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &suite.budgetId,
 		Name:   &name,
 		Year:   &year,
@@ -779,7 +779,7 @@ func (suite *TestBudgetSuite) TestDeleteSuccess() {
 func (suite *TestBudgetSuite) TestDeleteErrorSearch() {
 	require := require.New(suite.T())
 	errExpected := errors.New("Error find budget by id")
-	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(nil, errExpected)
+	suite.mockBudgetRepo.On("Search", suite.ctx, suite.budgetId).Return(domain.Budget{}, errExpected)
 
 	err := suite.app.Delete(suite.ctx, suite.budgetId)
 
@@ -791,7 +791,7 @@ func (suite *TestBudgetSuite) TestDeleteError() {
 	name := "Test"
 	year := uint16(1)
 	month := uint8(1)
-	budgetExpected := &domain.Budget{
+	budgetExpected := domain.Budget{
 		ID:     &suite.budgetId,
 		Name:   &name,
 		Year:   &year,

@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"testing"
+	mocks_domain "your-accounts-api/mocks/shared/domain"
+	mocks_persistent "your-accounts-api/mocks/shared/domain/persistent"
 	"your-accounts-api/shared/domain"
-	"your-accounts-api/shared/domain/mocks"
 	"your-accounts-api/shared/domain/persistent"
-	mocks_shared "your-accounts-api/shared/domain/persistent/mocks"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -21,9 +21,9 @@ type TestSuite struct {
 	userId                 uint
 	code                   domain.CodeLog
 	cloneId                uint
-	mockTransactionManager *mocks_shared.TransactionManager
-	mockTx                 *mocks_shared.Transaction
-	mockLogRepo            *mocks.LogRepository
+	mockTransactionManager *mocks_persistent.MockTransactionManager
+	mockTx                 *mocks_persistent.MockTransaction
+	mockLogRepo            *mocks_domain.MockLogRepository
 	app                    ILogApp
 	ctx                    context.Context
 }
@@ -37,9 +37,9 @@ func (suite *TestSuite) SetupSuite() {
 }
 
 func (suite *TestSuite) SetupTest() {
-	suite.mockTransactionManager = mocks_shared.NewTransactionManager(suite.T())
-	suite.mockTx = mocks_shared.NewTransaction(suite.T())
-	suite.mockLogRepo = mocks.NewLogRepository(suite.T())
+	suite.mockTransactionManager = mocks_persistent.NewMockTransactionManager(suite.T())
+	suite.mockTx = mocks_persistent.NewMockTransaction(suite.T())
+	suite.mockLogRepo = mocks_domain.NewMockLogRepository(suite.T())
 	suite.app = NewLogApp(suite.mockTransactionManager, suite.mockLogRepo)
 }
 

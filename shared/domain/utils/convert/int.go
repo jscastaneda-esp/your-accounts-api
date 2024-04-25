@@ -2,7 +2,7 @@ package convert
 
 import "strconv"
 
-func AsInt64(src interface{}) (int64, error) {
+func AsInt64(src any) (int64, error) {
 	switch v := src.(type) {
 	case int:
 		return int64(v), nil
@@ -37,7 +37,7 @@ func AsInt64(src interface{}) (int64, error) {
 	return 0, ErrValueIncompatibleType
 }
 
-func AsUint64(src interface{}) (uint64, error) {
+func AsUint64(src any) (uint64, error) {
 	switch v := src.(type) {
 	case int:
 		return uint64(v), nil
